@@ -2,11 +2,11 @@
 
 ### I. What It Is
 
-Veritheia is an environment for inquiry.
+Veritheia is an environment where you author your own understanding.
 
-You provide the sources—the curriculum, the library, the research—and Veritheia integrates them into a single, coherent body of knowledge.
+You provide the sources—the curriculum, the library, the research—and through Veritheia you compose your own synthesis, develop your own insights, and create your own knowledge.
 
-It is designed for educational institutions, research groups, and individuals.
+It is designed for educational institutions, research groups, and individuals who seek to develop understanding, not consume information.
 
 ### II. Architectural Imperatives
 
@@ -16,9 +16,9 @@ Its perimeter is sovereign. Its reasoning is grounded. Its structure is open.
 
 ### III. The Purpose
 
-The purpose of this architecture is to provide a foundation for disciplined thought.
+The purpose of this architecture is to ensure that your intellectual work remains yours.
 
-Its use is a formative practice.
+Through disciplined inquiry, you develop your own understanding. Through structured engagement, you author your own insights. Through formative practice, you become more capable—not more dependent.
 
 ### IV. Documentation
 

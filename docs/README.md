@@ -2,26 +2,33 @@
 
 ## Overview
 
-This directory contains the comprehensive documentation for the Veritheia system. Documents are organized by their primary concern and intended audience.
+This directory contains the comprehensive documentation for Veritheia—an environment where you author your own understanding rather than consume processed information.
+
+Start with the [VISION](./VISION.md) to understand how Veritheia ensures intellectual sovereignty.
 
 ## Documentation Index
 
 ### Core Documents (Read in Order)
 
-1. **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System design and conceptual model
-   - System components and their relationships
-   - Architectural patterns and rationale
-   - Data and process models
-   
-2. **[MVP-SPECIFICATION.md](./MVP-SPECIFICATION.md)** - Feature requirements
-   - Complete functionality listing for MVP
-   - User-facing features by component
-   - Deployment and administration features
+1. **[VISION.md](./VISION.md)** - Understanding through authorship
+   - How Veritheia ensures users remain the authors
+   - Why every output bears the author's intellectual fingerprint
+   - The architecture of intellectual sovereignty
 
-3. **[IMPLEMENTATION.md](./IMPLEMENTATION.md)** - Technical mapping
-   - Technology choices and rationale
-   - Development workflow and practices
-   - Security and performance guidelines
+2. **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System design supporting authorship
+   - Components that amplify rather than replace thinking
+   - Patterns that ensure personal understanding
+   - Models that make insights non-transferable
+   
+3. **[MVP-SPECIFICATION.md](./MVP-SPECIFICATION.md)** - Features for formation
+   - Capabilities that develop understanding
+   - Interfaces that support authorship
+   - Processes that ensure intellectual ownership
+
+4. **[IMPLEMENTATION.md](./IMPLEMENTATION.md)** - Technical foundation for sovereignty
+   - Technologies that preserve the journey
+   - Workflows that maintain context
+   - Systems that protect formation
 
 ### Planned Documents
 

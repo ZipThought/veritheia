@@ -1,6 +1,6 @@
 # Veritheia Implementation
 
-This document maps the conceptual architecture defined in ARCHITECTURE.md to concrete technical implementations.
+This document shows how technical choices ensure users remain the authors of their understanding. Every implementation decision supports intellectual sovereignty—from database schemas that preserve journey context to process interfaces that maintain personal relevance.
 
 ## Technology Mapping
 
@@ -55,7 +55,9 @@ Key entities:
 - `Document`: Raw corpus storage
 - `ProcessedContent`: Embeddings and extracted data
 - `KnowledgeScope`: Virtual knowledge boundaries
-- `Entity` & `Relationship`: Knowledge graph components
+- `ProcessDefinition`: Metadata for available processes
+- `ProcessExecution`: Process run history and state
+- `ProcessResult`: Extensible result storage using JSON columns
 
 ### Vector Storage
 
@@ -78,7 +80,14 @@ Core services registered in `Program.cs`:
 - `VeritheiaDbContext` - EF Core database context
 - `ICognitiveAdapter` - Cognitive system abstraction
 - `IKnowledgeRepository` - Knowledge layer operations
-- `IProcessRegistry` - Dynamic process management
+- `IProcessEngine` - Process execution runtime
+- `IProcessRegistry` - Process discovery and metadata
+
+Process registration pattern:
+```csharp
+services.AddScoped<IAnalyticalProcess, DocumentIngestionProcess>();
+services.AddScoped<IAnalyticalProcess, SystematicScreeningProcess>();
+```
 
 ### .NET Aspire Configuration
 
@@ -90,21 +99,73 @@ The `veritheia.AppHost` project orchestrates:
 
 ## Process Implementation
 
-### Static Processes
+### Process Interface Architecture
 
-Built-in processes in `veritheia.Core.Processes.Static`:
-- `DocumentIngestionProcess`
-- `TextExtractionProcess`
-- `EmbeddingGenerationProcess`
-- `MetadataExtractionProcess`
-
-### Dynamic Process Framework
-
-Dynamic processes implement `IAnalyticalProcess`:
+All processes implement a common interface:
 ```csharp
 public interface IAnalyticalProcess
 {
-    Task<ProcessResult> ExecuteAsync(ProcessContext context, KnowledgeScope scope);
+    ProcessDefinition GetDefinition();
+    Task<ProcessResult> ExecuteAsync(ProcessContext context);
+    IProcessResultRenderer GetResultRenderer();
+}
+
+public class ProcessDefinition
+{
+    public string ProcessType { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public ProcessTriggerType TriggerType { get; set; }
+    public InputDefinition Inputs { get; set; }
+}
+```
+
+### Platform Services (Static Processes)
+
+Core services available to all processes:
+```csharp
+public interface IPlatformServices
+{
+    IDocumentProcessor DocumentProcessor { get; }
+    ITextExtractor TextExtractor { get; }
+    IEmbeddingGenerator EmbeddingGenerator { get; }
+    IMetadataExtractor MetadataExtractor { get; }
+    IDocumentChunker DocumentChunker { get; }
+}
+```
+
+Implementation in `veritheia.Core.Processes.Static`:
+- `DocumentIngestionProcess` - Automatic pipeline for new documents
+- `TextExtractionService` - PDF and text file processing
+- `EmbeddingGenerationService` - Vector embedding creation
+- `MetadataExtractionService` - Document metadata extraction
+
+### Analytical Processes (Dynamic)
+
+Example implementation pattern:
+```csharp
+public class SystematicScreeningProcess : IAnalyticalProcess
+{
+    private readonly IKnowledgeRepository _knowledge;
+    private readonly ICognitiveAdapter _cognitive;
+    
+    public ProcessDefinition GetDefinition() => new()
+    {
+        ProcessType = "SystematicScreening",
+        Name = "Systematic Literature Review",
+        TriggerType = ProcessTriggerType.Manual,
+        Inputs = new InputDefinition()
+            .AddTextArea("researchQuestions", required: true)
+            .AddTextArea("inclusionCriteria", required: true)
+            .AddScopeSelector("scope", required: false)
+    };
+    
+    public async Task<ProcessResult> ExecuteAsync(ProcessContext context)
+    {
+        // Every step shaped by user input
+        // Results meaningful only within the specific journey
+        // Output bears the author's intellectual fingerprint
+    }
 }
 ```
 

@@ -1,10 +1,10 @@
 # Veritheia MVP: Functionality Specification
 
-This document defines the complete set of functionalities required for the Veritheia Minimum Viable Product (MVP). It focuses on delivering core value for educational institutions and research groups who need to manage and analyze document collections.
+This document defines the functionalities that ensure users author their own understanding. Every feature is designed to amplify human intellectual capability rather than replace it. The MVP delivers an environment where educational institutions and research groups develop their own insights through structured engagement with knowledge.
 
 ## I. Knowledge Database
 
-The core data layer providing passive storage and semantic access.
+The foundation that preserves intellectual materials without imposing system interpretation.
 
 ### 1.1 Ingestion & Storage
 
@@ -43,20 +43,34 @@ The core data layer providing passive storage and semantic access.
 
 ## II. Process Engine
 
-The orchestrating layer that executes all logic and workflows.
+The orchestrating layer that executes all logic and workflows through a unified process architecture.
 
-### 2.1 Static Processes (Core Services)
-
-| ID | Feature | Description |
-|---|---|---|
-| 2.1.1 | Ingestion Pipeline | Background process for new artifacts: PDF→text, metadata extraction, chunking, embedding generation, storage, auto-scope assignment |
-| 2.1.2 | Summary Generation | On-demand summary generation for artifacts via Cognitive System |
-
-### 2.2 Dynamic Processes (Analytical Workflows)
+### 2.1 Process Architecture
 
 | ID | Feature | Description |
 |---|---|---|
-| 2.2.1 | Systematic Screening | Core SLR workflow: accepts research question + optional scope, calculates semantic similarity, returns ranked artifacts |
+| 2.1.1 | Process Interface | Common interface for all processes enabling uniform execution and monitoring |
+| 2.1.2 | Process Registry | Service for process discovery and metadata retrieval |
+| 2.1.3 | Process Execution | Runtime engine that executes processes with consistent error handling and result management |
+| 2.1.4 | Event-Triggered Execution | Automatic process triggering based on system events (e.g., document upload) |
+
+### 2.2 Static Processes (Core Platform Services)
+
+| ID | Feature | Description |
+|---|---|---|
+| 2.2.1 | Document Ingestion | Automatic pipeline triggered on file upload: PDF/text extraction, chunking, embedding generation, indexing |
+| 2.2.2 | Text Extraction Service | Extract and clean text from PDFs and text files |
+| 2.2.3 | Embedding Generation | Generate vector embeddings for text chunks using configured Cognitive System |
+| 2.2.4 | Metadata Extraction | Extract title, authors, and other metadata from documents |
+| 2.2.5 | Document Chunking | Split documents into semantic chunks for processing |
+
+### 2.3 Dynamic Processes (Analytical Workflows)
+
+| ID | Feature | Description |
+|---|---|---|
+| 2.3.1 | Systematic Screening | Literature review process where users define criteria, assess relevance, and determine contribution |
+| 2.3.2 | Process Input Forms | Dynamic form generation based on process requirements |
+| 2.3.3 | Result Rendering | Process-specific result visualization and interaction |
 
 ## III. Presentation (Desktop Web Client)
 
@@ -71,22 +85,30 @@ The primary user interface for the MVP, delivered as a self-contained desktop ap
 | 3.1.3 | Artifact Detail View | Full metadata display with provenance info and scope management |
 | 3.1.4 | Artifact Deletion | Remove artifact and all associated processed data |
 
-### 3.2 Inquiry & Interaction
+### 3.2 Process Execution Interface
 
 | ID | Feature | Description |
 |---|---|---|
-| 3.2.1 | Search Interface | Unified search bar for keyword/semantic search with scope selector |
-| 3.2.2 | Screening Interface | Research question input with scope constraints |
-| 3.2.3 | Results Display | Ranked results with links to artifact details |
-| 3.2.4 | Document Viewer | Integrated PDF/text viewer |
+| 3.2.1 | Process Selection | List available analytical processes with descriptions |
+| 3.2.2 | Dynamic Input Forms | Render process-specific input forms based on process definition |
+| 3.2.3 | Execution Monitoring | Display process progress and status during execution |
+| 3.2.4 | Result Display | Process-specific result rendering (tables, visualizations, reports) |
 
-### 3.3 Scope Management
+### 3.3 Search & Discovery
 
 | ID | Feature | Description |
 |---|---|---|
-| 3.3.1 | Scope Manager | Tree view UI for scope hierarchy with CRUD operations and statistics |
-| 3.3.2 | Bulk Assignment | Multi-select artifacts for bulk scope assignment |
-| 3.3.3 | Scope Navigation | "Enter" scope to constrain all operations |
+| 3.3.1 | Search Interface | Unified search bar for keyword/semantic search with scope selector |
+| 3.3.2 | Document Viewer | Integrated PDF/text viewer for artifact content |
+| 3.3.3 | Artifact Navigation | Browse between search results and artifact details |
+
+### 3.4 Scope Management
+
+| ID | Feature | Description |
+|---|---|---|
+| 3.4.1 | Scope Manager | Tree view UI for scope hierarchy with CRUD operations and statistics |
+| 3.4.2 | Bulk Assignment | Multi-select artifacts for bulk scope assignment |
+| 3.4.3 | Scope Navigation | "Enter" scope to constrain all operations |
 
 ## IV. Cognitive System
 
