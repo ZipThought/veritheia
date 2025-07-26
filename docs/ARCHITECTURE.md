@@ -39,38 +39,32 @@ This is the core logical and orchestrating tier. It is the only component with t
 
 The Presentation tier is any client that interacts with the system via the Process Engine's formal API.
 
-### III. Technology Specification
+### III. Architectural Patterns
 
-#### 1. Database System: PostgreSQL with `pgvector`
+#### 1. Database Architecture
 
-The specified database for the Knowledge Database is **PostgreSQL** with the **`pgvector`** extension.
+The Knowledge Database employs a unified storage model that supports both structured relational data and high-dimensional vector representations.
 
-*   **Function:** This provides a unified store for both structured, relational metadata and high-dimensional vector embeddings.
+*   **Rationale:** A unified storage approach reduces operational complexity and ensures data consistency across different representation types.
 
-*   **Rationale:** Utilizing a single database system for both data types simplifies the technology stack, reduces operational overhead, and mitigates data consistency issues that can arise from using separate relational and vector databases.
+#### 2. Client Architecture
 
-#### 2. Web Client: Blazor
+The Presentation tier implements a web-based interface that maintains architectural separation from backend services.
 
-The primary web client will be implemented using **Blazor**.
+*   **Rationale:** This separation ensures that presentation logic remains independent of business logic and data access concerns.
 
-*   **Function:** This framework enables the development of the client-side user interface using C#.
+#### 3. Cognitive System Integration: Adapter Pattern
 
-*   **Rationale:** A unified C# codebase allows for the sharing of data models and validation logic between the ASP.NET Core backend (Process Engine) and the client, reducing code duplication and potential for divergence.
+The Process Engine interacts with the Cognitive System through a standardized adapter interface.
 
-#### 3. Cognitive System Interface: Adaptor Pattern
+*   **Function:** This pattern defines a contract for cognitive operations (text generation, embedding creation) while abstracting implementation details.
 
-Interaction between the Process Engine and the Cognitive System is mediated by an **Adaptor Interface**.
+*   **Rationale:** The adapter pattern enables deployment-time selection of cognitive backends without modifying core application logic. This supports integration with:
+    *   Abstraction frameworks
+    *   Vendor-specific implementations
+    *   Local inference engines
 
-*   **Function:** The Process Engine codes against a standard C# interface (e.g., `ICognitiveAdaptor`) that defines a set of cognitive operations (e.g., `GenerateTextAsync`, `CreateEmbeddingsAsync`).
-
-*   **Rationale:** This design pattern decouples the Process Engine's core logic from the specific implementation of any given LLM or framework. Concrete implementations of the interface can be developed to support:
-    *   **Abstraction Frameworks:** e.g., Microsoft Semantic Kernel, LangChain for .NET.
-
-    *   **Vendor SDKs:** e.g., the official OpenAI .NET library.
-
-    *   **Local Inference Engines:** e.g., `llama.cpp` via P/Invoke.
-
-This allows the cognitive backend to be selected and configured at deployment time without requiring modifications to the core application logic.
+This architectural pattern ensures the system remains agnostic to specific cognitive implementations.
 
 ### IV. Data Model
 

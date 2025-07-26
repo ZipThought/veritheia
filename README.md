@@ -20,7 +20,23 @@ The purpose of this architecture is to provide a foundation for disciplined thou
 
 Its use is a formative practice.
 
-### IV. Provenance
+### IV. Documentation
+
+- **[Architecture](docs/ARCHITECTURE.md)** - Conceptual design and system topology
+- **[MVP Specification](docs/MVP-SPECIFICATION.md)** - Functional requirements and features
+- **[Implementation](docs/IMPLEMENTATION.md)** - Technical details and development guide
+
+### V. Quick Start
+
+```bash
+# Build the solution
+dotnet build
+
+# Run with .NET Aspire
+dotnet run --project veritheia.AppHost
+```
+
+### VI. Provenance
 
 The architecture and its methodologies are derived from the following research.
 
