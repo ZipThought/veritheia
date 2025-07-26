@@ -11,10 +11,15 @@ plugins:
   - jekyll-seo-tag
   - jekyll-sitemap
 
-# Use README.md as the homepage
-readme_index:
-  enabled: true
-  remove_originals: false
+# Header pages (explicitly empty to disable auto-navigation)
+header_pages: []
+
+# Optional front matter for all pages
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: "default"
 
 # Markdown settings
 markdown: kramdown

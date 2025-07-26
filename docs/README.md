@@ -1,9 +1,3 @@
----
-layout: home
-title: Documentation
-permalink: /
----
-
 # Veritheia Documentation
 
 ## Overview
