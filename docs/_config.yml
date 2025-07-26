@@ -1,0 +1,33 @@
+# Jekyll configuration for Veritheia documentation
+title: Veritheia Documentation
+description: An environment for inquiry - comprehensive documentation
+baseurl: "/veritheia" # the subpath of your site, e.g. /blog
+url: "" # will be set automatically by GitHub Pages
+
+# Theme settings
+theme: minima
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+# Use README.md as the homepage
+readme_index:
+  enabled: true
+  remove_originals: false
+
+# Markdown settings
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+# Exclude files from processing
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/

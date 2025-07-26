@@ -45,3 +45,10 @@ artifacts/
 
 # Local environment
 appsettings.Local.json
+
+# Jekyll / GitHub Pages
+_site/
+.sass-cache/
+.jekyll-cache/
+.jekyll-metadata
+vendor/

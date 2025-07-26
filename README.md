@@ -22,9 +22,13 @@ Its use is a formative practice.
 
 ### IV. Documentation
 
-- **[Architecture](docs/ARCHITECTURE.md)** - Conceptual design and system topology
-- **[MVP Specification](docs/MVP-SPECIFICATION.md)** - Functional requirements and features
-- **[Implementation](docs/IMPLEMENTATION.md)** - Technical details and development guide
+Comprehensive project documentation is available in the [docs](docs/) directory:
+
+- [Documentation Index](docs/README.md) - Complete guide to all documentation
+- [Architecture](docs/ARCHITECTURE.md) - System design and conceptual model
+- [MVP Specification](docs/MVP-SPECIFICATION.md) - Feature requirements and functionality
+- [Implementation](docs/IMPLEMENTATION.md) - Technical details and development guide
+
 
 ### V. Quick Start
 
