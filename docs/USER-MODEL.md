@@ -171,18 +171,25 @@ Observers can see without modifying the journey.
 
 ## Journal Sharing (Future)
 
-While journeys remain personal, journals can become community resources:
+While journeys remain personal, journals can become community resources that advance collective understanding without compromising individual sovereignty:
 
-### Shareable Journal Types
-- **Method Journals**: "How I approach systematic reviews"
-- **Reflection Journals**: "Lessons from my PhD journey"
-- **Decision Journals**: "Why I made these choices"
+### What Gets Shared
+- **Method Journals**: Epistemic patterns that shaped discovery (like choosing GPT-4 exploration vs. systematic screening)
+- **Configuration Journals**: How domain expertise was encoded (defining "contextualized AI" for cybersecurity)
+- **Constraint Journals**: Guardrails that ensured quality (EdgePrompt's validation stages)
+- **Formation Journals**: Patterns of intellectual development
+
+### What Remains Sovereign
+- The personal journey that gave rise to insights
+- The specific understanding developed
+- The intellectual fingerprint of discovery
+- The meaning within individual context
 
 ### Sharing Principles
-- Journals are coherent narratives
-- Attribution preserved
-- Context provided
-- Formation supported, not shortcut
+- Patterns are transferable, understanding is not
+- Methods can be adopted, insights must be re-discovered
+- Configurations can guide, but require domain expertise to apply
+- Attribution preserved as intellectual lineage
 
 ### Journal Libraries
 Collections of shared journals:

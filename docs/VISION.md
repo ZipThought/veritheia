@@ -44,6 +44,7 @@ When completing a systematic literature review in Veritheia, what emerges is not
 - The relevance assessments reflect personal understanding of the field
 - The synthesis emerges from individual conceptual framework
 - The conclusions are reached through specific reasoning
+- The methodology shapes what can be discovered
 
 The system ensures this by making every step dependent on active engagement. It cannot produce a review without the author because the review IS the author—questions made systematic, understanding made explicit.
 
@@ -92,6 +93,8 @@ For researchers, Veritheia changes the relationship with literature. Instead of 
 - Theoretical frameworks deepen through encounter  
 - Scholarly voice emerges through synthesis
 - Contribution becomes clearer through contrast
+- Domain expertise configures how AI assists
+- Methodological choices fundamentally shape outcomes
 
 The system amplifies scholarly capability without replacing scholarly judgment.
 

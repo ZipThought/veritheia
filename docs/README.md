@@ -61,16 +61,22 @@ Start with the [VISION](./VISION.md) to understand how Veritheia ensures intelle
    - Repository and service patterns
 
 10. **[ENTITY-RELATIONSHIP.md](./ENTITY-RELATIONSHIP.md)** - Database schema and data model
-   - PostgreSQL schema with pgvector extension
-   - Comprehensive ERD using Mermaid
-   - Table definitions with indexes
-   - Migration strategy and security patterns
+    - PostgreSQL schema with pgvector extension
+    - Comprehensive ERD using Mermaid
+    - Table definitions with indexes
+    - Migration strategy and security patterns
 
 11. **[TESTING-STRATEGY.md](./TESTING-STRATEGY.md)** - Test types, coverage expectations, and behavioral specs
-   - Testing philosophy aligned with formation principles
-   - Unit, integration, and behavioral test patterns
-   - Context assembly and journey integrity tests
-   - Extension testing guidelines
+    - Testing philosophy aligned with formation principles
+    - Unit, integration, and behavioral test patterns
+    - Context assembly and journey integrity tests
+    - Extension testing guidelines
+
+12. **[PROMPT-ENGINEERING.md](./PROMPT-ENGINEERING.md)** - Prompt patterns that maintain formation boundaries
+    - Role constraints for AI assistance
+    - Context assembly from journey and journals
+    - Validation patterns preventing insight generation
+    - Anti-patterns and required patterns
 
 ### Planned Documents
 - **DEPLOYMENT-GUIDE.md** - Production deployment procedures
