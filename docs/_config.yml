@@ -1,8 +1,8 @@
 # Jekyll configuration for Veritheia documentation
 title: Veritheia Documentation
 description: An environment for inquiry - complete documentation
-baseurl: "/veritheia" # the subpath of your site, e.g. /blog
-url: "" # will be set automatically by GitHub Pages
+baseurl: "" # the subpath of your site, e.g. /blog
+url: "https://veritheia.org"
 
 # Theme settings
 remote_theme: pages-themes/minimal@v0.2.0
