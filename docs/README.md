@@ -48,9 +48,13 @@ Start with the [VISION](./VISION.md) to understand how Veritheia ensures intelle
    - Journals as narrative records
    - Future sharing patterns
 
-### Planned Documents
+8. **[CLASS-MODEL.md](./CLASS-MODEL.md)** - Core domain classes and their relationships
+   - Comprehensive Mermaid class diagram
+   - Aggregate boundaries and design principles
+   - Process-specific domain models
+   - Repository and service patterns
 
-- **CLASS-MODEL.md** - Core domain classes and their relationships
+### Planned Documents
 - **ENTITY-RELATIONSHIP.md** - Database schema and data model
 - **TESTING-STRATEGY.md** - Test types, coverage expectations, and behavioral specs
 - **DEPLOYMENT-GUIDE.md** - Production deployment procedures
