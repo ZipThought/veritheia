@@ -1,27 +1,34 @@
 # Entity-Relationship Model
 
-This document defines the database schema that persists Veritheia's domain model. The schema ensures data integrity while supporting the principle that users author their own understanding.
+This document defines the database schema that persists Veritheia's domain model. The schema clearly separates core platform tables (required for all deployments) from extension tables (process-specific additions).
 
 ## Database Overview
 
-Veritheia uses PostgreSQL 16 with the pgvector extension for unified storage of relational data and vector embeddings. The schema is organized into logical areas that reflect the domain aggregates.
+Veritheia uses PostgreSQL 16 with the pgvector extension for unified storage of relational data and vector embeddings. The schema is organized into core platform areas and extension areas.
 
-## Entity-Relationship Diagram
+## Naming Conventions
+
+Classes use singular names (User, Document) while database tables use plural (users, documents). This follows standard conventions for each domain.
+
+## Core Platform Schema
+
+These tables are required for all Veritheia deployments and cannot be modified by extensions.
+
+### Core Platform ERD
 
 ```mermaid
 erDiagram
-    %% User and Identity Tables
-    Users {
+    %% User and Identity Tables (Core)
+    users {
         uuid id PK
         varchar email UK
         varchar display_name
-        uuid persona_id FK
         timestamp last_active_at
         timestamp created_at
         timestamp updated_at
     }
 
-    Personas {
+    personas {
         uuid id PK
         uuid user_id FK UK
         jsonb conceptual_vocabulary
@@ -33,7 +40,7 @@ erDiagram
         timestamp updated_at
     }
 
-    ProcessCapabilities {
+    process_capabilities {
         uuid id PK
         uuid user_id FK
         varchar process_type
@@ -42,8 +49,8 @@ erDiagram
         timestamp created_at
     }
 
-    %% Journey and Journal Tables
-    Journeys {
+    %% Journey and Journal Tables (Core)
+    journeys {
         uuid id PK
         uuid user_id FK
         varchar process_type
@@ -54,7 +61,7 @@ erDiagram
         timestamp updated_at
     }
 
-    Journals {
+    journals {
         uuid id PK
         uuid journey_id FK
         varchar type
@@ -63,7 +70,7 @@ erDiagram
         timestamp updated_at
     }
 
-    JournalEntries {
+    journal_entries {
         uuid id PK
         uuid journal_id FK
         text content
@@ -73,8 +80,8 @@ erDiagram
         timestamp created_at
     }
 
-    %% Knowledge Tables
-    Documents {
+    %% Knowledge Tables (Core)
+    documents {
         uuid id PK
         varchar file_name
         varchar mime_type
@@ -86,7 +93,7 @@ erDiagram
         timestamp updated_at
     }
 
-    DocumentMetadata {
+    document_metadata {
         uuid id PK
         uuid document_id FK UK
         varchar title
@@ -97,7 +104,7 @@ erDiagram
         timestamp updated_at
     }
 
-    ProcessedContents {
+    processed_contents {
         uuid id PK
         uuid document_id FK
         text content
@@ -110,7 +117,7 @@ erDiagram
         timestamp created_at
     }
 
-    KnowledgeScopes {
+    knowledge_scopes {
         uuid id PK
         varchar name
         text description
@@ -120,8 +127,8 @@ erDiagram
         timestamp updated_at
     }
 
-    %% Process Tables
-    ProcessDefinitions {
+    %% Process Tables (Core)
+    process_definitions {
         uuid id PK
         varchar process_type UK
         varchar name
@@ -134,7 +141,7 @@ erDiagram
         timestamp updated_at
     }
 
-    ProcessExecutions {
+    process_executions {
         uuid id PK
         uuid journey_id FK
         varchar process_type
@@ -147,7 +154,7 @@ erDiagram
         timestamp updated_at
     }
 
-    ProcessResults {
+    process_results {
         uuid id PK
         uuid execution_id FK UK
         varchar process_type
@@ -157,87 +164,46 @@ erDiagram
         timestamp created_at
     }
 
-    %% Process-Specific Tables
-    Assignments {
-        uuid id PK
-        varchar title
-        text prompt
-        text source_material
-        jsonb constraints
-        jsonb rubric
-        uuid teacher_id FK
-        boolean is_active
-        timestamp created_at
-        timestamp updated_at
-    }
+    %% Core Relationships
+    users ||--o{ personas : "has"
+    users ||--o{ process_capabilities : "granted"
+    users ||--o{ journeys : "owns"
 
-    StudentSubmissions {
-        uuid id PK
-        uuid assignment_id FK
-        uuid student_id FK
-        text response
-        timestamp submitted_at
-        timestamp created_at
-    }
+    journeys ||--o{ journals : "contains"
+    journeys ||--o{ process_executions : "tracks"
 
-    EvaluationResults {
-        uuid id PK
-        uuid submission_id FK UK
-        decimal score
-        decimal max_score
-        jsonb category_scores
-        text[] feedback
-        boolean is_overridden
-        text override_justification
-        timestamp created_at
-    }
+    journals ||--o{ journal_entries : "records"
 
-    %% Relationships
-    Users ||--|| Personas : "has"
-    Users ||--o{ ProcessCapabilities : "granted"
-    Users ||--o{ Journeys : "owns"
-    Users ||--o{ Assignments : "creates"
+    documents ||--|| document_metadata : "has"
+    documents ||--o{ processed_contents : "generates"
+    documents }o--o| knowledge_scopes : "organized by"
 
-    Journeys ||--o{ Journals : "contains"
-    Journeys ||--o{ ProcessExecutions : "tracks"
+    knowledge_scopes ||--o{ knowledge_scopes : "contains"
 
-    Journals ||--o{ JournalEntries : "records"
-
-    Documents ||--|| DocumentMetadata : "has"
-    Documents ||--o{ ProcessedContents : "generates"
-    Documents }o--o| KnowledgeScopes : "organized by"
-
-    KnowledgeScopes ||--o{ KnowledgeScopes : "contains"
-
-    ProcessExecutions ||--o| ProcessResults : "produces"
-
-    Assignments ||--o{ StudentSubmissions : "receives"
-    StudentSubmissions ||--|| EvaluationResults : "generates"
+    process_executions ||--o| process_results : "produces"
 ```
 
-## Table Definitions
+### Core Table Definitions
 
-### User Domain Tables
+#### User Domain Tables
 
-#### Users
+##### users
 Primary table for user accounts:
 ```sql
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) UNIQUE NOT NULL,
     display_name VARCHAR(255) NOT NULL,
-    persona_id UUID,
     last_active_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE,
-    CONSTRAINT fk_persona FOREIGN KEY (persona_id) REFERENCES personas(id)
+    updated_at TIMESTAMP WITH TIME ZONE
 );
 
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_last_active ON users(last_active_at);
 ```
 
-#### Personas
+##### personas
 Evolving representation of user's intellectual style:
 ```sql
 CREATE TABLE personas (
@@ -254,7 +220,7 @@ CREATE TABLE personas (
 );
 ```
 
-#### ProcessCapabilities
+##### process_capabilities
 Tracks which processes users can access:
 ```sql
 CREATE TABLE process_capabilities (
@@ -271,9 +237,9 @@ CREATE TABLE process_capabilities (
 CREATE INDEX idx_capabilities_user ON process_capabilities(user_id);
 ```
 
-### Journey Domain Tables
+#### Journey Domain Tables
 
-#### Journeys
+##### journeys
 Represents user engagement with processes:
 ```sql
 CREATE TABLE journeys (
@@ -294,7 +260,7 @@ CREATE INDEX idx_journeys_state ON journeys(state);
 CREATE INDEX idx_journeys_process ON journeys(process_type);
 ```
 
-#### Journals
+##### journals
 Narrative records within journeys:
 ```sql
 CREATE TABLE journals (
@@ -312,7 +278,7 @@ CREATE INDEX idx_journals_journey ON journals(journey_id);
 CREATE INDEX idx_journals_type ON journals(type);
 ```
 
-#### JournalEntries
+##### journal_entries
 Individual narrative entries:
 ```sql
 CREATE TABLE journal_entries (
@@ -333,9 +299,9 @@ CREATE INDEX idx_entries_tags ON journal_entries USING GIN(tags);
 CREATE INDEX idx_entries_created ON journal_entries(created_at DESC);
 ```
 
-### Knowledge Domain Tables
+#### Knowledge Domain Tables
 
-#### Documents
+##### documents
 Source materials in the knowledge base:
 ```sql
 CREATE TABLE documents (
@@ -355,7 +321,7 @@ CREATE INDEX idx_documents_scope ON documents(scope_id);
 CREATE INDEX idx_documents_uploaded ON documents(uploaded_at DESC);
 ```
 
-#### DocumentMetadata
+##### document_metadata
 Extracted document properties:
 ```sql
 CREATE TABLE document_metadata (
@@ -374,7 +340,7 @@ CREATE INDEX idx_metadata_title ON document_metadata(title);
 CREATE INDEX idx_metadata_authors ON document_metadata USING GIN(authors);
 ```
 
-#### ProcessedContents
+##### processed_contents
 Chunked and embedded document content:
 ```sql
 CREATE TABLE processed_contents (
@@ -396,7 +362,7 @@ CREATE INDEX idx_processed_chunk ON processed_contents(document_id, chunk_index)
 CREATE INDEX idx_embeddings ON processed_contents USING ivfflat (embedding vector_cosine_ops);
 ```
 
-#### KnowledgeScopes
+##### knowledge_scopes
 Organizational boundaries for documents:
 ```sql
 CREATE TABLE knowledge_scopes (
@@ -415,9 +381,9 @@ CREATE INDEX idx_scopes_parent ON knowledge_scopes(parent_scope_id);
 CREATE INDEX idx_scopes_type ON knowledge_scopes(type);
 ```
 
-### Process Domain Tables
+#### Process Infrastructure Tables
 
-#### ProcessDefinitions
+##### process_definitions
 Metadata for available processes:
 ```sql
 CREATE TABLE process_definitions (
@@ -436,7 +402,7 @@ CREATE TABLE process_definitions (
 );
 ```
 
-#### ProcessExecutions
+##### process_executions
 Tracks process runs:
 ```sql
 CREATE TABLE process_executions (
@@ -459,7 +425,7 @@ CREATE INDEX idx_executions_state ON process_executions(state);
 CREATE INDEX idx_executions_started ON process_executions(started_at DESC);
 ```
 
-#### ProcessResults
+##### process_results
 Stores process outputs:
 ```sql
 CREATE TABLE process_results (
@@ -474,9 +440,111 @@ CREATE TABLE process_results (
 );
 ```
 
-### Process-Specific Tables
+## Extension Schemas
 
-#### Assignments
+These tables demonstrate how processes extend the platform. New processes can follow either pattern.
+
+### Systematic Screening Extension
+
+The Systematic Screening process stores all its data in ProcessResult.data as JSONB - no additional tables needed.
+
+#### Storage Pattern
+```sql
+-- Example of screening results stored in process_results.data:
+{
+    "results": [
+        {
+            "documentId": "uuid",
+            "isRelevant": true,
+            "relevanceScore": 0.85,
+            "relevanceRationale": "...",
+            "contributesToRQ": true,
+            "contributionScore": 0.92,
+            "contributionRationale": "...",
+            "addressedQuestions": ["RQ1", "RQ2"]
+        }
+    ],
+    "researchQuestions": "RQ1: ..., RQ2: ...",
+    "definitions": { "term": "definition" }
+}
+```
+
+#### Query Examples
+```sql
+-- Find all relevant documents from a screening
+SELECT 
+    pr.data->>'documentId' as document_id,
+    pr.data->>'relevanceScore' as score
+FROM process_results pr
+WHERE pr.process_type = 'SystematicScreening'
+    AND pr.execution_id = 'specific-execution-id'
+    AND (pr.data->>'isRelevant')::boolean = true;
+
+-- Get high-contribution documents across all screenings
+SELECT DISTINCT
+    result->>'documentId' as document_id,
+    MAX((result->>'contributionScore')::decimal) as max_score
+FROM process_results pr,
+    jsonb_array_elements(pr.data->'results') as result
+WHERE pr.process_type = 'SystematicScreening'
+    AND (result->>'contributesToRQ')::boolean = true
+GROUP BY result->>'documentId'
+HAVING MAX((result->>'contributionScore')::decimal) > 0.8;
+```
+
+### Guided Composition Extension
+
+The Guided Composition process uses dedicated tables for complex educational workflows.
+
+#### Extension ERD
+
+```mermaid
+erDiagram
+    %% Guided Composition Extension Tables
+    assignments {
+        uuid id PK
+        varchar title
+        text prompt
+        text source_material
+        jsonb constraints
+        jsonb rubric
+        uuid teacher_id FK
+        boolean is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    student_submissions {
+        uuid id PK
+        uuid assignment_id FK
+        uuid student_id FK
+        text response
+        timestamp submitted_at
+        timestamp created_at
+    }
+
+    evaluation_results {
+        uuid id PK
+        uuid submission_id FK UK
+        decimal score
+        decimal max_score
+        jsonb category_scores
+        text[] feedback
+        boolean is_overridden
+        text override_justification
+        timestamp created_at
+    }
+
+    %% Extension Relationships
+    assignments ||--o{ student_submissions : "receives"
+    student_submissions ||--|| evaluation_results : "generates"
+    users ||--o{ assignments : "creates as teacher"
+    users ||--o{ student_submissions : "creates as student"
+```
+
+#### Extension Table Definitions
+
+##### assignments
 Educational assignments for Guided Composition:
 ```sql
 CREATE TABLE assignments (
@@ -497,7 +565,7 @@ CREATE INDEX idx_assignments_teacher ON assignments(teacher_id);
 CREATE INDEX idx_assignments_active ON assignments(is_active);
 ```
 
-#### StudentSubmissions
+##### student_submissions
 Responses to assignments:
 ```sql
 CREATE TABLE student_submissions (
@@ -516,7 +584,7 @@ CREATE INDEX idx_submissions_assignment ON student_submissions(assignment_id);
 CREATE INDEX idx_submissions_student ON student_submissions(student_id);
 ```
 
-#### EvaluationResults
+##### evaluation_results
 Grading results with override capability:
 ```sql
 CREATE TABLE evaluation_results (
@@ -532,6 +600,67 @@ CREATE TABLE evaluation_results (
     CONSTRAINT fk_submission FOREIGN KEY (submission_id) REFERENCES student_submissions(id) ON DELETE CASCADE
 );
 ```
+
+## Extension Guidelines
+
+### When to Use ProcessResult.data (JSONB)
+
+Choose JSONB storage when:
+- Results are read-mostly after creation
+- Don't need complex relational queries
+- Want to avoid schema migrations
+- Data is naturally document-oriented
+- Results are tightly coupled to single execution
+
+Benefits:
+- No schema changes needed
+- Flexible data structure
+- Fast to implement
+- Good for analytical results
+
+### When to Use Dedicated Tables
+
+Choose dedicated tables when:
+- Need referential integrity (foreign keys)
+- Require complex queries or joins
+- Have ongoing state management
+- Need efficient updates to specific fields
+- Data lives beyond single execution
+
+Benefits:
+- Full relational capabilities
+- Better query performance
+- Data integrity guarantees
+- Supports complex workflows
+
+## Design Trade-offs
+
+### Array Types
+We use PostgreSQL arrays for:
+- `tags TEXT[]` in journal_entries
+- `authors TEXT[]` in document_metadata
+
+Rationale:
+- Avoids join complexity for read-heavy operations
+- PostgreSQL GIN indexes provide efficient array queries
+- These arrays are bounded (few tags per entry, few authors per document)
+- Simplifies the domain model
+
+Future normalization could be added if:
+- Need for author deduplication across documents
+- Complex tag hierarchies or synonyms
+- Cross-journal tag analytics
+
+### JSONB Usage
+Extensive use of JSONB for:
+- Flexible metadata storage
+- Process-specific data
+- Evolution without migration
+
+Trade-offs accepted:
+- Less strict schema validation
+- Potential for data inconsistency
+- Compensated by application-level validation
 
 ## Indexes and Performance
 
@@ -568,10 +697,11 @@ CREATE INDEX idx_results_data ON process_results USING GIN(data);
 ## Migration Strategy
 
 ### Initial Schema Creation
-1. Create tables in dependency order
-2. Add foreign key constraints
-3. Create indexes
-4. Set up triggers and functions
+1. Create core tables first (in dependency order)
+2. Create extension tables per process
+3. Add all foreign key constraints
+4. Create indexes
+5. Set up triggers and functions
 
 ### Version Management
 ```sql
@@ -581,12 +711,11 @@ CREATE TABLE schema_migrations (
 );
 ```
 
-### Data Migration Patterns
-- Use transactions for atomic changes
-- Create new columns as nullable first
-- Backfill data in batches
-- Add constraints after data migration
-- Drop old columns in separate migration
+### Adding New Extensions
+1. Create extension tables in separate migration
+2. Use extension-specific schema or table prefix
+3. Reference only core tables, never other extensions
+4. Document storage pattern choice
 
 ## Security Considerations
 
@@ -600,6 +729,12 @@ CREATE POLICY journeys_owner_policy ON journeys
     TO application_role
     USING (user_id = current_setting('app.current_user_id')::UUID);
 ```
+
+### Extension Isolation
+- Extensions cannot modify core tables
+- Extensions cannot query other extensions' tables
+- All extension data must relate to core entities
+- Process isolation enforced at application layer
 
 ### Audit Trails
 ```sql
@@ -634,9 +769,26 @@ $$ LANGUAGE plpgsql;
 - Separate backup of Raw Corpus files
 
 ### Data Retention
+- Core platform data: Indefinite
 - Journal entries: Indefinite (core to formation)
 - Process executions: 1 year minimum
-- Processed content: While document exists
+- Extension data: Per process requirements
 - Audit logs: 7 years
 
-The schema ensures data integrity while supporting the core principle that users author their own understanding through persistent, traceable intellectual journeys.
+## Platform Evolution
+
+### Core Schema Stability
+Core tables have strict backward compatibility:
+- New columns must be nullable or have defaults
+- Existing columns cannot change type
+- Relationships cannot be broken
+- Indexes can be added but not removed
+
+### Extension Flexibility
+Extensions can evolve freely:
+- Add/modify tables as needed
+- Change storage patterns
+- Migrate between JSONB and tables
+- Must maintain core table references
+
+The schema ensures data integrity while supporting the core principle that users author their own understanding through persistent, traceable intellectual journeys, with clear boundaries between platform and extensions.

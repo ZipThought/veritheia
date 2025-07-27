@@ -1,8 +1,38 @@
 # Class Model
 
-This document defines the core domain classes and their relationships within Veritheia. The model ensures that every class serves the principle of users authoring their own understanding.
+This document defines the core domain classes and their relationships within Veritheia. The model clearly separates the core platform (which all deployments require) from process-specific extensions (which demonstrate extensibility patterns).
 
-## Class Diagram
+## Overview Diagram
+
+```mermaid
+classDiagram
+    namespace CorePlatform {
+        class BaseEntity
+        class User
+        class Journey
+        class Document
+        class ProcessExecution
+    }
+    
+    namespace SystematicScreeningExtension {
+        class ScreeningResult
+    }
+    
+    namespace GuidedCompositionExtension {
+        class Assignment
+        class StudentSubmission
+        class EvaluationResult
+    }
+    
+    ProcessResult ..> ScreeningResult : stores in data
+    User ..> Assignment : creates
+```
+
+## Core Platform Classes
+
+These classes form the foundation that all processes depend on. They cannot be modified by extensions.
+
+### Core Platform Class Diagram
 
 ```mermaid
 classDiagram
@@ -14,11 +44,10 @@ classDiagram
         +DateTime? UpdatedAt
     }
 
-    %% User and Journey Classes
+    %% User and Journey Domain (Core)
     class User {
         +string Email
         +string DisplayName
-        +Guid PersonaId
         +DateTime LastActiveAt
         +ICollection~Journey~ Journeys
         +ICollection~ProcessCapability~ Capabilities
@@ -61,7 +90,15 @@ classDiagram
         +Journal Journal
     }
 
-    %% Knowledge Classes
+    class ProcessCapability {
+        +Guid UserId
+        +string ProcessType
+        +bool IsEnabled
+        +DateTime GrantedAt
+        +User User
+    }
+
+    %% Knowledge Domain (Core)
     class Document {
         +string FileName
         +string MimeType
@@ -105,7 +142,7 @@ classDiagram
         +ICollection~Document~ Documents
     }
 
-    %% Process Classes
+    %% Process Infrastructure (Core)
     class ProcessDefinition {
         +string ProcessType
         +string Name
@@ -137,73 +174,47 @@ classDiagram
         +ProcessExecution Execution
     }
 
-    %% Process-Specific Classes
-    class Assignment {
-        +string Title
-        +string Prompt
-        +string SourceMaterial
-        +Dictionary~string,object~ Constraints
-        +Dictionary~string,object~ Rubric
-        +Guid TeacherId
-        +bool IsActive
-        +ICollection~StudentSubmission~ Submissions
-    }
+    %% Core Relationships
+    BaseEntity <|-- User
+    BaseEntity <|-- Persona
+    BaseEntity <|-- Journey
+    BaseEntity <|-- Journal
+    BaseEntity <|-- JournalEntry
+    BaseEntity <|-- Document
+    BaseEntity <|-- DocumentMetadata
+    BaseEntity <|-- ProcessedContent
+    BaseEntity <|-- KnowledgeScope
+    BaseEntity <|-- ProcessDefinition
+    BaseEntity <|-- ProcessExecution
+    BaseEntity <|-- ProcessResult
+    BaseEntity <|-- ProcessCapability
 
-    class StudentSubmission {
-        +Guid AssignmentId
-        +Guid StudentId
-        +string Response
-        +DateTime SubmittedAt
-        +EvaluationResult Evaluation
-        +Assignment Assignment
-    }
+    User "1" --> "0..1" Persona : has
+    User "1" --> "*" Journey : owns
+    User "1" --> "*" ProcessCapability : granted
 
-    class EvaluationResult {
-        +Guid SubmissionId
-        +decimal Score
-        +decimal MaxScore
-        +Dictionary~string,decimal~ CategoryScores
-        +List~string~ Feedback
-        +bool IsOverridden
-        +string? OverrideJustification
-        +StudentSubmission Submission
-    }
+    Journey "1" --> "*" Journal : contains
+    Journey "1" --> "*" ProcessExecution : tracks
+    Journey "*" --> "1" User : belongs to
 
-    class ScreeningResult {
-        +Guid DocumentId
-        +bool IsRelevant
-        +decimal RelevanceScore
-        +string RelevanceRationale
-        +bool ContributesToRQ
-        +decimal ContributionScore
-        +string ContributionRationale
-        +List~string~ AddressedQuestions
-    }
+    Journal "1" --> "*" JournalEntry : records
+    Journal "*" --> "1" Journey : documents
 
-    %% Supporting Classes
-    class ProcessCapability {
-        +Guid UserId
-        +string ProcessType
-        +bool IsEnabled
-        +DateTime GrantedAt
-        +User User
-    }
+    Document "1" --> "1" DocumentMetadata : has
+    Document "1" --> "*" ProcessedContent : generates
+    Document "*" --> "0..1" KnowledgeScope : organized by
 
-    class InquiryPattern {
-        +string PatternType
-        +string Description
-        +int OccurrenceCount
-        +DateTime LastObserved
-    }
+    KnowledgeScope "1" --> "*" KnowledgeScope : contains
+    KnowledgeScope "*" --> "0..1" KnowledgeScope : child of
 
-    class FormationMarker {
-        +DateTime OccurredAt
-        +string InsightDescription
-        +Guid JourneyId
-        +string Context
-    }
+    ProcessExecution "1" --> "0..1" ProcessResult : produces
+    ProcessExecution "*" --> "1" Journey : part of
+```
 
-    %% Enumerations
+### Core Enumerations
+
+```mermaid
+classDiagram
     class JourneyState {
         <<enumeration>>
         Active
@@ -260,51 +271,16 @@ classDiagram
         Subject
         Custom
     }
+```
 
-    %% Relationships
-    BaseEntity <|-- User
-    BaseEntity <|-- Persona
-    BaseEntity <|-- Journey
-    BaseEntity <|-- Journal
-    BaseEntity <|-- JournalEntry
-    BaseEntity <|-- Document
-    BaseEntity <|-- DocumentMetadata
-    BaseEntity <|-- ProcessedContent
-    BaseEntity <|-- KnowledgeScope
-    BaseEntity <|-- ProcessDefinition
-    BaseEntity <|-- ProcessExecution
-    BaseEntity <|-- ProcessResult
-    BaseEntity <|-- Assignment
-    BaseEntity <|-- StudentSubmission
-    BaseEntity <|-- EvaluationResult
-    BaseEntity <|-- ProcessCapability
+### Core Value Objects
 
-    User "1" --> "1" Persona : has
-    User "1" --> "*" Journey : owns
-    User "1" --> "*" ProcessCapability : granted
+These are transient or stored as JSONB within core entities:
 
-    Journey "1" --> "*" Journal : contains
-    Journey "1" --> "*" ProcessExecution : tracks
-    Journey "*" --> "1" User : belongs to
-
-    Journal "1" --> "*" JournalEntry : records
-    Journal "*" --> "1" Journey : documents
-
-    Document "1" --> "1" DocumentMetadata : has
-    Document "1" --> "*" ProcessedContent : generates
-    Document "*" --> "0..1" KnowledgeScope : organized by
-
-    KnowledgeScope "1" --> "*" KnowledgeScope : contains
-    KnowledgeScope "*" --> "0..1" KnowledgeScope : child of
-
-    ProcessExecution "1" --> "0..1" ProcessResult : produces
-    ProcessExecution "*" --> "1" Journey : part of
-
-    Assignment "1" --> "*" StudentSubmission : receives
-    StudentSubmission "1" --> "1" EvaluationResult : generates
-
-    %% Value Objects
+```mermaid
+classDiagram
     class InputDefinition {
+        <<value object>>
         +List~InputField~ Fields
         +AddTextArea()
         +AddTextInput()
@@ -314,6 +290,7 @@ classDiagram
     }
 
     class ProcessContext {
+        <<value object>>
         +Guid ExecutionId
         +Guid UserId
         +Guid JourneyId
@@ -325,6 +302,7 @@ classDiagram
     }
 
     class JourneyContext {
+        <<value object>>
         +string Purpose
         +Dictionary~string,object~ State
         +List~JournalEntry~ RecentEntries
@@ -332,123 +310,234 @@ classDiagram
     }
 
     class PersonaContext {
+        <<value object>>
         +List~string~ RelevantVocabulary
         +List~InquiryPattern~ ActivePatterns
         +string? DomainFocus
     }
+
+    class InquiryPattern {
+        <<value object>>
+        +string PatternType
+        +string Description
+        +int OccurrenceCount
+        +DateTime LastObserved
+    }
+
+    class FormationMarker {
+        <<value object>>
+        +DateTime OccurredAt
+        +string InsightDescription
+        +Guid JourneyId
+        +string Context
+    }
 ```
 
-## Core Domain Concepts
+## Extension Classes (Process-Specific)
 
-### User Aggregate
+These classes demonstrate how processes extend the platform. New processes follow these patterns.
 
-The User aggregate represents individuals engaging with the system:
-- **User**: Root entity maintaining identity and capabilities
-- **Persona**: Evolving intellectual representation
-- **ProcessCapability**: Granted access to specific processes
+### Systematic Screening Extension
 
-### Journey Aggregate
+This extension stores its results entirely within ProcessResult.Data:
 
-The Journey aggregate captures intellectual endeavors:
-- **Journey**: Root entity representing user + process + purpose
-- **Journal**: Narrative records of different aspects
-- **JournalEntry**: Individual moments of significance
-- **ProcessExecution**: Technical tracking of process runs
+```mermaid
+classDiagram
+    class ScreeningResult {
+        <<extension-value-object>>
+        +Guid DocumentId
+        +bool IsRelevant
+        +decimal RelevanceScore
+        +string RelevanceRationale
+        +bool ContributesToRQ
+        +decimal ContributionScore
+        +string ContributionRationale
+        +List~string~ AddressedQuestions
+    }
 
-### Knowledge Aggregate
+    class ScreeningProcessResult {
+        <<stored-as-jsonb>>
+        +List~ScreeningResult~ Results
+        +string ResearchQuestions
+        +Dictionary~string,string~ Definitions
+    }
 
-The Knowledge aggregate preserves intellectual materials:
-- **Document**: Root entity for source materials
-- **DocumentMetadata**: Extracted properties
-- **ProcessedContent**: Chunked and embedded representations
-- **KnowledgeScope**: Organizational boundaries
+    ProcessResult ..> ScreeningProcessResult : data contains
+    ScreeningProcessResult "1" --> "*" ScreeningResult : contains
+```
 
-### Process Execution Aggregate
+### Guided Composition Extension
 
-The Process Execution aggregate manages workflow state:
-- **ProcessExecution**: Root entity tracking runs
-- **ProcessResult**: Outcomes with extensible data
-- **ProcessDefinition**: Metadata and configuration
+This extension uses dedicated tables for complex educational workflows:
 
-## Process-Specific Models
+```mermaid
+classDiagram
+    class Assignment {
+        <<extension-entity>>
+        +string Title
+        +string Prompt
+        +string SourceMaterial
+        +Dictionary~string,object~ Constraints
+        +Dictionary~string,object~ Rubric
+        +Guid TeacherId
+        +bool IsActive
+        +ICollection~StudentSubmission~ Submissions
+    }
 
-### Systematic Screening Domain
+    class StudentSubmission {
+        <<extension-entity>>
+        +Guid AssignmentId
+        +Guid StudentId
+        +string Response
+        +DateTime SubmittedAt
+        +EvaluationResult Evaluation
+        +Assignment Assignment
+    }
 
-For literature review processes:
-- **ScreeningResult**: Per-document assessment with dual criteria
-- Stored within ProcessResult.Data during execution
+    class EvaluationResult {
+        <<extension-entity>>
+        +Guid SubmissionId
+        +decimal Score
+        +decimal MaxScore
+        +Dictionary~string,decimal~ CategoryScores
+        +List~string~ Feedback
+        +bool IsOverridden
+        +string? OverrideJustification
+        +StudentSubmission Submission
+    }
 
-### Guided Composition Domain
+    BaseEntity <|-- Assignment
+    BaseEntity <|-- StudentSubmission
+    BaseEntity <|-- EvaluationResult
 
-For educational content creation:
-- **Assignment**: Teacher-created tasks
-- **StudentSubmission**: Responses to assignments
-- **EvaluationResult**: Automated grading with override capability
+    Assignment "1" --> "*" StudentSubmission : receives
+    StudentSubmission "1" --> "1" EvaluationResult : generates
+    User ..> Assignment : creates as teacher
+    User ..> StudentSubmission : creates as student
+```
 
-## Value Objects
+## Platform Boundaries
 
-### ProcessContext
-Immutable context passed through process execution:
-- Carries user, journey, and scope information
-- Provides access to inputs and services
-- Includes assembled journey context
+### What Core Platform Provides
 
-### InputDefinition
-Fluent builder for process input requirements:
-- Defines form fields dynamically
-- Supports various input types
-- Enables process-specific validation
+- **User and Journey Management**: Identity, personas, journeys, journals
+- **Knowledge Storage**: Documents, metadata, embeddings, scopes
+- **Process Infrastructure**: Definitions, executions, results
+- **Platform Services**: Document processing, embedding generation, context assembly
 
-## Design Principles
+### What Extensions Provide
 
-### Aggregate Boundaries
-- Each aggregate maintains consistency internally
-- Cross-aggregate references use IDs
-- Transactions respect aggregate boundaries
+- **Process-Specific Logic**: How to analyze, compose, or reflect
+- **Domain Entities**: Assignment, submission, evaluation, etc.
+- **Result Structures**: ScreeningResult, CompositionResult, etc.
+- **UI Components**: Process-specific interfaces
+- **Additional Tables**: When complex queries needed
 
-### Entity Identity
-- All entities inherit from BaseEntity
-- GUIDs ensure global uniqueness
-- Timestamps track creation and modification
+### What Extensions MUST NOT Do
 
-### Value Object Immutability
-- ProcessContext created fresh for each execution
-- InputDefinition built once during process registration
-- Changes create new instances
+- Modify core platform tables
+- Bypass journey/journal system
+- Access other processes' data directly
+- Create users outside platform
+- Store data outside ProcessResult without proper relationships
 
-### Extensibility Points
-- ProcessResult.Data uses object type for flexibility
-- Metadata dictionaries allow additional properties
-- Process-specific entities relate via ExecutionId
+## Storage Patterns for Extensions
+
+### Pattern 1: JSONB in ProcessResult.Data
+
+Use when:
+- Results are read-mostly
+- Don't need complex relational queries
+- Want to avoid schema migrations
+- Data is naturally document-oriented
+
+Example: SystematicScreeningProcess stores List<ScreeningResult> as JSONB
+
+### Pattern 2: Dedicated Extension Tables
+
+Use when:
+- Need referential integrity (foreign keys)
+- Require complex queries or joins
+- Have ongoing state management
+- Need efficient updates to specific fields
+
+Example: GuidedCompositionProcess uses assignments, student_submissions, evaluation_results tables
+
+## Value Objects vs Entities
+
+### Stored as JSONB (Value Objects)
+- InquiryPattern (in Persona.patterns)
+- FormationMarker (in Persona.markers)
+- InputDefinition (in ProcessDefinition.inputs)
+- ScreeningResult (in ProcessResult.data)
+- ProcessContext (transient, not persisted)
+- JourneyContext (assembled at runtime)
+- PersonaContext (assembled at runtime)
+
+### Persisted as Tables (Entities)
+- All classes inheriting from BaseEntity
+- Core platform classes always have tables
+- Extension entities may have tables (like Assignment)
 
 ## Repository Patterns
 
-Each aggregate root has a corresponding repository:
+### Core Repositories (Always Present)
 - `IUserRepository`
+- `IPersonaRepository` 
 - `IJourneyRepository`
 - `IDocumentRepository`
 - `IKnowledgeScopeRepository`
 - `IProcessExecutionRepository`
-- `IAssignmentRepository`
 
-Repositories provide:
-- Aggregate loading with includes
-- Query methods respecting boundaries
-- Save operations maintaining consistency
+### Extension Repositories (Process-Specific)
+- `IAssignmentRepository` (GuidedComposition)
+- Future extensions add their own
 
-## Domain Services
+### Repository Access Patterns
 
-Complex operations use domain services:
-- `PersonaEvolutionService`: Updates persona from journal entries
-- `ContextAssemblyService`: Builds ProcessContext from sources
-- `DocumentProcessingService`: Orchestrates ingestion pipeline
-- `JournalNarrativeService`: Maintains narrative coherence
+```csharp
+// Accessing related entities
+var user = await userRepository.GetAsync(userId);
+var persona = await personaRepository.GetByUserIdAsync(userId);
 
-## Event Sourcing Considerations
+// Or use domain service for aggregated data
+var userWithPersona = await userService.GetUserWithPersonaAsync(userId);
 
-While not implemented in MVP, the model supports future event sourcing:
+// Extensions access core data through services
+var documents = await knowledgeRepository.GetDocumentsInScopeAsync(scopeId);
+```
+
+## Design Principles
+
+### Core Platform Principles
+- **Aggregate Boundaries**: Each aggregate maintains internal consistency
+- **Entity Identity**: All entities use GUID primary keys
+- **Journey Context**: Every process execution tied to user journey
+- **Intellectual Sovereignty**: Data structures ensure personal authorship
+
+### Extension Principles
+- **Process Isolation**: Extensions cannot access other processes' data
+- **Platform Integration**: Must use platform services for core operations
+- **Result Flexibility**: Choose appropriate storage pattern
+- **User Attribution**: All data traceable to authoring user
+
+### SOLID Compliance
+- **Single Responsibility**: Each class has one reason to change
+- **Open/Closed**: Platform open for extension, closed for modification
+- **Liskov Substitution**: All processes are substitutable IAnalyticalProcess
+- **Interface Segregation**: Interfaces focused on specific capabilities
+- **Dependency Inversion**: Extensions depend on abstractions, not concretions
+
+## Future Considerations
+
+### Event Sourcing Preparation
 - Journal entries form natural event stream
 - Process executions track state transitions
 - Persona evolution captures changes over time
 
-The class model ensures that technical structure serves the core principle: users author their own understanding through structured engagement with knowledge.
+### Multi-Tenancy Ready
+- All entities include user/journey ownership
+- Scopes provide logical isolation
+- Extensions respect boundaries
+
+The class model ensures that technical structure serves the core principle: users author their own understanding through structured engagement with knowledge, while enabling rich extensions for different analytical patterns.

@@ -73,6 +73,15 @@ public interface IPlatformServices
 }
 ```
 
+#### IPlatformServices Design Note
+
+This interface intentionally aggregates all platform services as a facade pattern. While this could be seen as violating ISP, it:
+- Simplifies process implementations (single injection point)
+- Guarantees service availability to all processes
+- Maintains backward compatibility as services evolve
+
+Processes only use the services they need from the facade.
+
 ### IDocumentProcessor
 
 Manages document processing pipeline:
