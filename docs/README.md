@@ -54,8 +54,13 @@ Start with the [VISION](./VISION.md) to understand how Veritheia ensures intelle
    - Process-specific domain models
    - Repository and service patterns
 
+9. **[ENTITY-RELATIONSHIP.md](./ENTITY-RELATIONSHIP.md)** - Database schema and data model
+   - PostgreSQL schema with pgvector extension
+   - Comprehensive ERD using Mermaid
+   - Table definitions with indexes
+   - Migration strategy and security patterns
+
 ### Planned Documents
-- **ENTITY-RELATIONSHIP.md** - Database schema and data model
 - **TESTING-STRATEGY.md** - Test types, coverage expectations, and behavioral specs
 - **DEPLOYMENT-GUIDE.md** - Production deployment procedures
 - **SECURITY-POLICIES.md** - Security boundaries and threat model
