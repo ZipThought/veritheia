@@ -2,7 +2,7 @@
 
 ## Overview
 
-This directory contains the comprehensive documentation for Veritheia—an environment where you author your own understanding rather than consume processed information.
+This directory contains the complete documentation for Veritheia—an environment where you author your own understanding rather than consume processed information.
 
 Start with the [VISION](./VISION.md) to understand how Veritheia ensures intellectual sovereignty.
 
@@ -30,11 +30,28 @@ Start with the [VISION](./VISION.md) to understand how Veritheia ensures intelle
    - Workflows that maintain context
    - Systems that protect formation
 
+5. **[EXTENSION-GUIDE.md](./EXTENSION-GUIDE.md)** - Creating full-stack extensions
+   - Process implementation patterns
+   - Domain model integration
+   - UI component development
+   - Distribution and testing
+
+6. **[API-CONTRACTS.md](./API-CONTRACTS.md)** - Interface definitions and contracts
+   - Core process interfaces
+   - Platform service contracts
+   - Data transfer objects
+   - HTTP API specifications
+
+7. **[USER-MODEL.md](./USER-MODEL.md)** - User, journey, and journal architecture
+   - User as the constant with persona and knowledge base
+   - Journeys as process instances
+   - Journals as narrative records
+   - Future sharing patterns
+
 ### Planned Documents
 
 - **CLASS-MODEL.md** - Core domain classes and their relationships
 - **ENTITY-RELATIONSHIP.md** - Database schema and data model
-- **API-SPECIFICATION.md** - REST API endpoints and contracts
 - **TESTING-STRATEGY.md** - Test types, coverage expectations, and behavioral specs
 - **DEPLOYMENT-GUIDE.md** - Production deployment procedures
 - **SECURITY-POLICIES.md** - Security boundaries and threat model
@@ -94,7 +111,7 @@ Example: "The Process Engine MUST validate all API requests"
    - Use consistent formatting for easy scanning
    - Include acceptance criteria where applicable
 
-3. **Technical** (like IMPLEMENTATION.md)
+3. **Technical** (like IMPLEMENTATION.md and EXTENSION-GUIDE.md)
    - Focus on the "how"
    - Include code examples
    - Reference specific technologies and versions

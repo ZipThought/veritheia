@@ -88,22 +88,29 @@ The data within the Knowledge Database is structured into three distinct, extens
 
 The Process Engine executes two distinct categories of processes through a unified interface architecture.
 
-*   **Static Processes (Core Platform Services):** These foundational capabilities ensure intellectual sovereignty:
+*   **Platform Services:** These foundational capabilities ensure intellectual sovereignty:
     *   Document ingestion that preserves organizational structure
     *   Metadata extraction that respects user categorization
     *   Embedding generation that reflects conceptual space
     *   Indexing that supports search patterns
     *   Database operations that maintain journey context
     
-    These processes never generate insights—they prepare materials for analysis. They are triggered by user actions and serve the inquiry.
+    These services never generate insights—they prepare materials for analysis. They are triggered by user actions and serve the inquiry.
 
-*   **Dynamic Processes (Analytical Workflows):** These orchestrate intellectual work:
-    *   Systematic screening that applies user-defined criteria
-    *   Research question evolution through engagement
-    *   Relevance assessment based on personal understanding
-    *   Analytical pipelines shaped by individual methodology
+*   **Reference Processes:** The platform includes two fully-implemented processes that demonstrate the architecture:
+    *   **SystematicScreeningProcess:** Analytical pattern for literature review with dual relevance/contribution assessment
+    *   **GuidedCompositionProcess:** Compositional pattern for structured content creation with constraints and evaluation
     
-    Every Dynamic Process produces outputs that are unique to the author—shaped by their questions, guided by their framework, and meaningful only within their journey.
+    These reference implementations show how processes orchestrate intellectual work through the platform services.
+
+*   **Process Categories:** Extensions typically fall into these patterns:
+    *   **Methodological Processes:** Guide structured inquiry through established methodologies
+    *   **Developmental Processes:** Scaffold skill development through progressive challenges
+    *   **Analytical Processes:** Support pattern discovery through systematic examination
+    *   **Compositional Processes:** Develop expressive capability through structured creation
+    *   **Reflective Processes:** Deepen understanding through guided contemplation
+    
+    Every process produces outputs that are unique to the author—shaped by their questions, guided by their framework, and meaningful only within their journey.
 
 #### Process Execution Architecture
 
@@ -132,33 +139,129 @@ The architecture is designed for extensibility through a set of formal interface
 
     These connectors are considered extensions and are not part of the default implementation.
     
-*   **Cognitive System Adaptors:** As specified in the Technology Specification, this interface decouples the Process Engine from the specific implementation of any given LLM or cognitive framework, allowing for flexible integration with local and external models.
+*   **Cognitive System Adaptors:** This interface decouples the Process Engine from the specific implementation of any given LLM or cognitive framework, allowing for flexible integration with local and external models.
 
-### VII. Extensibility Architecture
+### VII. Extension Architecture
 
 The system implements extensibility through composition rather than modification.
 
-#### Process Interface Contract
+#### Process Extension Model
 
-All processes, whether built-in or extended, implement a uniform interface that provides:
+All processes implement the `IAnalyticalProcess` interface. The platform provides two reference implementations that demonstrate the pattern:
 
-*   Process metadata and input requirements
-*   Execution logic with access to platform services
-*   Result rendering specifications
-*   Event trigger definitions (for automatic processes)
+```
+Core Platform
+├── Process Engine (execution runtime)
+├── Platform Services (guaranteed capabilities)
+└── Reference Processes
+    ├── SystematicScreeningProcess
+    └── GuidedCompositionProcess
+
+Extensions
+├── Methodological Processes (research methodologies)
+├── Developmental Processes (skill progression)
+├── Analytical Processes (domain-specific analysis)
+├── Compositional Processes (creative workflows)
+└── Reflective Processes (contemplative practices)
+```
+
+#### Extension Capabilities
+
+Extensions are full-stack components that may include:
+
+*   Process implementation (`IAnalyticalProcess`)
+*   Data models (Entity Framework entities)
+*   UI components (Blazor components)
+*   Domain services
+*   Custom result renderers
 
 #### Platform Service Guarantees
 
-Static Processes provide guaranteed services that all extensions can depend upon:
+Extensions rely on these always-available services:
 
 *   Document processing pipeline
 *   Embedding generation and storage
 *   Knowledge database operations
 *   Cognitive system access
-*   Result persistence
+*   User context management
+*   Result persistence and versioning
 
-These services are always available and maintain consistent quality across all processes.
+These services are provided through dependency injection and maintain consistent interfaces across versions.
 
-#### Extension Pattern
+#### Process Context Flow
 
-New capabilities are added by implementing the process interface and registering with the Process Engine. The MVP demonstrates this pattern through its built-in analytical processes, which use the same extension mechanisms that future processes will employ.
+Every process execution receives a `ProcessContext` containing:
+
+*   Current knowledge scope
+*   User journey history
+*   Process-specific inputs
+*   Execution metadata
+*   Platform service references
+
+This context ensures outputs remain personally relevant and meaningful within the specific inquiry.
+
+#### Extension Registration
+
+```csharp
+// Core processes (included)
+services.AddProcess<SystematicScreeningProcess>();
+services.AddProcess<GuidedCompositionProcess>();
+
+// Extended processes (additional)
+services.AddProcess<YourCustomProcess>();
+```
+
+#### Data Model Extensions
+
+Extensions can define their own entities that integrate with the core schema:
+
+```csharp
+public class ProcessSpecificData : BaseEntity
+{
+    public Guid ProcessExecutionId { get; set; }
+    public ProcessExecution ProcessExecution { get; set; }
+    // Process-specific properties
+}
+```
+
+The platform handles migrations and ensures data consistency across extensions. See [EXTENSION-GUIDE.md](./EXTENSION-GUIDE.md) for implementation details.
+
+### VIII. User and Journey Architecture
+
+The system models users as authors of their own understanding through a sophisticated journey and journal system.
+
+#### User Model
+
+Users are the constant in the system, maintaining:
+- **Identity**: Authentication and basic profile
+- **Persona**: Evolving representation of their intellectual style
+- **Knowledge Base**: Their corpus of documents
+- **Capabilities**: Process access permissions
+
+#### Journey Model
+
+Journeys represent specific instances of users engaging with processes:
+- Each journey = User + Process + Purpose + Time
+- Journeys maintain state and context specific to that intellectual endeavor
+- Multiple journeys can exist for the same user-process combination
+- Journeys are inherently personal and non-transferable
+
+#### Journal System
+
+Journals capture the narrative of intellectual development:
+- Multiple journals per journey (Research, Method, Decision, Reflection)
+- Written as coherent narratives, not logs
+- Assembled into context for process execution
+- Designed for potential future sharing while maintaining privacy in MVP
+
+#### Context Management
+
+The system assembles context from:
+- Current journey state and purpose
+- Relevant journal entries
+- Persona elements
+- Process-specific needs
+
+Context is managed to fit within cognitive system limits while maintaining narrative coherence and the user's voice.
+
+See [USER-MODEL.md](./USER-MODEL.md) for detailed specifications.

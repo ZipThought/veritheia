@@ -84,9 +84,9 @@ Veritheia represents a fundamental shift in educational technology. Instead of s
 
 The revolution is not in what the system can do, but in what it ensures remains human.
 
-## XI. The Research Transformation  
+## XI. The Research Relationship  
 
-For researchers, Veritheia transforms the relationship with literature. Instead of AI that summarizes papers or extracts key findings, it provides an environment where:
+For researchers, Veritheia changes the relationship with literature. Instead of AI that summarizes papers or extracts key findings, it provides an environment where:
 
 - Research questions evolve through engagement
 - Theoretical frameworks deepen through encounter  
