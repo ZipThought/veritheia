@@ -2,14 +2,31 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Required Reading
+## Development Tools Location
 
-**ALWAYS read these documents in order:**
+All development-specific tools, scripts, and tracking documents are in the `development/` folder:
+- Progress tracking: `development/PROGRESS.md`
+- Context recovery: `development/CONTEXT-RECOVERY.md`
+- PDCA workflow: `development/PDCA-WORKFLOW.md`
+- Progress checker: `development/check-progress.sh`
+- Implementation summary: `development/IMPLEMENTATION-SUMMARY.md`
+
+## MANDATORY: RTFM Before ANY Work
+
+**STOP! You MUST read these documents IN ORDER before doing ANYTHING:**
 1. **README.md** - Project overview
 2. **docs/README.md** - Documentation index and standards
 3. **docs/ARCHITECTURE.md** - System design
 4. **docs/MVP-SPECIFICATION.md** - Feature requirements
 5. **docs/IMPLEMENTATION.md** - Technical details
+
+**DO NOT:**
+- Skip reading to "save time"
+- Assume you understand without reading
+- Start coding before reading
+- Answer questions without reading
+
+**The documentation index is in `docs/README.md` - start there!**
 
 ## Claude-Specific Guidelines
 
@@ -56,3 +73,5 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Don't bypass the ICognitiveAdapter interface
 - Don't implement cloud-first solutions when local alternatives exist
 - Don't add unrequested features or configuration
+- NEVER read files partially - always read complete files
+- If a file is too large (>500 lines code, >1000 lines docs), it needs refactoring
