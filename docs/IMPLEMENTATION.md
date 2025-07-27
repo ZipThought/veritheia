@@ -1,6 +1,7 @@
 # Veritheia Implementation
 
-This document describes the technical architecture and patterns that ensure users remain the authors of their understanding. Every technical choice supports intellectual sovereignty—from database schemas that preserve journey context to process interfaces that maintain personal relevance.
+This document describes the technical architecture and patterns. Technical choices preserve journey context through database schemas and maintain personal relevance through process interfaces.
+
 
 ## Technology Stack
 

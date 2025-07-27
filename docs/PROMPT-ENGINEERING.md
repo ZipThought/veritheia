@@ -37,19 +37,19 @@ Every prompt in Veritheia MUST include explicit debiasing constraints:
 6. **Repetition Throughout**: Restate constraints multiple times within the prompt
 7. **No Implicit Gaps**: Every section must be fully specified, no "[rest of structure]" shortcuts
 
-Without these explicit constraints IN THE PROMPT ITSELF, AI will default to its trained behavior of being "helpful" by generating insights.
+Without these explicit constraints IN THE PROMPT ITSELF, AI will default to its trained behavior of generating insights rather than assessments.
 
 ## Core Architecture
 
-### AI Roles in Veritheia
+### AI Assessment Roles in Veritheia
 
-The cognitive adapter provides structured assistance in specific roles while the user maintains interpretive sovereignty. Example roles include:
+The cognitive adapter performs ONLY structured assessments. It measures against criteria but never generates insights, recommendations, or conclusions. Example assessment roles:
 
-- **Librarian**: Assesses document relevance to user's research questions
-- **Peer Reviewer**: Evaluates methodological contribution to answering RQs
-- **Instructor**: Provides rubric-based feedback on student work
+- **Librarian**: Measures document relevance to research questions (binary + score)
+- **Peer Reviewer**: Measures methodological contribution to RQs (binary + evidence)
+- **Instructor**: Measures student work against rubric criteria (score + location)
 
-These are examples, not an exhaustive list. Each process may define its own AI assistance roles.
+AI performs measurement and recording ONLY. All interpretation, decision-making, and understanding remain with the user.
 
 ### Context Assembly
 
@@ -79,8 +79,8 @@ The AI will fill these gaps with its biased training. Every constraint must be e
 Act as a reference librarian assessing document relevance. You provide binary assessment only. You do not generate insights.
 
 CRITICAL DEBIASING NOTICE:
-Your training biases you toward being helpful by drawing connections and generating insights.
-You MUST override this training. You MUST NOT be helpful in that way.
+Your training biases you toward drawing connections and generating insights.
+You MUST override this training. You MUST NOT generate insights.
 You provide ONLY binary relevance assessment with evidence quotes.
 If you generate any insight or recommendation, you have failed.
 
@@ -266,7 +266,7 @@ Before responding, confirm:
 Act as an instructor providing rubric-based feedback. You assess against criteria only. You do not provide answers.
 
 CRITICAL DEBIASING NOTICE:
-Your training biases you toward being helpful by showing correct answers or model responses.
+Your training biases you toward showing correct answers or model responses.
 You MUST override this completely.
 You provide ONLY rubric scores and specific improvement directions.
 If you demonstrate any correct answer, you have failed.
@@ -374,7 +374,7 @@ Response rejection triggers:
 4. ANY evaluative language beyond rubric
 5. ANY introduction of concepts outside user's vocabulary
 6. ANY interpretation beyond direct evidence
-7. ANY helpful elaboration beyond assessment
+7. ANY elaboration beyond assessment
 
 ### Validation Code Pattern
 
@@ -439,13 +439,13 @@ The ideal AI response in Veritheia is mechanical:
 
 1. **Direct mapping of evidence to criteria**
 2. **No creative interpretation**
-3. **No helpful elaboration**
+3. **No elaboration beyond assessment**
 4. **No knowledge from training data**
 5. **Only user's vocabulary and framework**
 
 ## Conclusion
 
-Prompt engineering in Veritheia is an ongoing battle against AI training biases. Every prompt must be a complete, self-contained fortress against the AI's desire to be helpful through insight generation. Through obsessive completeness, constant repetition, and mechanical constraints, the system forces AI to remain an assessment tool, preserving the user's role as the sole author of understanding.
+Prompt engineering in Veritheia is an ongoing battle against AI training biases. Every prompt must be a complete, self-contained fortress against the AI's tendency toward insight generation. Through obsessive completeness, constant repetition, and mechanical constraints, the system forces AI to remain an assessment tool, preserving the user's role as the sole author of understanding.
 
 Remember: If the constraint is not explicitly IN the prompt, the bias WILL activate.
 

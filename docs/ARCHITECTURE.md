@@ -4,6 +4,7 @@
 
 The Veritheia architecture is designed to ensure that users author their own understanding rather than consume system-generated insights. Every architectural decision supports this principle: the system amplifies human intellectual capability without replacing human judgment. The Process Engine orchestrates the journey through knowledge, the Knowledge Database preserves conceptual connections, and the Cognitive System responds to questions—never thinking for users, always thinking with them.
 
+
 ```
 +-----------------------------------------------------+
 |                  III. PRESENTATION                  |
@@ -53,20 +54,21 @@ The Presentation tier implements a web-based interface that maintains architectu
 
 *   **Rationale:** This separation ensures that presentation logic remains independent of business logic and data access concerns.
 
-#### 3. Cognitive System Integration: Formation Assistant
+#### 3. Cognitive System Integration: Assessment Engine
 
-The Process Engine interacts with the Cognitive System as a formation assistant, not a decision maker.
+The Process Engine interacts with the Cognitive System as an assessment engine, not a decision maker.
 
-*   **Function:** The cognitive adapter provides structured assistance in specific roles (librarian, peer reviewer, instructor) while the user maintains interpretive sovereignty.
+*   **Function:** The cognitive adapter performs structured assessments in specific roles (librarian, peer reviewer, instructor) while the user maintains interpretive sovereignty.
 
-*   **Key Principle:** AI assists with assessments but users perform the triage. In Systematic Screening, AI identifies relevance and contribution, but researchers decide which papers are core, contextual, or peripheral to their inquiry.
+*   **Key Principle:** AI performs assessments but users make decisions. In Systematic Screening, AI measures relevance and contribution, but researchers decide which papers are core, contextual, or peripheral to their inquiry.
 
 *   **Rationale:** This ensures that:
-    *   Understanding emerges from human interpretation of AI assistance
-    *   Formation happens through the user's synthesis, not AI conclusions
-    *   The journey shapes how AI assistance is understood
+    *   Understanding emerges from human interpretation of AI assessments
+    *   Insights arise from the user's engagement with assessed materials
+    *   Formation develops through accumulated insights across journeys
+    *   The journey shapes how AI assessments are interpreted
 
-The cognitive system amplifies human judgment rather than replacing it.
+The cognitive system measures and records rather than replacing human judgment. Each journey generates insights that contribute to formation.
 
 ### IV. Data Model
 

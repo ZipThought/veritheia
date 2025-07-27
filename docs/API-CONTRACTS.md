@@ -1,6 +1,6 @@
 # API Contracts
 
-This document defines the interfaces and contracts that form the foundation of Veritheia's architecture. These contracts ensure consistent integration between components while maintaining the principle that users author their own understanding.
+This document defines the interfaces and contracts that form the foundation of Veritheia's architecture. These contracts define integration between components while maintaining the principle that users author their own understanding.
 
 ## Core Interfaces
 

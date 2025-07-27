@@ -2,6 +2,7 @@
 
 This document defines the functionalities that ensure users author their own understanding. Part A details the MVP features for immediate implementation. Part B outlines the post-MVP roadmap to guide architectural decisions.
 
+
 ---
 
 # Part A: MVP Features (Detailed Specifications)
@@ -24,7 +25,7 @@ The foundation that preserves intellectual materials without imposing system int
 
 | ID | Feature | Description |
 |---|---|---|
-| 1.2.1 | Metadata Extraction | Automatic extraction of standard metadata (Title, Authors) from PDFs |
+| 1.2.1 | Metadata Extraction | User-initiated extraction of standard metadata (Title, Authors) from PDFs |
 | 1.2.2 | Full-Text Indexing | Generate and store full-text search index for all content |
 | 1.2.3 | Vector Embedding Storage | Store embeddings using PostgreSQL pgvector extension |
 | 1.2.4 | Data Provenance | Version all processed data with model/version metadata |
@@ -58,13 +59,13 @@ The orchestrating layer that executes all logic and workflows through a unified 
 | 2.1.1 | Process Interface | Common interface for all processes enabling uniform execution and monitoring |
 | 2.1.2 | Process Registry | Service for process discovery and metadata retrieval |
 | 2.1.3 | Process Execution | Runtime engine that executes processes with consistent error handling and result management |
-| 2.1.4 | Event-Triggered Execution | Automatic process triggering based on system events (e.g., document upload) |
+| 2.1.4 | User-Triggered Execution | Process execution initiated by explicit user action |
 
 ### 2.2 Platform Services
 
 | ID | Feature | Description |
 |---|---|---|
-| 2.2.1 | Document Ingestion | Automatic pipeline triggered on file upload: PDF/text extraction, chunking, embedding generation, indexing |
+| 2.2.1 | Document Ingestion | User-initiated pipeline for file processing: PDF/text extraction, chunking, embedding generation, indexing |
 | 2.2.2 | Text Extraction Service | Extract and clean text from PDFs and text files |
 | 2.2.3 | Embedding Generation | Generate vector embeddings for text chunks using configured Cognitive System |
 | 2.2.4 | Metadata Extraction | Extract title, authors, and other metadata from documents |
@@ -78,13 +79,13 @@ The orchestrating layer that executes all logic and workflows through a unified 
 |---|---|---|
 | 2.3.1.1 | Author's Research Questions | User composes their research questions, which become part of their journey's conceptual framework |
 | 2.3.1.2 | Personal Definitions | User defines key terms from their perspective, shaping how the system interprets documents |
-| 2.3.1.3 | AI-Assisted Relevance Assessment | AI acts as librarian providing binary (T/F) + score (0-1) on relevance to user's RQs, with rationale |
-| 2.3.1.4 | AI-Assisted Contribution Assessment | AI acts as peer reviewer assessing if document directly answers user's RQs (higher bar than relevance) |
+| 2.3.1.3 | AI Relevance Assessment | AI acts as librarian measuring binary (T/F) + score (0-1) on relevance to user's RQs, with rationale |
+| 2.3.1.4 | AI Contribution Assessment | AI acts as peer reviewer measuring if document directly answers user's RQs (higher bar than relevance) |
 | 2.3.1.5 | Dual Rationale Presentation | AI provides distinct rationales: librarian perspective for relevance, peer reviewer for contribution |
 | 2.3.1.6 | Interactive Results Table | Sortable/filterable table showing title, authors, relevance score/rationale, contribution score/rationale |
 | 2.3.1.7 | User-Driven Corpus Triage | User interprets AI assessments to identify: core papers (high contribution), contextual papers (relevant only), papers to set aside |
 
-#### 2.3.2 Guided Composition Process
+#### 2.3.2 Constrained Composition Process
 
 | ID | Feature | Description |
 |---|---|---|
@@ -97,7 +98,7 @@ The orchestrating layer that executes all logic and workflows through a unified 
 | 2.3.2.7 | Rubric Generation | Point-based grading rubric aligned with learning objectives |
 | 2.3.2.8 | Assignment Management | Save, edit, and distribute assignments to students |
 | 2.3.2.9 | Student Submission | Text input interface for student responses |
-| 2.3.2.10 | AI-Assisted Formative Assessment | Real-time evaluation against teacher-approved rubric, providing immediate constructive feedback to students |
+| 2.3.2.10 | AI Formative Assessment | Real-time evaluation against teacher-approved rubric, measuring performance against criteria |
 | 2.3.2.11 | Teacher Sovereignty | Teachers review all AI assessments, can override grades, and maintain complete pedagogical control |
 | 2.3.2.12 | Formation Analytics | Dashboard reveals patterns in student understanding, informing teacher's next instructional moves |
 
@@ -107,11 +108,11 @@ Additional processes can extend these patterns:
 
 | Category | Description | Pattern |
 |---|---|---|
-| Methodological Processes | Guide structured inquiry through established methodologies | Analytical |
-| Developmental Processes | Scaffold skill development through progressive challenges | Compositional |
-| Analytical Processes | Support pattern discovery through systematic examination | Analytical |
-| Compositional Processes | Develop expressive capability through structured creation | Compositional |
-| Reflective Processes | Deepen understanding through guided contemplation | Mixed |
+| Methodological Processes | Structure inquiry through established methodologies | Analytical |
+| Developmental Processes | Present progressive challenges for skill development | Compositional |
+| Analytical Processes | Structure systematic examination for pattern discovery | Analytical |
+| Compositional Processes | Structure creation exercises for expressive development | Compositional |
+| Reflective Processes | Structure contemplation exercises for deeper understanding | Mixed |
 
 See [EXTENSION-GUIDE.md](./EXTENSION-GUIDE.md) for detailed implementation patterns.
 
@@ -187,7 +188,7 @@ The system for managing users and their intellectual journeys.
 
 | ID | Feature | Description |
 |---|---|---|
-| 4.3.1 | Journal Creation | Automatic creation of journey-specific journals |
+| 4.3.1 | Journal Creation | User-initiated creation of journey-specific journals |
 | 4.3.2 | Journal Types | Research, Method, Decision, and Reflection journals |
 | 4.3.3 | Entry Recording | Structured narrative entries at key process points |
 | 4.3.4 | Context Assembly | Extract relevant entries for process context |
@@ -247,7 +248,7 @@ These features guide architectural decisions but are not part of the initial rel
 
 ## I. Collaborative Journeys
 
-Enable multiple users to participate in shared intellectual endeavors.
+Allow multiple users to participate in shared intellectual endeavors.
 
 ### Classroom Journeys
 - Teacher-initiated journeys with student participants

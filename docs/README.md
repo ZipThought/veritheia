@@ -6,6 +6,7 @@ This directory contains the complete documentation for Veritheia—an environmen
 
 Start with the [VISION](./VISION.md) to understand how Veritheia ensures intellectual sovereignty.
 
+
 ## Documentation Index
 
 ### Core Documents (Read in Order)

@@ -896,4 +896,4 @@ public async Task SemanticSearch_ReturnsResultsQuickly()
 3. **Test Speed**: Monitor and optimize slow tests
 4. **Documentation**: Keep test scenarios aligned with features
 
-The testing strategy ensures that Veritheia remains true to its core principle while maintaining technical excellence. Every test reinforces that users author their own understanding through structured engagement with knowledge.
+The testing strategy verifies that Veritheia remains true to its core principle. Every test verifies that users author their own understanding through structured engagement with knowledge.

@@ -189,7 +189,7 @@ public interface ICognitiveAdapter
         string text,
         CancellationToken cancellationToken = default);
         
-    Task<FormationAssistance> AssistWithFormationAsync(
+    Task<FormationAssistance> PerformAssessmentAsync(
         string prompt,
         ProcessContext context,
         AssistantRole role, // Librarian, PeerReviewer, etc.
@@ -201,21 +201,21 @@ public interface ICognitiveAdapter
     string ModelIdentifier { get; }
 }
 
-public enum AssistantRole
+public enum AssessmentRole
 {
     Librarian,      // For relevance assessment
     PeerReviewer,   // For contribution assessment
-    Instructor,     // For content generation with constraints
-    Evaluator       // For formative assessment
+    Instructor,     // For rubric-based evaluation
+    Evaluator       // For performance measurement
 }
 
-public class FormationAssistance
+public class AssessmentResult
 {
     public string Content { get; set; }
-    public AssistantRole Role { get; set; }
+    public AssessmentRole Role { get; set; }
     public Dictionary<string, object> Metadata { get; set; } // Scores, rationales, etc.
     public Ulid JourneyId { get; set; }
-    public DateTime AssistedAt { get; set; }
+    public DateTime AssessedAt { get; set; }
 }
 
 // Example implementation
@@ -357,14 +357,14 @@ public class SystematicScreeningProcess : IFormationProcess
         foreach (var doc in documents)
         {
             // AI assists as librarian for relevance
-            var relevanceAssist = await _cognitiveAdapter.AssistWithFormationAsync(
+            var relevanceAssessment = await _cognitiveAdapter.PerformAssessmentAsync(
                 BuildRelevancePrompt(doc, context.AuthoredInputs["ResearchQuestions"]),
                 context,
                 AssistantRole.Librarian,
                 cancellationToken);
             
             // AI assists as peer reviewer for contribution
-            var contributionAssist = await _cognitiveAdapter.AssistWithFormationAsync(
+            var contributionAssessment = await _cognitiveAdapter.PerformAssessmentAsync(
                 BuildContributionPrompt(doc, context.AuthoredInputs["ResearchQuestions"]),
                 context,
                 AssistantRole.PeerReviewer,
@@ -373,10 +373,10 @@ public class SystematicScreeningProcess : IFormationProcess
             results.Add(new DocumentAssessment
             {
                 Document = doc,
-                RelevanceScore = (double)relevanceAssist.Metadata["score"],
-                RelevanceRationale = relevanceAssist.Content,
-                ContributionScore = (double)contributionAssist.Metadata["score"],
-                ContributionRationale = contributionAssist.Content
+                RelevanceScore = (double)relevanceAssessment.Metadata["score"],
+                RelevanceRationale = relevanceAssessment.Content,
+                ContributionScore = (double)contributionAssessment.Metadata["score"],
+                ContributionRationale = contributionAssessment.Content
             });
         }
         
@@ -384,7 +384,7 @@ public class SystematicScreeningProcess : IFormationProcess
         var journalEntry = new JournalEntry
         {
             Type = JournalType.Method,
-            Narrative = $"Screened {documents.Count} documents. AI assistance helped identify patterns in relevance vs contribution..."
+            Narrative = $"Screened {documents.Count} documents. AI assessments measured patterns in relevance vs contribution..."
         };
         
         return AuthoredResult<ScreeningResults>.Success(

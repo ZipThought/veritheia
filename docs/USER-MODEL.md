@@ -2,6 +2,7 @@
 
 This document defines how users, journeys, and journals interact within Veritheia. The model ensures that users remain the authors of their understanding while enabling both individual and collaborative formation.
 
+
 ## Core Concepts
 
 ### User
@@ -89,21 +90,23 @@ A systematic review journey might maintain:
 
 ## Persona Evolution
 
-The Persona is not a static profile but an evolving representation:
+The Persona is not a static profile but an evolving representation shaped by accumulated insights:
 
 ### Components
 - **Conceptual Vocabulary**: Domain terms and how the user uses them
 - **Inquiry Patterns**: How they approach problems
 - **Methodological Preferences**: Techniques that work for them
-- **Formation Markers**: Key insights that shaped their understanding
+- **Formation Markers**: Accumulated insights that shape future journeys
 
 ### Evolution Process
-1. Each journal entry potentially contributes to persona
-2. Patterns across journeys reveal preferences
-3. Vocabulary stabilizes around core concepts
-4. Methods evolve and deepen
+1. Each journey generates insights through engagement
+2. Insights accumulate into formation
+3. Formation shapes how future journeys unfold
+4. Patterns across journeys reveal preferences
+5. Vocabulary stabilizes around core concepts
+6. Methods evolve through repeated practice
 
-The persona helps the system understand the user's intellectual style without prescribing it.
+The persona captures this formation—the accumulated insights that constitute the user's intellectual development without prescribing it.
 
 ## Context Management
 
@@ -169,9 +172,9 @@ Supervised journeys for mentorship:
 
 Observers can see without modifying the journey.
 
-## Journal Sharing (Future)
+## Journal Sharing (Post-MVP Future)
 
-While journeys remain personal, journals can become community resources that advance collective understanding without compromising individual sovereignty:
+While journeys and insights remain personal and non-transferable, journals can be shared as fragments of the journey—representations of the process, not the insights themselves:
 
 ### What Gets Shared
 - **Method Journals**: Epistemic patterns that shaped discovery (like choosing GPT-4 exploration vs. systematic screening)
@@ -184,11 +187,14 @@ While journeys remain personal, journals can become community resources that adv
 - The specific understanding developed
 - The intellectual fingerprint of discovery
 - The meaning within individual context
+- The formation itself—accumulated insights cannot be transferred
+- True insights remain with the journey owner
 
 ### Sharing Principles
-- Patterns are transferable, understanding is not
-- Methods can be adopted, insights must be re-discovered
-- Configurations can guide, but require domain expertise to apply
+- Journals share fragments of the journey, not the totality of insights
+- Readers see the method and process, not the understanding itself
+- Methods can be adopted, but insights must be earned through personal journey
+- Shared journals are representations/summaries, not the true insights
 - Attribution preserved as intellectual lineage
 
 ### Journal Libraries

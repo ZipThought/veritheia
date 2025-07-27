@@ -410,7 +410,7 @@ CREATE TABLE process_definitions (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE,
     CONSTRAINT chk_category CHECK (category IN ('Methodological', 'Developmental', 'Analytical', 'Compositional', 'Reflective')),
-    CONSTRAINT chk_trigger CHECK (trigger_type IN ('Manual', 'Automatic', 'Scheduled'))
+    CONSTRAINT chk_trigger CHECK (trigger_type IN ('Manual', 'UserInitiated'))
 );
 ```
 
@@ -838,4 +838,4 @@ Extensions can evolve freely:
 - Migrate between JSONB and tables
 - Must maintain core table references
 
-The schema ensures data integrity while supporting the core principle that users author their own understanding through persistent, traceable intellectual journeys, with clear boundaries between platform and extensions.
+The schema maintains data integrity while implementing the core principle that users author their own understanding through persistent, traceable intellectual journeys, with boundaries between platform and extensions.
