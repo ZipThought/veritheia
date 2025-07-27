@@ -49,6 +49,32 @@ The data layer (`veritheia.Data`) defines these core entities:
 - **ProcessDefinition**: Metadata describing available processes
 - **ProcessExecution**: Tracks process runs and their state
 - **ProcessResult**: Stores process outputs with extensible JSON schema
+- **User**: Core identity with associated persona and knowledge base
+- **Journey**: User's engagement instance with a process
+- **Journal**: Narrative record of intellectual development (Research, Method, Decision, Reflection)
+- **JournalEntry**: Individual narrative entries within journals
+
+### Primary Key Strategy
+
+All entities use **ULID (Universally Unique Lexicographically Sortable Identifier)** as primary keys:
+
+- **Format**: 26-character string representation
+- **Benefits**: 
+  - Lexicographically sortable (time-ordered)
+  - Globally unique without coordination
+  - Better index performance than UUID
+  - Human-readable when encoded
+- **Implementation**: Custom EF Core value converter for ULID ↔ string conversion
+- **Example**: `01ARZ3NDEKTSV4RRFFQ69G5FAV`
+
+### Database Design Patterns
+
+- **Repository Pattern**: Generic `IRepository<T>` with concrete implementations
+- **Unit of Work**: Transaction management across repositories
+- **Specification Pattern**: Complex queries via `ISpecification<T>`
+- **Value Converters**: ULID, UTC DateTime, JSONB for PostgreSQL
+- **Soft Deletes**: Logical deletion with `DeletedAt` timestamp
+- **Auditing**: CreatedAt, UpdatedAt, CreatedBy, UpdatedBy on all entities
 
 ### Vector Storage Strategy
 
@@ -77,11 +103,11 @@ The application uses ASP.NET Core's built-in dependency injection with these ser
 
 The platform provides guaranteed services that all processes can depend on:
 
-- **Document Processing**: Extracts text from various formats and prepares for analysis
-- **Embedding Generation**: Creates vector representations using the cognitive adapter
-- **Metadata Extraction**: Identifies document properties like title and authors
-- **Document Chunking**: Splits documents into semantically meaningful segments
-- **Knowledge Repository**: Provides unified data access with scope awareness
+- **Document Encounter Service**: Records HOW and WHY a document entered a journey
+- **Conceptual Embedding Service**: Creates embeddings that reflect the author's conceptual framework
+- **Personal Metadata Service**: Extracts metadata relevant to the author's inquiry
+- **Semantic Chunking Service**: Splits documents based on the author's conceptual boundaries
+- **Journey Repository**: All data access filtered through journey context
 
 ### Process Registration
 
@@ -261,3 +287,18 @@ All API responses follow a consistent structure with success indicators, data pa
 - Backward compatibility commitment
 - Deprecation notices in headers
 - Migration guides for breaking changes
+
+## Design Patterns
+
+All implementations MUST follow the imperative patterns documented in [DESIGN-PATTERNS.md](./DESIGN-PATTERNS.md).
+
+Key patterns include:
+- Domain-Driven Design with aggregate boundaries
+- Repository and Specification patterns  
+- Result pattern for operation outcomes
+- Process Context for execution state
+- Adapter pattern for Cognitive System
+- Unit of Work for transaction management
+- CQRS for command/query separation
+
+See [DESIGN-PATTERNS.md](./DESIGN-PATTERNS.md) for complete implementation details and code examples.

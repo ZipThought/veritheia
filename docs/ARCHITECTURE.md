@@ -53,18 +53,20 @@ The Presentation tier implements a web-based interface that maintains architectu
 
 *   **Rationale:** This separation ensures that presentation logic remains independent of business logic and data access concerns.
 
-#### 3. Cognitive System Integration: Adapter Pattern
+#### 3. Cognitive System Integration: Formation Assistant
 
-The Process Engine interacts with the Cognitive System through a standardized adapter interface.
+The Process Engine interacts with the Cognitive System as a formation assistant, not a decision maker.
 
-*   **Function:** This pattern defines a contract for cognitive operations (text generation, embedding creation) while abstracting implementation details.
+*   **Function:** The cognitive adapter provides structured assistance in specific roles (librarian, peer reviewer, instructor) while the user maintains interpretive sovereignty.
 
-*   **Rationale:** The adapter pattern enables deployment-time selection of cognitive backends without modifying core application logic. This supports integration with:
-    *   Abstraction frameworks
-    *   Vendor-specific implementations
-    *   Local inference engines
+*   **Key Principle:** AI assists with assessments but users perform the triage. In Systematic Screening, AI identifies relevance and contribution, but researchers decide which papers are core, contextual, or peripheral to their inquiry.
 
-This architectural pattern ensures the system remains agnostic to specific cognitive implementations.
+*   **Rationale:** This ensures that:
+    *   Understanding emerges from human interpretation of AI assistance
+    *   Formation happens through the user's synthesis, not AI conclusions
+    *   The journey shapes how AI assistance is understood
+
+The cognitive system amplifies human judgment rather than replacing it.
 
 ### IV. Data Model
 
@@ -169,11 +171,11 @@ Extensions
 
 Extensions are full-stack components that may include:
 
-*   Process implementation (`IAnalyticalProcess`)
-*   Data models (Entity Framework entities)
-*   UI components (Blazor components)
-*   Domain services
-*   Custom result renderers
+*   Process implementation (`IFormationProcess`)
+*   Journey-specific data models (Entity Framework entities)
+*   UI components that reflect authorship (Blazor components)
+*   Formation services
+*   Personal result renderers
 
 #### Platform Service Guarantees
 

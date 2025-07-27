@@ -37,20 +37,21 @@ Each phase follows this structure:
 
 ## Phase Status Overview
 
-| Phase | Name | Status | Progress |
-|-------|------|--------|----------|
-| 1 | Database Infrastructure | Not Started | 0% |
-| 2 | Core Domain Models | Not Started | 0% |
-| 3 | Repository Pattern | Not Started | 0% |
-| 4 | Knowledge Database APIs | Not Started | 0% |
-| 5 | Process Engine Infrastructure | Not Started | 0% |
-| 6 | Platform Services | Not Started | 0% |
-| 7 | User & Journey System | Not Started | 0% |
-| 8 | Cognitive Adapter | Not Started | 0% |
-| 9 | Systematic Screening Process | Not Started | 0% |
-| 10 | Guided Composition Process | Not Started | 0% |
-| 11 | Blazor UI | Not Started | 0% |
-| 12 | Testing & Documentation | Not Started | 0% |
+| Phase | Name | Status | Progress | Documentation |
+|-------|------|--------|----------|---------------|
+| 1 | Database Infrastructure | Not Started | 0% | [IMPLEMENTATION.md#data-architecture](../docs/IMPLEMENTATION.md#data-architecture) |
+| 2 | Core Domain Models | Not Started | 0% | [CLASS-MODEL.md](../docs/CLASS-MODEL.md) |
+| 3 | Repository Pattern | Not Started | 0% | [DESIGN-PATTERNS.md#2-repository-pattern](../docs/DESIGN-PATTERNS.md#2-repository-pattern) |
+| 4 | Knowledge Database APIs | Not Started | 0% | [MVP-SPECIFICATION.md#13-knowledge-layer-api](../docs/MVP-SPECIFICATION.md#13-knowledge-layer-api) |
+| 5 | Service Layer | Not Started | 0% | [IMPLEMENTATION.md#service-architecture](../docs/IMPLEMENTATION.md#service-architecture) |
+| 6 | Process Engine Infrastructure | Not Started | 0% | [ARCHITECTURE.md#process-execution-architecture](../docs/ARCHITECTURE.md#process-execution-architecture) |
+| 7 | Platform Services | Not Started | 0% | [MVP-SPECIFICATION.md#22-platform-services](../docs/MVP-SPECIFICATION.md#22-platform-services) |
+| 8 | User & Journey System | Not Started | 0% | [USER-MODEL.md](../docs/USER-MODEL.md) |
+| 9 | Cognitive Adapter | Not Started | 0% | [DESIGN-PATTERNS.md#5-adapter-pattern-for-cognitive-system](../docs/DESIGN-PATTERNS.md#5-adapter-pattern-for-cognitive-system) |
+| 10 | Systematic Screening Process | Not Started | 0% | [MVP-SPECIFICATION.md#231-systematic-screening-process](../docs/MVP-SPECIFICATION.md#231-systematic-screening-process) |
+| 11 | Guided Composition Process | Not Started | 0% | [MVP-SPECIFICATION.md#232-guided-composition-process](../docs/MVP-SPECIFICATION.md#232-guided-composition-process) |
+| 12 | Blazor UI | Not Started | 0% | [MVP-SPECIFICATION.md#iii-presentation-desktop-web-client](../docs/MVP-SPECIFICATION.md#iii-presentation-desktop-web-client) |
+| 13 | Testing & Documentation | Not Started | 0% | [TESTING-STRATEGY.md](../docs/TESTING-STRATEGY.md) |
 
 ---
 
@@ -60,11 +61,14 @@ Each phase follows this structure:
 **Status**: Not Started
 **Started**: -
 **Completed**: -
+**Docs**: [IMPLEMENTATION.md#data-architecture](../docs/IMPLEMENTATION.md#data-architecture)
 
 #### PLAN
-- [ ] Install PostgreSQL with pgvector extension
+- [ ] Install PostgreSQL with pgvector extension ([IMPLEMENTATION.md#i-knowledge-database--postgresql-with-pgvector](../docs/IMPLEMENTATION.md#i-knowledge-database--postgresql-with-pgvector))
 - [ ] Add EF Core packages to veritheia.Data project
+- [ ] Implement ULID value converter ([IMPLEMENTATION.md#primary-key-strategy](../docs/IMPLEMENTATION.md#primary-key-strategy))
 - [ ] Create VeritheiaDbContext with connection configuration
+- [ ] Configure UTC DateTime converter ([IMPLEMENTATION.md#database-design-patterns](../docs/IMPLEMENTATION.md#database-design-patterns))
 - [ ] Create initial migration with pgvector setup
 - [ ] Verify database creation and pgvector functionality
 
@@ -90,14 +94,16 @@ Each phase follows this structure:
 **Status**: Not Started
 **Started**: -
 **Completed**: -
+**Docs**: [CLASS-MODEL.md](../docs/CLASS-MODEL.md), [ENTITY-RELATIONSHIP.md](../docs/ENTITY-RELATIONSHIP.md)
 
 #### PLAN
-- [ ] Create BaseEntity abstract class
-- [ ] Implement User, Persona, Journey, Journal, JournalEntry entities
-- [ ] Implement Document, DocumentMetadata, ProcessedContent entities
-- [ ] Implement Process infrastructure entities
-- [ ] Create all enumerations
-- [ ] Configure EF Core mappings
+- [ ] Create BaseEntity abstract class with ULID primary key ([IMPLEMENTATION.md#entity-model](../docs/IMPLEMENTATION.md#entity-model))
+- [ ] Implement User & Journey entities ([USER-MODEL.md](../docs/USER-MODEL.md))
+- [ ] Implement Journal & JournalEntry entities ([USER-MODEL.md#journal-system](../docs/USER-MODEL.md#journal-system))
+- [ ] Implement Document & ProcessedContent entities ([ARCHITECTURE.md#iv-data-model](../docs/ARCHITECTURE.md#iv-data-model))
+- [ ] Implement Process infrastructure entities ([ARCHITECTURE.md#process-execution-architecture](../docs/ARCHITECTURE.md#process-execution-architecture))
+- [ ] Create all enumerations per CLASS-MODEL.md
+- [ ] Configure EF Core mappings with value converters
 
 #### DO (Implementation Notes)
 - Note: 
@@ -121,13 +127,15 @@ Each phase follows this structure:
 **Status**: Not Started
 **Started**: -
 **Completed**: -
+**Docs**: [DESIGN-PATTERNS.md#2-repository-pattern](../docs/DESIGN-PATTERNS.md#2-repository-pattern)
 
 #### PLAN
-- [ ] Create IRepository<T> generic interface
+- [ ] Create IRepository<T> generic interface ([DESIGN-PATTERNS.md - Repository Pattern](../docs/DESIGN-PATTERNS.md#generic-repository-interface))
+- [ ] Create ISpecification<T> interface ([DESIGN-PATTERNS.md - Specification Pattern](../docs/DESIGN-PATTERNS.md#specification-pattern))
 - [ ] Implement BaseRepository<T> with common operations
-- [ ] Create specific repository interfaces (IUserRepository, etc.)
+- [ ] Create specific repository interfaces per aggregate roots in [CLASS-MODEL.md](../docs/CLASS-MODEL.md)
 - [ ] Implement specific repositories with custom queries
-- [ ] Create IUnitOfWork interface and implementation
+- [ ] Create IUnitOfWork interface ([DESIGN-PATTERNS.md - Unit of Work](../docs/DESIGN-PATTERNS.md#6-unit-of-work-pattern))
 
 #### DO (Implementation Notes)
 - Note: 
@@ -151,12 +159,14 @@ Each phase follows this structure:
 **Status**: Not Started
 **Started**: -
 **Completed**: -
+**Docs**: [MVP-SPECIFICATION.md#13-knowledge-layer-api](../docs/MVP-SPECIFICATION.md#13-knowledge-layer-api)
 
 #### PLAN
-- [ ] Create DocumentsController with upload endpoint
-- [ ] Implement file storage in Raw Corpus directory
-- [ ] Create search endpoints (keyword and semantic)
-- [ ] Implement scope management endpoints
+- [ ] Create DocumentsController with upload endpoint ([MVP 1.3.1](../docs/MVP-SPECIFICATION.md#13-knowledge-layer-api))
+- [ ] Implement file storage in Raw Corpus directory ([ARCHITECTURE.md#iv-data-model](../docs/ARCHITECTURE.md#iv-data-model))
+- [ ] Create search endpoints - keyword and semantic ([MVP 1.3.2-1.3.3](../docs/MVP-SPECIFICATION.md#13-knowledge-layer-api))
+- [ ] Implement scope management endpoints ([MVP 1.4](../docs/MVP-SPECIFICATION.md#14-knowledge-scoping))
+- [ ] Follow API design principles ([IMPLEMENTATION.md#api-design-principles](../docs/IMPLEMENTATION.md#api-design-principles))
 - [ ] Add OpenAPI documentation
 
 #### DO (Implementation Notes)
@@ -175,6 +185,286 @@ Each phase follows this structure:
 - Learning: 
 - Improvement: 
 - Dependency: Enables Phase 6 (Platform Services)
+
+---
+
+### Phase 5: Service Layer
+**Status**: Not Started
+**Started**: -
+**Completed**: -
+**Docs**: [IMPLEMENTATION.md#service-architecture](../docs/IMPLEMENTATION.md#service-architecture)
+
+#### PLAN
+- [ ] Create service interfaces following DDD patterns ([DESIGN-PATTERNS.md#1-domain-driven-design-ddd](../docs/DESIGN-PATTERNS.md#1-domain-driven-design-ddd))
+- [ ] Implement DocumentService for file operations
+- [ ] Implement SearchService for queries
+- [ ] Implement ScopeService for knowledge organization
+- [ ] Register services with proper lifetimes ([IMPLEMENTATION.md#dependency-injection-structure](../docs/IMPLEMENTATION.md#dependency-injection-structure))
+
+#### DO (Implementation Notes)
+- Note: 
+- Decision: 
+- Change: 
+
+#### CHECK (Verification)
+- [ ] Services properly injected
+- [ ] Business logic separated from controllers
+- [ ] Transactions handled correctly
+- [ ] No direct repository access from controllers
+
+#### ACT (Next Steps)
+- Learning: 
+- Improvement: 
+- Dependency: Enables proper API implementation
+
+---
+
+### Phase 6: Process Engine Infrastructure
+**Status**: Not Started
+**Started**: -
+**Completed**: -
+**Docs**: [ARCHITECTURE.md#process-execution-architecture](../docs/ARCHITECTURE.md#process-execution-architecture)
+
+#### PLAN
+- [ ] Create IAnalyticalProcess interface ([ARCHITECTURE.md#process-extension-model](../docs/ARCHITECTURE.md#process-extension-model))
+- [ ] Implement ProcessContext class ([DESIGN-PATTERNS.md#4-process-context-pattern](../docs/DESIGN-PATTERNS.md#4-process-context-pattern))
+- [ ] Create Process Registry service ([MVP 2.1.2](../docs/MVP-SPECIFICATION.md#21-process-architecture))
+- [ ] Implement Process Execution engine ([MVP 2.1.3](../docs/MVP-SPECIFICATION.md#21-process-architecture))
+- [ ] Add event-triggered execution ([MVP 2.1.4](../docs/MVP-SPECIFICATION.md#21-process-architecture))
+
+#### DO (Implementation Notes)
+- Note: 
+- Decision: 
+- Change: 
+
+#### CHECK (Verification)
+- [ ] Process interface properly defined
+- [ ] Process discovery works
+- [ ] Execution monitoring functional
+- [ ] Results properly stored
+
+#### ACT (Next Steps)
+- Learning: 
+- Improvement: 
+- Dependency: Enables all process implementations
+
+---
+
+### Phase 7: Platform Services
+**Status**: Not Started
+**Started**: -
+**Completed**: -
+**Docs**: [MVP-SPECIFICATION.md#22-platform-services](../docs/MVP-SPECIFICATION.md#22-platform-services)
+
+#### PLAN
+- [ ] Implement Document Ingestion pipeline ([MVP 2.2.1](../docs/MVP-SPECIFICATION.md#22-platform-services))
+- [ ] Create Text Extraction Service ([MVP 2.2.2](../docs/MVP-SPECIFICATION.md#22-platform-services))
+- [ ] Implement Embedding Generation ([MVP 2.2.3](../docs/MVP-SPECIFICATION.md#22-platform-services))
+- [ ] Create Metadata Extraction ([MVP 2.2.4](../docs/MVP-SPECIFICATION.md#22-platform-services))
+- [ ] Implement Document Chunking ([MVP 2.2.5](../docs/MVP-SPECIFICATION.md#22-platform-services))
+
+#### DO (Implementation Notes)
+- Note: 
+- Decision: 
+- Change: 
+
+#### CHECK (Verification)
+- [ ] PDF extraction works
+- [ ] Embeddings generated correctly
+- [ ] Metadata extracted accurately
+- [ ] Chunks are semantic units
+
+#### ACT (Next Steps)
+- Learning: 
+- Improvement: 
+- Dependency: Required for process execution
+
+---
+
+### Phase 8: User & Journey System
+**Status**: Not Started
+**Started**: -
+**Completed**: -
+**Docs**: [USER-MODEL.md](../docs/USER-MODEL.md), [MVP-SPECIFICATION.md#iv-user--journey-model](../docs/MVP-SPECIFICATION.md#iv-user--journey-model)
+
+#### PLAN
+- [ ] Implement User management ([MVP 4.1](../docs/MVP-SPECIFICATION.md#41-user-management))
+- [ ] Create Journey management system ([MVP 4.2](../docs/MVP-SPECIFICATION.md#42-journey-management))
+- [ ] Implement Journal system ([MVP 4.3](../docs/MVP-SPECIFICATION.md#43-journal-system))
+- [ ] Add Persona development ([MVP 4.4](../docs/MVP-SPECIFICATION.md#44-persona-development))
+- [ ] Create context assembly logic ([USER-MODEL.md#context-assembly](../docs/USER-MODEL.md#context-assembly))
+
+#### DO (Implementation Notes)
+- Note: 
+- Decision: 
+- Change: 
+
+#### CHECK (Verification)
+- [ ] Users can create journeys
+- [ ] Journals capture narratives
+- [ ] Context assembly works
+- [ ] Persona evolves properly
+
+#### ACT (Next Steps)
+- Learning: 
+- Improvement: 
+- Dependency: Core to all processes
+
+---
+
+### Phase 9: Cognitive Adapter
+**Status**: Not Started
+**Started**: -
+**Completed**: -
+**Docs**: [IMPLEMENTATION.md#iv-cognitive-system-interface--adapter-pattern](../docs/IMPLEMENTATION.md#iv-cognitive-system-interface--adapter-pattern)
+
+#### PLAN
+- [ ] Define ICognitiveAdapter interface ([DESIGN-PATTERNS.md#5-adapter-pattern-for-cognitive-system](../docs/DESIGN-PATTERNS.md#5-adapter-pattern-for-cognitive-system))
+- [ ] Implement SemanticKernelAdapter ([IMPLEMENTATION.md#available-adapters](../docs/IMPLEMENTATION.md#iv-cognitive-system-interface--adapter-pattern))
+- [ ] Create local inference adapter option
+- [ ] Implement context window management ([MVP 5.2](../docs/MVP-SPECIFICATION.md#52-context-management))
+- [ ] Add configuration system
+
+#### DO (Implementation Notes)
+- Note: 
+- Decision: 
+- Change: 
+
+#### CHECK (Verification)
+- [ ] Embeddings generated correctly
+- [ ] Text generation works
+- [ ] Context fits in window
+- [ ] Switching adapters works
+
+#### ACT (Next Steps)
+- Learning: 
+- Improvement: 
+- Dependency: Required for all AI features
+
+---
+
+### Phase 10: Systematic Screening Process
+**Status**: Not Started
+**Started**: -
+**Completed**: -
+**Docs**: [MVP-SPECIFICATION.md#231-systematic-screening-process](../docs/MVP-SPECIFICATION.md#231-systematic-screening-process)
+
+#### PLAN
+- [ ] Implement process class following IAnalyticalProcess
+- [ ] Create input forms per MVP 2.3.1.1-2.3.1.2
+- [ ] Implement dual assessment logic ([MVP 2.3.1.3-2.3.1.4](../docs/MVP-SPECIFICATION.md#231-systematic-screening-process))
+- [ ] Generate rationales ([MVP 2.3.1.5](../docs/MVP-SPECIFICATION.md#231-systematic-screening-process))
+- [ ] Create results UI ([MVP 2.3.1.6-2.3.1.7](../docs/MVP-SPECIFICATION.md#231-systematic-screening-process))
+
+#### DO (Implementation Notes)
+- Note: 
+- Decision: 
+- Change: 
+
+#### CHECK (Verification)
+- [ ] Research questions processed
+- [ ] Dual assessment works
+- [ ] Results filterable
+- [ ] Journal entries created
+
+#### ACT (Next Steps)
+- Learning: 
+- Improvement: 
+- Dependency: Reference implementation
+
+---
+
+### Phase 11: Guided Composition Process
+**Status**: Not Started
+**Started**: -
+**Completed**: -
+**Docs**: [MVP-SPECIFICATION.md#232-guided-composition-process](../docs/MVP-SPECIFICATION.md#232-guided-composition-process)
+
+#### PLAN
+- [ ] Implement process following compositional pattern
+- [ ] Create teacher interface ([MVP 2.3.2.1-2.3.2.5](../docs/MVP-SPECIFICATION.md#232-guided-composition-process))
+- [ ] Generate prompts and rubrics ([MVP 2.3.2.6-2.3.2.7](../docs/MVP-SPECIFICATION.md#232-guided-composition-process))
+- [ ] Implement student interface ([MVP 2.3.2.9](../docs/MVP-SPECIFICATION.md#232-guided-composition-process))
+- [ ] Create evaluation system ([MVP 2.3.2.10-2.3.2.12](../docs/MVP-SPECIFICATION.md#232-guided-composition-process))
+
+#### DO (Implementation Notes)
+- Note: 
+- Decision: 
+- Change: 
+
+#### CHECK (Verification)
+- [ ] Assignment creation works
+- [ ] Student submission functional
+- [ ] Automated grading accurate
+- [ ] Analytics dashboard shows data
+
+#### ACT (Next Steps)
+- Learning: 
+- Improvement: 
+- Dependency: Second reference implementation
+
+---
+
+### Phase 12: Blazor UI
+**Status**: Not Started
+**Started**: -
+**Completed**: -
+**Docs**: [MVP-SPECIFICATION.md#iii-presentation-desktop-web-client](../docs/MVP-SPECIFICATION.md#iii-presentation-desktop-web-client)
+
+#### PLAN
+- [ ] Implement Library Management UI ([MVP 3.1](../docs/MVP-SPECIFICATION.md#31-library-management))
+- [ ] Create Process Execution Interface ([MVP 3.2](../docs/MVP-SPECIFICATION.md#32-process-execution-interface))
+- [ ] Build Search & Discovery ([MVP 3.3](../docs/MVP-SPECIFICATION.md#33-search--discovery))
+- [ ] Implement Scope Management ([MVP 3.4](../docs/MVP-SPECIFICATION.md#34-scope-management))
+- [ ] Add User Contexts ([MVP 3.5](../docs/MVP-SPECIFICATION.md#35-user-contexts))
+
+#### DO (Implementation Notes)
+- Note: 
+- Decision: 
+- Change: 
+
+#### CHECK (Verification)
+- [ ] All UI features functional
+- [ ] Process-specific UIs work
+- [ ] Responsive design
+- [ ] Accessibility standards met
+
+#### ACT (Next Steps)
+- Learning: 
+- Improvement: 
+- Dependency: User-facing functionality
+
+---
+
+### Phase 13: Testing & Documentation
+**Status**: Not Started
+**Started**: -
+**Completed**: -
+**Docs**: [TESTING-STRATEGY.md](../docs/TESTING-STRATEGY.md)
+
+#### PLAN
+- [ ] Write unit tests for all services
+- [ ] Create integration tests for APIs
+- [ ] Add E2E tests for critical paths
+- [ ] Verify test coverage > 80%
+- [ ] Complete API documentation
+- [ ] Update all README files
+
+#### DO (Implementation Notes)
+- Note: 
+- Decision: 
+- Change: 
+
+#### CHECK (Verification)
+- [ ] All tests pass
+- [ ] Coverage meets target
+- [ ] Documentation complete
+- [ ] Examples provided
+
+#### ACT (Next Steps)
+- Learning: 
+- Improvement: 
+- Dependency: Quality assurance
 
 ---
 

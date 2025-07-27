@@ -44,18 +44,25 @@ This document defines the PDCA (Plan-Do-Check-Act) workflow to ensure quality im
 
 1. **MANDATORY: RTFM First**
    ```bash
-   # STOP! You MUST read these documents BEFORE doing anything:
-   cat docs/README.md          # Start here - documentation index
-   cat docs/ARCHITECTURE.md    # Understand the system
-   cat docs/MVP-SPECIFICATION.md  # Know what to build
+   # STOP! You MUST read the documentation BEFORE doing ANY work:
    
-   # Then read phase-specific docs:
-   cat PROGRESS.md | grep -A 20 "Phase X:"
-   cat docs/CLASS-MODEL.md     # For Phase 2
-   cat docs/ENTITY-RELATIONSHIP.md  # For Phase 1
-   cat docs/API-CONTRACTS.md   # For Phase 4
+   # Step 1: Always start with docs index
+   cat docs/README.md
    
-   # DO NOT PROCEED WITHOUT READING!
+   # Step 2: Check phase-specific documentation link
+   grep -A 5 "Phase X:" PROGRESS.md | grep "Docs:"
+   # Click the documentation link provided for the phase
+   
+   # Step 3: Read all referenced sections
+   # Each PLAN item has a doc link - READ IT FIRST
+   
+   # VIOLATION CHECK:
+   # - Planning without reading docs = VIOLATION
+   # - Coding without reading docs = VIOLATION  
+   # - Reviewing without reading docs = VIOLATION
+   # - Even THINKING about implementation without docs = VIOLATION
+   
+   # The docs are the SINGLE SOURCE OF TRUTH
    ```
 
 2. **Create Feature Branch**
@@ -70,7 +77,19 @@ This document defines the PDCA (Plan-Do-Check-Act) workflow to ensure quality im
 
 ### During Implementation
 
-1. **Marking Incomplete Work**
+1. **Constant Documentation Reference**
+   ```bash
+   # Before implementing ANYTHING, verify against docs:
+   # - Is this pattern in IMPLEMENTATION.md?
+   # - Does this match the spec in MVP-SPECIFICATION.md?
+   # - Am I following the architecture in ARCHITECTURE.md?
+   
+   # Example: Before creating a repository
+   grep -n "Repository" docs/IMPLEMENTATION.md
+   # Read the EXACT pattern specified
+   ```
+
+2. **Marking Incomplete Work**
    ```csharp
    // TODO: Implement actual validation logic
    public bool Validate() => true;  // Temporary implementation
@@ -212,6 +231,13 @@ This document defines the PDCA (Plan-Do-Check-Act) workflow to ensure quality im
 ## Quality Gates
 
 Each phase must pass these gates before marking complete:
+
+### Documentation Compliance
+- [ ] All implementations match documented patterns
+- [ ] No deviations from specifications without documented rationale
+- [ ] All design patterns from IMPLEMENTATION.md followed
+- [ ] Entity models match CLASS-MODEL.md exactly
+- [ ] API contracts match API-CONTRACTS.md
 
 ### Code Quality
 - [ ] All code compiles without warnings

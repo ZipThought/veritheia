@@ -76,13 +76,13 @@ The orchestrating layer that executes all logic and workflows through a unified 
 
 | ID | Feature | Description |
 |---|---|---|
-| 2.3.1.1 | Research Question Input | Multi-line text input for defining research questions that frame the inquiry |
-| 2.3.1.2 | Contextual Definitions | Optional field for key term definitions to guide interpretation |
-| 2.3.1.3 | Relevance Assessment | Binary decision (True/False) with score (0.0-1.0) on whether document discusses topics related to research questions |
-| 2.3.1.4 | Contribution Assessment | Binary decision (True/False) with score (0.0-1.0) on whether document makes significant contribution to research questions |
-| 2.3.1.5 | Dual Rationale Generation | Separate rationales for relevance (as librarian) and contribution (as peer reviewer) |
+| 2.3.1.1 | Author's Research Questions | User composes their research questions, which become part of their journey's conceptual framework |
+| 2.3.1.2 | Personal Definitions | User defines key terms from their perspective, shaping how the system interprets documents |
+| 2.3.1.3 | AI-Assisted Relevance Assessment | AI acts as librarian providing binary (T/F) + score (0-1) on relevance to user's RQs, with rationale |
+| 2.3.1.4 | AI-Assisted Contribution Assessment | AI acts as peer reviewer assessing if document directly answers user's RQs (higher bar than relevance) |
+| 2.3.1.5 | Dual Rationale Presentation | AI provides distinct rationales: librarian perspective for relevance, peer reviewer for contribution |
 | 2.3.1.6 | Interactive Results Table | Sortable/filterable table showing title, authors, relevance score/rationale, contribution score/rationale |
-| 2.3.1.7 | Triage Filtering | Filter by relevance-only, contribution, or neither for corpus organization |
+| 2.3.1.7 | User-Driven Corpus Triage | User interprets AI assessments to identify: core papers (high contribution), contextual papers (relevant only), papers to set aside |
 
 #### 2.3.2 Guided Composition Process
 
@@ -97,9 +97,9 @@ The orchestrating layer that executes all logic and workflows through a unified 
 | 2.3.2.7 | Rubric Generation | Point-based grading rubric aligned with learning objectives |
 | 2.3.2.8 | Assignment Management | Save, edit, and distribute assignments to students |
 | 2.3.2.9 | Student Submission | Text input interface for student responses |
-| 2.3.2.10 | Automated Evaluation | Real-time grading against rubric with detailed feedback |
-| 2.3.2.11 | Teacher Override | Review and modify automated grades with justification |
-| 2.3.2.12 | Class Analytics | Dashboard showing common areas of struggle across submissions |
+| 2.3.2.10 | AI-Assisted Formative Assessment | Real-time evaluation against teacher-approved rubric, providing immediate constructive feedback to students |
+| 2.3.2.11 | Teacher Sovereignty | Teachers review all AI assessments, can override grades, and maintain complete pedagogical control |
+| 2.3.2.12 | Formation Analytics | Dashboard reveals patterns in student understanding, informing teacher's next instructional moves |
 
 ### 2.4 Process Categories
 

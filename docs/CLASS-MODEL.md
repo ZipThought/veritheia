@@ -110,10 +110,13 @@ classDiagram
         +string FilePath
         +long FileSize
         +DateTime UploadedAt
-        +Guid? ScopeId
-        +KnowledgeScope Scope
+        +Guid EncounteredByJourneyId
+        +string EncounterContext
+        +DateTime EncounteredAt
+        +Journey EncounteredByJourney
         +ICollection~ProcessedContent~ ProcessedContents
         +DocumentMetadata Metadata
+        +ICollection~DocumentEncounter~ Encounters
     }
 
     class DocumentMetadata {
@@ -135,6 +138,18 @@ classDiagram
         +string ProcessingModel
         +string ProcessingVersion
         +Document Document
+    }
+
+    class DocumentEncounter {
+        +Guid DocumentId
+        +Guid JourneyId
+        +DateTime EncounteredAt
+        +string SearchQuery
+        +string WhyRelevant
+        +float RelevanceScore
+        +Document Document
+        +Journey Journey
+        +JournalEntry ReflectionEntry
     }
 
     class KnowledgeScope {

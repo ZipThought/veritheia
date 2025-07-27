@@ -30,37 +30,43 @@ Start with the [VISION](./VISION.md) to understand how Veritheia ensures intelle
    - Workflows that maintain context
    - Systems that protect formation
 
-5. **[EXTENSION-GUIDE.md](./EXTENSION-GUIDE.md)** - Creating full-stack extensions
+5. **[DESIGN-PATTERNS.md](./DESIGN-PATTERNS.md)** - Imperative implementation patterns
+   - Domain-Driven Design patterns
+   - Repository and Specification patterns
+   - CQRS and Unit of Work
+   - Code examples and checklists
+
+6. **[EXTENSION-GUIDE.md](./EXTENSION-GUIDE.md)** - Creating full-stack extensions
    - Process implementation patterns
    - Domain model integration
    - UI component development
    - Distribution and testing
 
-6. **[API-CONTRACTS.md](./API-CONTRACTS.md)** - Interface definitions and contracts
+7. **[API-CONTRACTS.md](./API-CONTRACTS.md)** - Interface definitions and contracts
    - Core process interfaces
    - Platform service contracts
    - Data transfer objects
    - HTTP API specifications
 
-7. **[USER-MODEL.md](./USER-MODEL.md)** - User, journey, and journal architecture
+8. **[USER-MODEL.md](./USER-MODEL.md)** - User, journey, and journal architecture
    - User as the constant with persona and knowledge base
    - Journeys as process instances
    - Journals as narrative records
    - Future sharing patterns
 
-8. **[CLASS-MODEL.md](./CLASS-MODEL.md)** - Core domain classes and their relationships
+9. **[CLASS-MODEL.md](./CLASS-MODEL.md)** - Core domain classes and their relationships
    - Comprehensive Mermaid class diagram
    - Aggregate boundaries and design principles
    - Process-specific domain models
    - Repository and service patterns
 
-9. **[ENTITY-RELATIONSHIP.md](./ENTITY-RELATIONSHIP.md)** - Database schema and data model
+10. **[ENTITY-RELATIONSHIP.md](./ENTITY-RELATIONSHIP.md)** - Database schema and data model
    - PostgreSQL schema with pgvector extension
    - Comprehensive ERD using Mermaid
    - Table definitions with indexes
    - Migration strategy and security patterns
 
-10. **[TESTING-STRATEGY.md](./TESTING-STRATEGY.md)** - Test types, coverage expectations, and behavioral specs
+11. **[TESTING-STRATEGY.md](./TESTING-STRATEGY.md)** - Test types, coverage expectations, and behavioral specs
    - Testing philosophy aligned with formation principles
    - Unit, integration, and behavioral test patterns
    - Context assembly and journey integrity tests
