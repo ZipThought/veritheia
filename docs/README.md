@@ -60,8 +60,13 @@ Start with the [VISION](./VISION.md) to understand how Veritheia ensures intelle
    - Table definitions with indexes
    - Migration strategy and security patterns
 
+10. **[TESTING-STRATEGY.md](./TESTING-STRATEGY.md)** - Test types, coverage expectations, and behavioral specs
+   - Testing philosophy aligned with formation principles
+   - Unit, integration, and behavioral test patterns
+   - Context assembly and journey integrity tests
+   - Extension testing guidelines
+
 ### Planned Documents
-- **TESTING-STRATEGY.md** - Test types, coverage expectations, and behavioral specs
 - **DEPLOYMENT-GUIDE.md** - Production deployment procedures
 - **SECURITY-POLICIES.md** - Security boundaries and threat model
 
