@@ -9,7 +9,7 @@ This folder contains all development-specific tools, scripts, and tracking docum
 - **PDCA-WORKFLOW.md** - Detailed workflow guide for Plan-Do-Check-Act methodology
 
 ### Context Management
-- **CONTEXT-RECOVERY.md** - Quick start guide after context switches
+- **CONTEXT-RECOVERY.md** - Quick start checklist after context switches
 - **IMPLEMENTATION-SUMMARY.md** - One-page summary of implementation plan
 
 ### Scripts

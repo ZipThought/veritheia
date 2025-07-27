@@ -1,19 +1,16 @@
-# Veritheia MVP: Functionality Specification
+# Veritheia MVP Specification
 
-This document defines the functionalities that ensure users author their own understanding. Part A details the MVP features for immediate implementation. Part B outlines the post-MVP roadmap to guide architectural decisions.
+## 1. Overview
 
+This document specifies the Minimum Viable Product (MVP) features for Veritheia. Part A defines features for immediate implementation. Part B outlines post-MVP capabilities to inform architectural decisions. The MVP targets educational institutions and research groups requiring epistemic infrastructure for knowledge work.
 
----
+## Part A: MVP Features
 
-# Part A: MVP Features (Detailed Specifications)
+### 2. Knowledge Database
 
-Every feature in the MVP is designed to amplify human intellectual capability rather than replace it. The MVP delivers an environment where educational institutions and research groups develop their own insights through structured engagement with knowledge.
+The Knowledge Database provides persistent storage for documents and metadata without content generation.
 
-## I. Knowledge Database
-
-The foundation that preserves intellectual materials without imposing system interpretation.
-
-### 1.1 Ingestion & Storage
+#### 2.1 Ingestion & Storage
 
 | ID | Feature | Description |
 |---|---|---|
@@ -21,7 +18,7 @@ The foundation that preserves intellectual materials without imposing system int
 | 1.1.2 | Artifact Storage | Manage user-defined local file system directory as immutable Raw Corpus |
 | 1.1.3 | Database Schema | PostgreSQL schema for all processed data and metadata |
 
-### 1.2 Processed Representation
+#### 2.2 Processed Representation
 
 | ID | Feature | Description |
 |---|---|---|
@@ -30,7 +27,7 @@ The foundation that preserves intellectual materials without imposing system int
 | 1.2.3 | Vector Embedding Storage | Store embeddings using PostgreSQL pgvector extension |
 | 1.2.4 | Data Provenance | Version all processed data with model/version metadata |
 
-### 1.3 Knowledge Layer API
+#### 2.3 Knowledge Layer API
 
 | ID | Feature | Description |
 |---|---|---|
@@ -39,7 +36,7 @@ The foundation that preserves intellectual materials without imposing system int
 | 1.3.3 | Semantic Search API | Vector similarity search endpoint (cosine distance) |
 | 1.3.4 | Scoped Query API | Optional scope parameter for all search/retrieval endpoints |
 
-### 1.4 Knowledge Scoping
+#### 2.4 Knowledge Scoping
 
 | ID | Feature | Description |
 |---|---|---|
@@ -184,14 +181,17 @@ The system for managing users and their intellectual journeys.
 | 4.2.3 | Journey Context | Maintain process-specific working memory |
 | 4.2.4 | Journey List | View and resume active journeys |
 
-### 4.3 Journal System
+### 4.3 Journal System with Edge-Linking and Long-Memory
 
 | ID | Feature | Description |
 |---|---|---|
-| 4.3.1 | Journal Creation | User-initiated creation of journey-specific journals |
+| 4.3.1 | Structured Journaling | Framework-based journaling with templates for different intellectual activities |
 | 4.3.2 | Journal Types | Research, Method, Decision, and Reflection journals |
 | 4.3.3 | Entry Recording | Structured narrative entries at key process points |
-| 4.3.4 | Context Assembly | Extract relevant entries for process context |
+| 4.3.4 | Edge-Linking | Connect ideas across journal entries and documents through semantic relationships |
+| 4.3.5 | Long-Memory Timelines | Track intellectual development over extended periods with temporal navigation |
+| 4.3.6 | Recursive Synthesis | Iteratively deepen understanding through revisiting and refining previous entries |
+| 4.3.7 | Context Assembly | Extract relevant entries for process context |
 
 ### 4.4 Persona Development
 
@@ -223,7 +223,7 @@ The pluggable, LLM-based reasoning component.
 
 ## VI. Deployment & Administration
 
-Functionalities required for the suite to be installed and managed by a user.
+Functionalities required for the infrastructure to be deployed and managed locally.
 
 ### 6.1 Installation
 

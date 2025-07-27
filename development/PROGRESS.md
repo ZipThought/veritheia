@@ -49,7 +49,7 @@ Each phase follows this structure:
 | 8 | User & Journey System | Not Started | 0% | [USER-MODEL.md](../docs/USER-MODEL.md) |
 | 9 | Cognitive Adapter | Not Started | 0% | [DESIGN-PATTERNS.md#5-adapter-pattern-for-cognitive-system](../docs/DESIGN-PATTERNS.md#5-adapter-pattern-for-cognitive-system) |
 | 10 | Systematic Screening Process | Not Started | 0% | [MVP-SPECIFICATION.md#231-systematic-screening-process](../docs/MVP-SPECIFICATION.md#231-systematic-screening-process) |
-| 11 | Guided Composition Process | Not Started | 0% | [MVP-SPECIFICATION.md#232-guided-composition-process](../docs/MVP-SPECIFICATION.md#232-guided-composition-process) |
+| 11 | Constrained Composition Process | Not Started | 0% | [MVP-SPECIFICATION.md#232-constrained-composition-process](../docs/MVP-SPECIFICATION.md#232-constrained-composition-process) |
 | 12 | Blazor UI | Not Started | 0% | [MVP-SPECIFICATION.md#iii-presentation-desktop-web-client](../docs/MVP-SPECIFICATION.md#iii-presentation-desktop-web-client) |
 | 13 | Testing & Documentation | Not Started | 0% | [TESTING-STRATEGY.md](../docs/TESTING-STRATEGY.md) |
 
@@ -86,7 +86,7 @@ Each phase follows this structure:
 #### ACT (Next Steps)
 - Learning: 
 - Improvement: 
-- Dependency: Enables Phase 2 (Core Domain Models)
+- Dependency: Required for Phase 2 (Core Domain Models)
 
 ---
 
@@ -119,7 +119,7 @@ Each phase follows this structure:
 #### ACT (Next Steps)
 - Learning: 
 - Improvement: 
-- Dependency: Enables Phase 3 (Repository Pattern)
+- Dependency: Required for Phase 3 (Repository Pattern)
 
 ---
 
@@ -151,7 +151,7 @@ Each phase follows this structure:
 #### ACT (Next Steps)
 - Learning: 
 - Improvement: 
-- Dependency: Enables Phase 4 (Knowledge Database APIs)
+- Dependency: Required for Phase 4 (Knowledge Database APIs)
 
 ---
 
@@ -184,7 +184,7 @@ Each phase follows this structure:
 #### ACT (Next Steps)
 - Learning: 
 - Improvement: 
-- Dependency: Enables Phase 6 (Platform Services)
+- Dependency: Required for Phase 6 (Platform Services)
 
 ---
 
@@ -215,7 +215,7 @@ Each phase follows this structure:
 #### ACT (Next Steps)
 - Learning: 
 - Improvement: 
-- Dependency: Enables proper API implementation
+- Dependency: Required for API implementation
 
 ---
 
@@ -246,7 +246,7 @@ Each phase follows this structure:
 #### ACT (Next Steps)
 - Learning: 
 - Improvement: 
-- Dependency: Enables all process implementations
+- Dependency: Required for all process implementations
 
 ---
 
@@ -374,18 +374,18 @@ Each phase follows this structure:
 
 ---
 
-### Phase 11: Guided Composition Process
+### Phase 11: Constrained Composition Process
 **Status**: Not Started
 **Started**: -
 **Completed**: -
-**Docs**: [MVP-SPECIFICATION.md#232-guided-composition-process](../docs/MVP-SPECIFICATION.md#232-guided-composition-process)
+**Docs**: [MVP-SPECIFICATION.md#232-constrained-composition-process](../docs/MVP-SPECIFICATION.md#232-constrained-composition-process)
 
 #### PLAN
 - [ ] Implement process following compositional pattern
-- [ ] Create teacher interface ([MVP 2.3.2.1-2.3.2.5](../docs/MVP-SPECIFICATION.md#232-guided-composition-process))
-- [ ] Generate prompts and rubrics ([MVP 2.3.2.6-2.3.2.7](../docs/MVP-SPECIFICATION.md#232-guided-composition-process))
-- [ ] Implement student interface ([MVP 2.3.2.9](../docs/MVP-SPECIFICATION.md#232-guided-composition-process))
-- [ ] Create evaluation system ([MVP 2.3.2.10-2.3.2.12](../docs/MVP-SPECIFICATION.md#232-guided-composition-process))
+- [ ] Create teacher interface ([MVP 2.3.2.1-2.3.2.5](../docs/MVP-SPECIFICATION.md#232-constrained-composition-process))
+- [ ] Generate prompts and rubrics ([MVP 2.3.2.6-2.3.2.7](../docs/MVP-SPECIFICATION.md#232-constrained-composition-process))
+- [ ] Implement student interface ([MVP 2.3.2.9](../docs/MVP-SPECIFICATION.md#232-constrained-composition-process))
+- [ ] Create evaluation system ([MVP 2.3.2.10-2.3.2.12](../docs/MVP-SPECIFICATION.md#232-constrained-composition-process))
 
 #### DO (Implementation Notes)
 - Note: 

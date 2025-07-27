@@ -1,6 +1,8 @@
 # Testing Strategy
 
-This document defines the testing approach that ensures Veritheia maintains its core principle: users author their own understanding. Tests verify both technical correctness and philosophical alignment.
+## 1. Overview
+
+This document specifies the testing methodology for Veritheia. Tests verify technical implementation, architectural boundaries, and adherence to formation principles. The strategy implements four test levels with specific coverage targets and verification patterns.
 
 ## Testing Philosophy
 

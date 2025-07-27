@@ -1,42 +1,27 @@
 # Veritheia Implementation
 
-This document describes the technical architecture and patterns. Technical choices preserve journey context through database schemas and maintain personal relevance through process interfaces.
+## 1. Overview
+
+This document specifies the technical implementation of Veritheia. The system operates as a local-first epistemic infrastructure with four primary components: PostgreSQL with pgvector for knowledge storage, ASP.NET Core for process orchestration, adapter-based LLM integration for assessments, and Blazor Server for user interfaces. All components enforce user data sovereignty and prevent automated insight generation.
 
 
-## Technology Stack
+## 2. Technology Stack
 
-### I. Knowledge Database → PostgreSQL with pgvector
+### 2.1 Knowledge Database
 
-The Knowledge Database uses PostgreSQL with the pgvector extension for unified storage of both relational metadata and high-dimensional vector embeddings.
+PostgreSQL 16 with pgvector extension provides unified storage for documents, metadata, and embeddings. The pgvector extension enables efficient similarity search over 1536-dimensional embedding vectors while maintaining ACID guarantees for relational data. Deployment uses containerization through .NET Aspire for consistent development and production environments.
 
-- **Rationale**: Single database for all data types reduces operational complexity
-- **Version**: PostgreSQL 16 with pgvector extension
-- **Deployment**: Containerized via .NET Aspire orchestration
+### 2.2 Process Engine
 
-### II. Process Engine → ASP.NET Core API
+ASP.NET Core 8.0 implements the Process Engine as a RESTful API service. The architecture employs Domain-Driven Design with aggregate boundaries around User, Journey, and Document entities. Data access uses the Repository pattern with Entity Framework Core 8.0, while CQRS separates read and write operations for scalability.
 
-The Process Engine is implemented as an ASP.NET Core 8.0 Web API that orchestrates all system logic.
+### 2.3 Presentation Tier
 
-- **Project**: `veritheia.ApiService`
-- **Framework**: .NET 8.0 with C# 12
-- **Patterns**: Repository pattern for data access, CQRS for command/query separation
+Blazor Server provides the web interface, enabling real-time updates through SignalR connections. This architecture choice eliminates JavaScript complexity while maintaining responsive user experiences. Component design follows a strict separation between user-authored content display and system-provided structure.
 
-### III. Presentation Tier → Blazor Server
+### 2.4 Cognitive System Integration
 
-The web interface uses Blazor Server for a unified C# development experience.
-
-- **Project**: `veritheia.Web`
-- **Framework**: Blazor on .NET 8.0
-- **Rationale**: Real-time updates, simplified deployment, consistent language
-
-### IV. Cognitive System Interface → Adapter Pattern
-
-The Cognitive System is accessed through an adapter interface that abstracts LLM implementation details.
-
-**Available Adapters**:
-- `LlamaCppAdapter`: Local inference using llama.cpp
-- `SemanticKernelAdapter`: Microsoft Semantic Kernel integration
-- `OpenAIAdapter`: OpenAI API (for comparison/testing only)
+The ICognitiveAdapter interface abstracts LLM implementation details, supporting multiple backends: LlamaCppAdapter for local inference, SemanticKernelAdapter for Microsoft Semantic Kernel, and OpenAIAdapter for cloud-based models. Each adapter implements assessment-only operations, preventing insight generation through prompt engineering constraints.
 
 ## Data Architecture
 

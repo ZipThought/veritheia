@@ -1,13 +1,15 @@
 # User Model
 
-This document defines how users, journeys, and journals interact within Veritheia. The model ensures that users remain the authors of their understanding while enabling both individual and collaborative formation.
+## 1. Overview
+
+This document specifies the user model for Veritheia, defining relationships between users, journeys, journals, and personas. The model implements journey-based knowledge work where insights accumulate into formation through structured engagement with source materials.
 
 
 ## Core Concepts
 
 ### User
 
-The User represents an individual engaging with the system:
+The User represents an individual engaging with the epistemic infrastructure:
 
 - **Identity**: Authentication and basic profile
 - **Personas**: Multiple evolving representations for different domains (Student, Researcher, Entrepreneur)
@@ -45,16 +47,9 @@ A Persona represents a domain-specific intellectual context:
 
 Users naturally develop different vocabularies and approaches in different contexts. A student learning statistics uses different language than when they're running their startup.
 
-### Journal
+### 2.4 Journal
 
-Journals are narrative records within a journey. Each journey may have multiple journals capturing different aspects:
-
-- **Research Journal**: Findings and discoveries
-- **Method Journal**: Approaches and techniques used
-- **Decision Journal**: Choices made and rationales
-- **Reflection Journal**: Insights and evolving understanding
-
-Journals are written as coherent narratives, not mere logs. They capture the story of intellectual development.
+Journals provide structured narrative records within journeys. Four journal types capture different aspects of intellectual work: Research (findings and discoveries), Method (approaches and techniques), Decision (choices and rationales), and Reflection (insights and evolving understanding). Journals implement structured templates while preserving user voice, enabling edge-linking between entries and long-memory timeline navigation.
 
 ## Relationships
 
@@ -133,7 +128,7 @@ Different deployments support different context sizes:
 - Extended context: Broader journal history and cross-references
 - Full context: Complete journey narrative and deep patterns
 
-The system works effectively at any context size, with richer capabilities at larger sizes.
+The environment works effectively at any context size, with richer capabilities at larger sizes.
 
 ## Journey Patterns
 

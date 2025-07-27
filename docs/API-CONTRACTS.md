@@ -1,10 +1,12 @@
 # API Contracts
 
-This document defines the interfaces and contracts that form the foundation of Veritheia's architecture. These contracts define integration between components while maintaining the principle that users author their own understanding.
+## 1. Overview
 
-## Core Interfaces
+This document specifies the application programming interfaces for Veritheia. All interfaces enforce journey-based data access and assessment-only AI operations. The contracts ensure extensibility while preventing system-generated insights.
 
-### IAnalyticalProcess
+## 2. Core Process Interfaces
+
+### 2.1 IAnalyticalProcess
 
 The fundamental interface that all processes must implement:
 
@@ -17,7 +19,7 @@ public interface IAnalyticalProcess
 }
 ```
 
-### IProcessResultRenderer
+### 2.2 IProcessResultRenderer
 
 Defines how process results are displayed to users:
 
@@ -29,7 +31,7 @@ public interface IProcessResultRenderer
 }
 ```
 
-### ICognitiveAdapter
+### 2.3 ICognitiveAdapter
 
 Abstracts LLM operations for consistent cognitive system access:
 
@@ -41,7 +43,9 @@ public interface ICognitiveAdapter
 }
 ```
 
-### IKnowledgeRepository
+## 3. Repository Interfaces
+
+### 3.1 IKnowledgeRepository
 
 Provides unified data access respecting scope boundaries:
 
@@ -56,11 +60,11 @@ public interface IKnowledgeRepository
 }
 ```
 
-## Platform Service Interfaces
+## 4. Platform Service Interfaces
 
-### IPlatformServices
+### 4.1 IPlatformServices
 
-Aggregates all platform services available to processes:
+The IPlatformServices interface aggregates document processing capabilities available to all processes:
 
 ```csharp
 public interface IPlatformServices

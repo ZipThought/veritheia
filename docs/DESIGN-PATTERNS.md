@@ -1,25 +1,24 @@
-# Veritheia Design Patterns
+# Design Patterns
 
-This document defines the imperative design patterns that MUST be followed in all Veritheia implementations. These patterns ensure consistency, maintainability, and alignment with the system's intellectual sovereignty principles.
+## 1. Overview
 
-## Core Principles
+This document specifies mandatory design patterns for Veritheia implementation. Each pattern enforces architectural principles preventing system-generated insights while maintaining extensibility. Patterns derive from Domain-Driven Design adapted for epistemic infrastructure requirements.
 
-### Single Source of Truth (SSOT)
-- Documentation defines implementation, not vice versa
-- No duplicate information across documents
-- All code must trace back to documented requirements
-- Deviations require explicit documentation
+## 2. Core Principles
 
-### Formation Over Function
-- Every technical decision must support user's intellectual formation
-- Patterns that preserve journey context take precedence
-- No shortcuts that compromise intellectual sovereignty
+### 2.1 Single Source of Truth
 
-## Mandatory Design Patterns
+Documentation serves as the authoritative specification. Each requirement exists in exactly one location. Implementation code includes explicit references to documentation sections. Deviations require documented rationale and approval.
 
-### 1. Domain-Driven Design (DDD)
+### 2.2 Formation Preservation
 
-#### Aggregate Boundaries
+Patterns preserve user intellectual sovereignty through journey-aware data access and provenance tracking. Performance optimizations cannot compromise formation principles.
+
+## 3. Mandatory Design Patterns
+
+### 3.1 Domain-Driven Design
+
+#### 3.1.1 Aggregate Boundaries
 ```csharp
 // User is an aggregate root with Journey as part of the aggregate
 public class User : BaseEntity

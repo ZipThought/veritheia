@@ -1,4 +1,4 @@
-# Context Recovery Guide
+# Context Recovery Checklist
 
 ## Quick Start After Context Switch
 
@@ -60,7 +60,7 @@ We are implementing 12 phases:
 7. **User & Journey System** - Authentication and journey management
 8. **Cognitive Adapter** - LLM integration (Ollama/OpenAI)
 9. **Systematic Screening Process** - First analytical process
-10. **Guided Composition Process** - Educational process
+10. **Constrained Composition Process** - Educational process
 11. **Blazor UI** - Desktop web interface
 12. **Testing & Documentation** - Quality assurance
 
@@ -163,7 +163,7 @@ Before marking a phase complete:
 - [ ] Code matches specifications
 - [ ] ACT section filled with learnings
 
-## Need Help?
+## Additional Resources
 
 1. **Review documentation structure**
    ```bash

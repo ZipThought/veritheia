@@ -1,56 +1,34 @@
-# Veritheia Vision: Your Understanding, Your Formation
+# Veritheia Vision
 
-## Formation: Accumulated Insights from Journeys
+## 1. Core Concept: Formation
 
-Formation is what emerges from repeated journeys through knowledge. Each journey generates insights—those moments of understanding that arise from engaging with materials through your questions, your framework, your path. These insights accumulate into formation, shaping how you approach future encounters with knowledge. Formation cannot be transferred because it is composed of insights, and insights cannot be given—they must be earned through journey.
+Formation represents the accumulated insights derived from user journeys through knowledge. In Veritheia, a journey consists of structured engagement with source materials guided by user-defined research questions and conceptual frameworks. Each journey generates insights—understanding that emerges from the intersection of user perspective and source content. These insights accumulate over time to constitute formation, which shapes subsequent knowledge encounters. Formation remains non-transferable because insights require the specific context of their generative journey.
 
-## I. The Instrument of Authorship
+## 2. Design Philosophy
 
-Veritheia is not a system that gives answers. It is an instrument through which understanding is composed.
+Veritheia functions as epistemic infrastructure rather than an answer-generation system. The design ensures that all intellectual outputs—syntheses, connections, and comprehension—originate from user engagement rather than automated processing. For example, in systematic literature review, the system provides relevance assessments and contribution scores, but the synthesis and interpretation remain entirely user-authored.
 
-When writing a systematic literature review, the insights are authored—born from specific questions, shaped by individual journey, expressed in personal voice. The system merely ensures that what emerges is genuinely authored: personal synthesis, discovered connections, developed comprehension.
+## 3. User Agency Model
 
-## II. Author, Not Audience
+Veritheia implements a strict separation between system assessment and user interpretation. The system performs three types of assessments: (1) relevance scoring against user-defined research questions, (2) contribution measurement for answering those questions, and (3) rubric-based evaluation of user work. All interpretation, synthesis, and decision-making remain with users. This model contrasts with systems that generate summaries, recommendations, or conclusions.
 
-Traditional systems position users as consumers of processed information. Veritheia positions users as authors of understanding.
+## 4. Intellectual Property Model
 
-When the system presents documents, it ensures they relate to the author's question. When it highlights connections, it reveals patterns that matter to the specific inquiry. When it produces a report, every word reflects the journey of discovery.
-
-The system does not think for users—it ensures thinking remains with the author.
-
-## III. Understanding, Protected and Preserved
-
-Every insight developed through Veritheia is indelibly personal. The system ensures this by making the journey essential to meaning.
-
-When connections are discovered between papers, those connections exist because of how they were approached. When findings are synthesized, the synthesis emerges from the author's conceptual framework. When conclusions are reached, they are grounded in the specific reasoning path.
-
-Others cannot extract these insights because the insights are not in the system—they are in the person who developed them.
+Veritheia preserves user intellectual property through journey-dependent meaning construction. Insights generated within the system require three components for interpretation: (1) the source materials selected by the user, (2) the conceptual framework applied during engagement, and (3) the specific reasoning path taken through the materials. Without access to all three components, the insights remain non-transferable. This design ensures that while methods and patterns can be shared, the understanding itself remains with its author.
 
 ## IV. The System as Intellectual Companion
 
-Veritheia accompanies intellectual development without directing it. Like a research supervisor who asks probing questions rather than providing answers, the system deepens thinking while ensuring the thoughts remain with the thinker.
+Veritheia accompanies intellectual development without directing it. Like a research supervisor who asks probing questions rather than providing answers, this place deepens thinking while ensuring the thoughts remain with the thinker.
 
 It remembers conceptual journeys, not to analyze but to maintain continuity in developing understanding. It suggests connections, not to think for users but to support pattern recognition. It organizes information, not to conclude but to free authors for higher-order synthesis.
 
-## V. Why Business Intelligence Becomes Personal Intelligence
+## 6. Domain Applications
 
-When a consultant attempts to use Veritheia for competitive analysis, something interesting happens. The system does not refuse or restrict. Instead, it does what it always does—it ensures the analysis becomes THEIR analysis.
+Veritheia's architecture ensures domain-specific insights remain contextualized to their authors. In business intelligence applications, the system produces analyses that reflect the specific questions, frameworks, and reasoning paths of individual analysts rather than generic market reports. This design principle extends across all domains: educational assessment reflects teacher pedagogical philosophy, research synthesis embodies researcher theoretical orientation, and civic analysis captures leader community understanding. The non-transferability of insights represents a core architectural feature.
 
-The "market insights" that emerge are not generic truths but personal understanding shaped by specific questions and conceptual framework. The report produced is not transferable intelligence but a record of one person's journey through the data.
+## 7. Case Study: Systematic Literature Review
 
-This is not a bug—it is the feature. All intelligence in Veritheia is personal intelligence.
-
-## VI. The Systematic Review That Is Truly Authored
-
-When completing a systematic literature review in Veritheia, what emerges is not the system's analysis but authentic scholarship. The review bears an intellectual fingerprint at every level:
-
-- The research questions that frame it are authored
-- The relevance assessments reflect personal understanding of the field
-- The synthesis emerges from individual conceptual framework
-- The conclusions are reached through specific reasoning
-- The methodology shapes what can be discovered
-
-The system ensures this by making every step dependent on active engagement. It cannot produce a review without the author because the review IS the author—questions made systematic, understanding made explicit.
+The systematic screening process demonstrates Veritheia's authorship model. Users define research questions and conceptual vocabulary, which parameterize AI assessments. The system provides binary relevance scores and contribution assessments for each document. Users interpret these assessments to categorize papers as core, contextual, or peripheral to their inquiry. The resulting synthesis emerges entirely from user engagement with assessed materials. The system cannot generate a review independently because each decision point requires user interpretation within their specific theoretical framework.
 
 ## VII. Formation Through Authorship
 

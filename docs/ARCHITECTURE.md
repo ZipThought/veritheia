@@ -1,8 +1,8 @@
 # Veritheia Architecture
 
-### I. System Overview
+## I. System Overview
 
-The Veritheia architecture is designed to ensure that users author their own understanding rather than consume system-generated insights. Every architectural decision supports this principle: the system amplifies human intellectual capability without replacing human judgment. The Process Engine orchestrates the journey through knowledge, the Knowledge Database preserves conceptual connections, and the Cognitive System responds to questions—never thinking for users, always thinking with them.
+Veritheia is an epistemic infrastructure that enables users to author understanding through structured engagement with source materials. The architecture implements a four-tier design: Knowledge Database for document storage and retrieval, Process Engine for workflow orchestration, Cognitive System for assessment operations, and Presentation tier for user interaction. Each component enforces the principle that insights emerge from user engagement, not system generation.
 
 
 ```
@@ -26,27 +26,25 @@ The Veritheia architecture is designed to ensure that users author their own und
 +-----------------------------------------------------+
 ```
 
-### II. System Components
+## II. System Components
 
-#### 1. The Knowledge Database
+### 2.1 Knowledge Database
 
-This tier preserves the sources and connections discovered through inquiry. It does not generate insights but maintains the raw materials from which understanding is composed.
+The Knowledge Database provides persistent storage for source documents and derived representations. It maintains three data layers: Raw Corpus (original documents), Processed Representation (embeddings, metadata, relationships), and Knowledge Layer (semantic query API). The database preserves provenance and versioning for all transformations.
 
-#### 2. The Process Engine
+### 2.2 Process Engine
 
-This tier orchestrates the intellectual journey. It ensures that every process reflects the user's questions, follows their conceptual path, and produces results that bear their intellectual fingerprint.
+The Process Engine executes analytical workflows through the IAnalyticalProcess interface. Each process maintains journey context, including user research questions, conceptual vocabulary, and formation markers. The engine provides platform services (document ingestion, embedding generation, metadata extraction) while ensuring process outputs reflect user interpretation rather than automated analysis.
 
-#### 3. The Presentation Tier
+### 2.3 Presentation Tier
 
-This tier presents the user's work back to them. It does not display system conclusions but reflects developing understanding, discovered connections, and authored insights.
+The Presentation tier implements user interfaces for journey management, journal composition, and process execution. It maintains strict separation between user-authored content and system-provided structure. All displays reflect the user's developing understanding without imposing system-generated interpretations.
 
-### III. Architectural Patterns
+## III. Architectural Patterns
 
-#### 1. Database Architecture
+### 3.1 Database Architecture
 
-The Knowledge Database employs a unified storage model that supports both structured relational data and high-dimensional vector representations.
-
-*   **Rationale:** A unified storage approach reduces operational complexity and ensures data consistency across different representation types.
+The system employs PostgreSQL with pgvector extension for unified storage of relational and vector data. This design choice eliminates synchronization complexity between separate databases while maintaining query performance through appropriate indexing strategies (B-tree for relational queries, IVFFlat for vector similarity).
 
 #### 2. Client Architecture
 

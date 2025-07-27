@@ -1,12 +1,14 @@
 # Veritheia
 
+*From Veritas (Latin: truth) and alētheia (Greek: truth as "uncoveredness")*
+
 ### I. What It Is
 
-Veritheia is an environment where you author your own understanding.
+Veritheia is epistemic infrastructure—a place to think, reflect, remember, and author knowledge.
 
-You provide the sources—the curriculum, the library, the research—and through Veritheia you compose your own synthesis, develop your own insights, and create your own knowledge.
+You bring your own source material—books, PDFs, journal entries, recordings—and through Veritheia you compose your own synthesis, develop your own insights, and build structured knowledge that is yours in substance and form.
 
-It is designed for educational institutions, research groups, and individuals who seek to develop understanding, not consume information.
+It is public infrastructure for those engaged in real intellectual work: educators designing curricula, students seeking insight rather than answers, researchers mapping complex domains, and civic leaders cultivating understanding across communities.
 
 ### II. Architectural Imperatives
 
@@ -53,3 +55,4 @@ The architecture and its methodologies are derived from the following research.
 - Haryanto, C. Y., Elvira, A. M., Nguyen, T. D., Vu, M. H., Hartanto, Y., Lomempow, E., & Arakala, A. (2024). Contextualized AI for Cyber Defense: An Automated Survey using LLMs. *arXiv preprint arXiv:2409.13524*. [https://doi.org/10.48550/arXiv.2409.13524](https://doi.org/10.48550/arXiv.2409.13524)
 
 - Haryanto, C. Y. (2024). Progress: A Post-AI Manifesto. *arXiv preprint arXiv:2408.13775*. [https://doi.org/10.48550/arXiv.2408.13775](https://doi.org/10.48550/arXiv.2408.13775)
+

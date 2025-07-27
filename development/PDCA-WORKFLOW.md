@@ -1,6 +1,6 @@
 # PDCA Workflow for Veritheia Implementation
 
-This document defines the PDCA (Plan-Do-Check-Act) workflow to ensure quality implementation across context switches.
+This document defines the PDCA (Plan-Do-Check-Act) workflow for implementation across context switches.
 
 ## Core PDCA Principles
 
@@ -30,7 +30,7 @@ This document defines the PDCA (Plan-Do-Check-Act) workflow to ensure quality im
 - Automated tests where possible
 - Manual verification checklist
 - Cross-reference with documentation
-- Ensure no regressions
+- Verify no regressions
 
 ### ACT - Continuous Improvement
 - Document learnings immediately

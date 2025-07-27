@@ -1,65 +1,32 @@
-# Prompt Engineering for Veritheia
+# Prompt Engineering
 
-This document defines how prompts constrain AI to assessment roles while preventing insight generation and maintaining epistemic integrity.
+## 1. Overview
 
-## Critical Warning: LLM Bias and Epistemic Drift
+This document specifies prompt engineering patterns that constrain AI models to assessment-only operations within Veritheia. The patterns prevent insight generation while maintaining consistent evaluation quality across different LLM implementations.
 
-### The Default Bias Problem
+## 2. LLM Bias Analysis
 
-Every LLM, including Claude, GPT-4, and others, carries inherent biases from:
-- **RLHF Training**: Optimized for helpfulness often means generating insights, recommendations, and conclusions
-- **Training Data**: Dominated by marketing language, "best practices," and popular discourse
-- **Pattern Matching**: Tendency to complete patterns with common responses rather than constrained assessments
-- **Model-Inherent Biases**: LLMs have baseline political and ideological leanings even without prompting [1]
-- **Persona-Based Malleability**: These biases can be manipulated through persona-based prompting, showing asymmetric responses to different ideological directions [1]
-- **Stereotypical Defaults**: When faced with "incongruous" combinations, LLMs default to stereotypes rather than following prompts [2]
-- **Illusion of Understanding**: AI tools can exploit cognitive limitations, making users believe they understand more than they actually do [3]
-- **Confidence Miscalibration**: Users systematically overestimate LLM accuracy, especially with longer explanations [4]
-- **Inherent Overconfidence**: LLMs overestimate their correctness by 20-60%, and this bias amplifies human overconfidence [5]
-- **Context Retrieval Failures**: LLMs' ability to recall information from prompts depends on placement and can be compromised by training biases [7]
+### 2.1 Inherent Model Biases
 
-These biases cause epistemic drift where AI responses naturally gravitate toward:
-- Generating insights ("This suggests that...")
-- Making recommendations ("You should consider...")
-- Drawing conclusions ("Therefore we can see...")
-- Using marketing language ("comprehensive," "powerful," "seamless")
-- Applying "common sense" that violates domain constraints
+Large Language Models exhibit systematic biases from multiple sources. RLHF training optimizes for perceived helpfulness, biasing models toward insight generation and recommendations. Training corpora contain predominantly marketing language and popular discourse patterns. Models demonstrate baseline political and ideological positions even without prompting [1], with asymmetric malleability to persona-based manipulation [1]. When encountering statistically uncommon attribute combinations, models default to stereotypical responses rather than following prompt constraints [2].
 
-### Debiasing Methodology
+### 2.2 Cognitive Interaction Effects
 
-Every prompt in Veritheia MUST include explicit debiasing constraints:
+Human-AI interaction amplifies bias through several mechanisms. Users experience illusions of understanding when AI provides fluent outputs [3]. Confidence miscalibration occurs systematically, with users overestimating accuracy by 20-60%, particularly for longer explanations [4]. LLM overconfidence transfers to and amplifies human overconfidence [5]. Context retrieval failures mean models cannot reliably access information from their own prompts, with performance varying by position and content [7].
 
-1. **Role Lockdown**: Begin with explicit role statement that excludes insight generation
-2. **Output Structure Enforcement**: Define exact output format to prevent free-form completion
-3. **Explicit Prohibitions**: List specific patterns the AI must avoid
-4. **Evidence Grounding**: Require quotations and source references for all assessments
-5. **Framework Constraint**: Repeatedly emphasize assessment within user's framework only
-6. **Repetition Throughout**: Restate constraints multiple times within the prompt
-7. **No Implicit Gaps**: Every section must be fully specified, no "[rest of structure]" shortcuts
+## 3. Debiasing Methodology
 
-Without these explicit constraints IN THE PROMPT ITSELF, AI will default to its trained behavior of generating insights rather than assessments.
+Effective prompt engineering requires seven constraint types applied systematically: (1) Role lockdown through explicit assessment-only statements, (2) Output structure enforcement via complete format specification, (3) Prohibited pattern lists including specific phrases to avoid, (4) Evidence grounding through mandatory quotations, (5) Framework constraints limiting evaluation to user-defined criteria, (6) Repeated reinforcement of constraints throughout prompts, and (7) Complete specification without implicit sections. Each constraint addresses specific bias mechanisms identified in Section 2.
 
-## Core Architecture
+## 4. System Architecture
 
-### AI Assessment Roles in Veritheia
+### 4.1 Assessment Roles
 
-The cognitive adapter performs ONLY structured assessments. It measures against criteria but never generates insights, recommendations, or conclusions. Example assessment roles:
+Veritheia implements three primary assessment roles through the cognitive adapter interface. The Librarian role provides binary relevance assessment with scores (0.0-1.0) for documents against research questions. The Peer Reviewer role evaluates methodological contribution through evidence-based binary assessment. The Instructor role measures student work against rubric criteria, providing scores and location references. All roles perform measurement without interpretation.
 
-- **Librarian**: Measures document relevance to research questions (binary + score)
-- **Peer Reviewer**: Measures methodological contribution to RQs (binary + evidence)
-- **Instructor**: Measures student work against rubric criteria (score + location)
+### 4.2 Context Assembly
 
-AI performs measurement and recording ONLY. All interpretation, decision-making, and understanding remain with the user.
-
-### Context Assembly
-
-The Process Engine assembles context from:
-- Journey state (research questions, current process step)
-- Journal entries (user's narrative record)
-- Persona elements (user's vocabulary and patterns)
-- Process-specific requirements
-
-The MVP specification notes context management features including window handling and maintaining narrative coherence, but does not prescribe specific assembly algorithms.
+The Process Engine constructs prompts by assembling four context types: (1) Journey state including research questions and process position, (2) Recent journal entries maintaining narrative continuity, (3) Persona vocabulary ensuring domain-appropriate language, and (4) Process-specific parameters. Context assembly algorithms prioritize recency and relevance while respecting token limits. The system maintains coherence through structured templates rather than dynamic assembly.
 
 ## Complete Prompt Templates
 
