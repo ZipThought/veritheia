@@ -117,7 +117,7 @@ Ensure users remain the authors of their understanding:
 
 ## Development Workflow
 
-### 1. Define Your Process Concept
+### 1. Define Process Concept
 Before coding, clearly articulate:
 - What intellectual work the process supports
 - What category it falls into and why
@@ -126,26 +126,26 @@ Before coding, clearly articulate:
 
 ### 2. Design the User Journey
 Map out how users will:
-- Discover and understand your process
+- Discover and understand the process
 - Provide necessary inputs
 - Engage with the process execution
 - Interpret and use the results
 
-### 3. Model Your Domain
+### 3. Model Domain
 Identify domain-specific concepts that need representation:
-- What entities capture your process state
+- What entities capture process state
 - How they relate to platform entities
 - What data needs persistence
 
 ### 4. Implement the Process
-Create your process implementation following platform patterns:
+Create process implementation following platform patterns:
 - Define process metadata and inputs
 - Implement execution logic using platform services
-- Design result structure for your domain
+- Design result structure for domain
 - Create result rendering components
 
-### 5. Test Your Extension
-Verify your extension:
+### 5. Test Extension
+Verify extension:
 - Works correctly in isolation
 - Integrates properly with platform services
 - Maintains personal context throughout execution

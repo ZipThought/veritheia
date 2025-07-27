@@ -30,7 +30,9 @@ erDiagram
 
     personas {
         uuid id PK
-        uuid user_id FK UK
+        uuid user_id FK
+        varchar domain
+        boolean is_active
         jsonb conceptual_vocabulary
         jsonb patterns
         jsonb methodological_preferences
@@ -53,6 +55,7 @@ erDiagram
     journeys {
         uuid id PK
         uuid user_id FK
+        uuid persona_id FK
         varchar process_type
         text purpose
         varchar state
@@ -168,6 +171,7 @@ erDiagram
     users ||--o{ personas : "has"
     users ||--o{ process_capabilities : "granted"
     users ||--o{ journeys : "owns"
+    personas ||--o{ journeys : "used by"
 
     journeys ||--o{ journals : "contains"
     journeys ||--o{ process_executions : "tracks"
@@ -208,7 +212,9 @@ Evolving representation of user's intellectual style:
 ```sql
 CREATE TABLE personas (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID UNIQUE NOT NULL,
+    user_id UUID NOT NULL,
+    domain VARCHAR(100) NOT NULL,
+    is_active BOOLEAN DEFAULT true,
     conceptual_vocabulary JSONB DEFAULT '{}',
     patterns JSONB DEFAULT '[]',
     methodological_preferences JSONB DEFAULT '[]',
@@ -216,8 +222,12 @@ CREATE TABLE personas (
     last_evolved TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE,
-    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT uq_user_domain UNIQUE (user_id, domain)
 );
+
+CREATE INDEX idx_personas_user ON personas(user_id);
+CREATE INDEX idx_personas_active ON personas(user_id, is_active);
 ```
 
 ##### process_capabilities
@@ -245,6 +255,7 @@ Represents user engagement with processes:
 CREATE TABLE journeys (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL,
+    persona_id UUID NOT NULL,
     process_type VARCHAR(255) NOT NULL,
     purpose TEXT NOT NULL,
     state VARCHAR(50) NOT NULL DEFAULT 'Active',
@@ -252,6 +263,7 @@ CREATE TABLE journeys (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE,
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_persona FOREIGN KEY (persona_id) REFERENCES personas(id),
     CONSTRAINT chk_state CHECK (state IN ('Active', 'Paused', 'Completed', 'Abandoned'))
 );
 
@@ -693,6 +705,41 @@ CREATE INDEX idx_personas_vocabulary ON personas USING GIN(conceptual_vocabulary
 CREATE INDEX idx_contexts ON journeys USING GIN(context);
 CREATE INDEX idx_results_data ON process_results USING GIN(data);
 ```
+
+## Cascade Delete Strategy
+
+The schema implements careful cascade strategies to maintain data integrity while respecting user ownership:
+
+### User Deletion Cascades
+When a user is deleted:
+- **CASCADE**: personas, journeys, process_capabilities → Complete removal of user's intellectual work
+- **CASCADE**: All downstream entities (journals, journal_entries, process_executions)
+- **RESTRICT**: assignments (teacher_id) → Cannot delete teachers with active assignments
+
+### Journey Deletion Cascades  
+When a journey is deleted:
+- **CASCADE**: journals, process_executions → Remove all journey-specific data
+- **CASCADE**: journal_entries, process_results → Complete cleanup
+
+### Document Deletion Cascades
+When a document is deleted:
+- **CASCADE**: document_metadata, processed_contents → Remove all derived data
+- **SET NULL**: References from scopes → Documents can exist without scopes
+
+### Scope Deletion Cascades
+When a knowledge_scope is deleted:
+- **CASCADE**: child scopes → Recursive deletion of scope hierarchy
+- **SET NULL**: document references → Documents persist without scope
+
+### Extension-Specific Cascades
+- **CASCADE**: assignment → student_submissions → evaluation_results
+- **RESTRICT**: Cannot delete users who have submitted work (student_id)
+
+This strategy ensures:
+1. User sovereignty - deleting a user removes all their data
+2. Journey integrity - journey deletion is complete
+3. Document persistence - documents survive scope changes
+4. Educational integrity - submitted work is preserved
 
 ## Migration Strategy
 

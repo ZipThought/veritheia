@@ -50,11 +50,14 @@ classDiagram
         +string DisplayName
         +DateTime LastActiveAt
         +ICollection~Journey~ Journeys
+        +ICollection~Persona~ Personas
         +ICollection~ProcessCapability~ Capabilities
     }
 
     class Persona {
         +Guid UserId
+        +string Domain
+        +bool IsActive
         +Dictionary~string,int~ ConceptualVocabulary
         +List~InquiryPattern~ Patterns
         +List~string~ MethodologicalPreferences
@@ -64,11 +67,13 @@ classDiagram
 
     class Journey {
         +Guid UserId
+        +Guid PersonaId
         +string ProcessType
         +string Purpose
         +JourneyState State
         +Dictionary~string,object~ Context
         +User User
+        +Persona Persona
         +ICollection~Journal~ Journals
         +ICollection~ProcessExecution~ Executions
     }
@@ -189,13 +194,15 @@ classDiagram
     BaseEntity <|-- ProcessResult
     BaseEntity <|-- ProcessCapability
 
-    User "1" --> "0..1" Persona : has
+    User "1" --> "*" Persona : has
     User "1" --> "*" Journey : owns
     User "1" --> "*" ProcessCapability : granted
+    Persona "*" --> "1" User : belongs to
 
     Journey "1" --> "*" Journal : contains
     Journey "1" --> "*" ProcessExecution : tracks
     Journey "*" --> "1" User : belongs to
+    Journey "*" --> "1" Persona : uses
 
     Journal "1" --> "*" JournalEntry : records
     Journal "*" --> "1" Journey : documents
@@ -496,12 +503,21 @@ Example: GuidedCompositionProcess uses assignments, student_submissions, evaluat
 ### Repository Access Patterns
 
 ```csharp
-// Accessing related entities
+// Accessing user with all personas
 var user = await userRepository.GetAsync(userId);
-var persona = await personaRepository.GetByUserIdAsync(userId);
+var personas = await personaRepository.GetByUserIdAsync(userId);
 
-// Or use domain service for aggregated data
-var userWithPersona = await userService.GetUserWithPersonaAsync(userId);
+// Get specific persona by domain
+var studentPersona = await personaRepository.GetByUserAndDomainAsync(userId, "Student");
+
+// Create journey with specific persona
+var journey = await journeyService.CreateJourneyAsync(new CreateJourneyRequest
+{
+    UserId = userId,
+    PersonaId = studentPersona.Id,
+    ProcessType = "SystematicScreening",
+    Purpose = "Literature review for thesis"
+});
 
 // Extensions access core data through services
 var documents = await knowledgeRepository.GetDocumentsInScopeAsync(scopeId);

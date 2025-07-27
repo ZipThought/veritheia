@@ -34,12 +34,13 @@ Test individual components in isolation.
 #### Core Platform Unit Tests
 
 ```csharp
-// Example: Testing Journey creation
+// Example: Testing Journey creation with Persona
 [Fact]
-public async Task CreateJourney_WithValidUser_CreatesJourneyWithCorrectState()
+public async Task CreateJourney_WithValidUserAndPersona_CreatesJourneyWithCorrectState()
 {
     // Arrange
     var user = new User { Id = Guid.NewGuid(), Email = "researcher@example.com" };
+    var persona = new Persona { Id = Guid.NewGuid(), UserId = user.Id, Domain = "Researcher" };
     var repository = new Mock<IJourneyRepository>();
     var service = new JourneyService(repository.Object);
     
@@ -47,6 +48,7 @@ public async Task CreateJourney_WithValidUser_CreatesJourneyWithCorrectState()
     var journey = await service.CreateJourneyAsync(new CreateJourneyRequest
     {
         UserId = user.Id,
+        PersonaId = persona.Id,
         ProcessType = "SystematicScreening",
         Purpose = "Review ML security literature"
     });
@@ -54,7 +56,27 @@ public async Task CreateJourney_WithValidUser_CreatesJourneyWithCorrectState()
     // Assert
     Assert.Equal(JourneyState.Active, journey.State);
     Assert.Equal(user.Id, journey.UserId);
+    Assert.Equal(persona.Id, journey.PersonaId);
     Assert.NotEmpty(journey.Purpose);
+}
+
+// Example: Testing Multiple Personas
+[Fact]
+public async Task User_CanHaveMultiplePersonas()
+{
+    // Arrange
+    var user = new User { Id = Guid.NewGuid(), Email = "multi@example.com" };
+    var personaService = new PersonaService(repository.Object);
+    
+    // Act
+    var studentPersona = await personaService.CreatePersonaAsync(user.Id, "Student");
+    var entrepreneurPersona = await personaService.CreatePersonaAsync(user.Id, "Entrepreneur");
+    
+    // Assert
+    var personas = await personaService.GetByUserIdAsync(user.Id);
+    Assert.Equal(2, personas.Count);
+    Assert.Contains(personas, p => p.Domain == "Student");
+    Assert.Contains(personas, p => p.Domain == "Entrepreneur");
 }
 
 // Example: Testing Persona evolution
@@ -235,6 +257,29 @@ Feature: Systematic Screening Process
 Verify that journey context is properly assembled.
 
 ```csharp
+[Theory]
+[InlineData(4000, 5, "minimal")]     // 4K context
+[InlineData(32000, 20, "standard")]  // 32K context  
+[InlineData(100000, 50, "extended")] // 100K+ context
+public async Task AssembleContext_RespectsTokenLimits(int maxTokens, int expectedEntries, string contextType)
+{
+    // Arrange
+    var journey = CreateJourneyWithManyEntries();
+    var assembler = new ContextAssemblyService();
+    
+    // Act
+    var context = await assembler.AssembleContextAsync(journey.Id, new ContextRequest
+    {
+        MaxTokens = maxTokens,
+        IncludePersona = true
+    });
+    
+    // Assert
+    var tokenCount = tokenizer.CountTokens(context);
+    Assert.True(tokenCount <= maxTokens);
+    Assert.Contains($"Context type: {contextType}", context);
+}
+
 [Fact]
 public async Task AssembleContext_WithMultipleJournals_PrioritizesSignificance()
 {
@@ -245,7 +290,7 @@ public async Task AssembleContext_WithMultipleJournals_PrioritizesSignificance()
     // Act
     var context = await assembler.AssembleContextAsync(journey.Id, new ContextRequest
     {
-        MaxTokens = 4000,
+        MaxTokens = 32000,
         IncludePersona = true
     });
     
@@ -253,6 +298,20 @@ public async Task AssembleContext_WithMultipleJournals_PrioritizesSignificance()
     Assert.Contains("Critical finding about neural architectures", context);
     Assert.Contains("milestone in understanding", context);
     Assert.DoesNotContain("routine observation", context); // Should be filtered
+}
+
+[Fact]
+public async Task AssembleContext_IncludesActivePersonaDomain()
+{
+    // Arrange
+    var journey = CreateJourneyWithPersona("Researcher");
+    
+    // Act
+    var context = await assembler.AssembleContextAsync(journey.Id);
+    
+    // Assert
+    Assert.Contains("Domain: Researcher", context);
+    Assert.Contains("research methodology", context); // Domain-specific vocabulary
 }
 
 [Fact]
@@ -307,7 +366,44 @@ public abstract class ProcessExtensionTestBase<TProcess>
 }
 ```
 
-#### Extension Storage Tests
+#### Extension Isolation Tests
+
+```csharp
+[Fact]
+public async Task Extensions_CannotAccessOtherExtensionData()
+{
+    // Arrange
+    var screeningResult = new ProcessResult 
+    { 
+        ProcessType = "SystematicScreening",
+        Data = new { Results = new[] { new ScreeningResult() } }
+    };
+    await repository.SaveAsync(screeningResult);
+    
+    // Act & Assert
+    await Assert.ThrowsAsync<UnauthorizedAccessException>(async () =>
+    {
+        // Composition process trying to access screening data
+        var compositionProcess = new GuidedCompositionProcess();
+        await compositionProcess.AccessProcessResult(screeningResult.Id);
+    });
+}
+
+[Fact]
+public async Task Extensions_CannotQueryOtherExtensionTables()
+{
+    // Arrange
+    var assignment = new Assignment { TeacherId = TestUsers.Teacher.Id };
+    await assignmentRepository.SaveAsync(assignment);
+    
+    // Act & Assert
+    // Screening process should not be able to query assignments
+    var screeningProcess = new SystematicScreeningProcess();
+    Assert.False(screeningProcess.HasAccessTo("assignments"));
+}
+```
+
+### Extension Storage Tests
 
 ```csharp
 // For JSONB storage pattern
@@ -375,11 +471,25 @@ public class TestDataBuilder
         };
     }
     
-    public static Journey CreateActiveJourney(User user, string processType)
+    public static Persona CreatePersona(User user, string domain = "Researcher")
+    {
+        return new Persona
+        {
+            UserId = user.Id,
+            Domain = domain,
+            IsActive = true,
+            ConceptualVocabulary = new Dictionary<string, int>(),
+            Patterns = new List<InquiryPattern>(),
+            LastEvolved = DateTime.UtcNow
+        };
+    }
+    
+    public static Journey CreateActiveJourney(User user, Persona persona, string processType)
     {
         var journey = new Journey
         {
             UserId = user.Id,
+            PersonaId = persona.Id,
             ProcessType = processType,
             Purpose = $"Test {processType} journey",
             State = JourneyState.Active

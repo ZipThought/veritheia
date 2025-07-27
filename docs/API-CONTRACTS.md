@@ -417,6 +417,21 @@ public enum ProcessTriggerType
 }
 ```
 
+### ProcessState
+
+Tracks process execution state:
+
+```csharp
+public enum ProcessState
+{
+    Pending,       // Not yet started
+    Running,       // Currently executing
+    Completed,     // Finished successfully
+    Failed,        // Terminated with error
+    Cancelled      // User cancelled
+}
+```
+
 ### ChunkingStrategy
 
 Strategies for document chunking:
@@ -470,6 +485,22 @@ public enum EntrySignificance
     Notable,       // Worth highlighting
     Critical,      // Key decision or insight
     Milestone      // Major achievement
+}
+```
+
+## Request/Response Objects
+
+### CreateJourneyRequest
+
+Parameters for creating a new journey:
+
+```csharp
+public class CreateJourneyRequest
+{
+    public Guid UserId { get; set; }
+    public Guid PersonaId { get; set; }
+    public string ProcessType { get; set; }
+    public string Purpose { get; set; }
 }
 ```
 

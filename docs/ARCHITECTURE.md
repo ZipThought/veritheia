@@ -139,7 +139,7 @@ The architecture is designed for extensibility through a set of formal interface
 
     These connectors are considered extensions and are not part of the default implementation.
     
-*   **Cognitive System Adaptors:** This interface decouples the Process Engine from the specific implementation of any given LLM or cognitive framework, allowing for flexible integration with local and external models.
+*   **Cognitive System Adaptors:** This interface decouples the Process Engine from the specific implementation of any given LLM or cognitive framework, allowing for integration with local and external models.
 
 ### VII. Extension Architecture
 
@@ -228,7 +228,7 @@ The platform handles migrations and ensures data consistency across extensions. 
 
 ### VIII. User and Journey Architecture
 
-The system models users as authors of their own understanding through a sophisticated journey and journal system.
+The system models users as authors of their own understanding through a journey and journal system.
 
 #### User Model
 

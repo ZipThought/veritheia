@@ -9,27 +9,40 @@ This document defines how users, journeys, and journals interact within Verithei
 The User represents an individual engaging with the system:
 
 - **Identity**: Authentication and basic profile
-- **Persona**: Evolving representation of how they think and work
-- **Knowledge Base**: Their corpus of documents (shared across all journeys)
+- **Personas**: Multiple evolving representations for different domains (Student, Researcher, Entrepreneur)
+- **Knowledge Base**: Their corpus of documents (shared across all personas and journeys)
 - **Capabilities**: Which processes they can access
 
-The User is the constant—their journeys may vary, but their identity and growing understanding persist.
+The User is the constant—their journeys and personas may vary, but their identity and growing understanding persist.
 
 ### Journey
 
 A Journey represents a specific instance of a user engaging with a process:
 
 ```
-Journey = User + Process + Purpose + Time
+Journey = User + Persona + Process + Purpose + Time
 ```
 
 - **Owner**: The user who initiated the journey
+- **Persona**: Which domain context is active (Student, Researcher, etc.)
 - **Process**: Which standardized workflow is being followed
 - **Purpose**: The driving question or goal
 - **State**: Current position within the process
 - **Context**: Process-specific working memory
 
 Each journey is a unique intellectual endeavor, even when using the same process multiple times.
+
+### Persona
+
+A Persona represents a domain-specific intellectual context:
+
+- **Domain**: The role or context (Student, Researcher, Entrepreneur, Professional)
+- **Conceptual Vocabulary**: Domain-specific terms and their usage frequency
+- **Patterns**: How this persona approaches problems
+- **Preferences**: Methodological tendencies in this domain
+- **Active State**: Whether currently in use
+
+Users naturally develop different vocabularies and approaches in different contexts. A student learning statistics uses different language than when they're running their startup.
 
 ### Journal
 
@@ -44,13 +57,20 @@ Journals are written as coherent narratives, not mere logs. They capture the sto
 
 ## Relationships
 
+### One User → Many Personas
+
+A user might have:
+- **Student Persona**: Academic vocabulary, learning-focused patterns
+- **Researcher Persona**: Domain expertise, investigation methods
+- **Entrepreneur Persona**: Business terminology, market analysis approaches
+
 ### One User → Many Journeys
 
 A researcher might have:
-- "Systematic Review of ML Security" (SystematicScreeningProcess)
-- "Literature Review on Privacy" (SystematicScreeningProcess)
-- "Research Methods Course" (GuidedCompositionProcess as student)
-- "Advanced Topics Seminar" (GuidedCompositionProcess as teacher)
+- "Systematic Review of ML Security" (Researcher persona, SystematicScreeningProcess)
+- "Literature Review on Privacy" (Researcher persona, SystematicScreeningProcess)
+- "Research Methods Course" (Student persona, GuidedCompositionProcess)
+- "Startup Market Analysis" (Entrepreneur persona, SystematicScreeningProcess)
 
 ### One Process → Many Journeys
 
@@ -81,7 +101,7 @@ The Persona is not a static profile but an evolving representation:
 1. Each journal entry potentially contributes to persona
 2. Patterns across journeys reveal preferences
 3. Vocabulary stabilizes around core concepts
-4. Methods become more sophisticated
+4. Methods evolve and deepen
 
 The persona helps the system understand the user's intellectual style without prescribing it.
 
@@ -178,7 +198,7 @@ Collections of shared journals:
 User
 - Id
 - Identity (authentication)
-- PersonaId (evolving representation)
+- Personas (collection of domain contexts)
 - Capabilities (process access)
 ```
 
@@ -187,11 +207,24 @@ User
 Journey
 - Id
 - UserId (owner)
+- PersonaId (active context)
 - ProcessType
 - Purpose
 - CreatedAt
 - State
 - Context (process-specific)
+```
+
+### Persona Entity
+```
+Persona
+- Id
+- UserId
+- Domain (Student, Researcher, etc.)
+- IsActive
+- ConceptualVocabulary
+- Patterns
+- LastEvolved
 ```
 
 ### Journal Entity
