@@ -42,9 +42,12 @@ This document defines the PDCA (Plan-Do-Check-Act) workflow for implementation a
 
 ### Starting a Phase
 
-1. **MANDATORY: RTFM First**
+1. **MANDATORY: Follow Development Workflow**
    ```bash
-   # STOP! You MUST read the documentation BEFORE doing ANY work:
+   # STOP! Read the development workflow FIRST:
+   cat development/DEVELOPMENT-WORKFLOW.md
+   
+   # Then read the documentation:
    
    # Step 1: Always start with docs index
    cat docs/README.md
@@ -56,13 +59,13 @@ This document defines the PDCA (Plan-Do-Check-Act) workflow for implementation a
    # Step 3: Read all referenced sections
    # Each PLAN item has a doc link - READ IT FIRST
    
-   # VIOLATION CHECK:
-   # - Planning without reading docs = VIOLATION
-   # - Coding without reading docs = VIOLATION  
-   # - Reviewing without reading docs = VIOLATION
-   # - Even THINKING about implementation without docs = VIOLATION
+   # WORKFLOW VIOLATIONS:
+   # - Skipping human decision = VIOLATION
+   # - Not signaling gaps = VIOLATION
+   # - Coding without docs = VIOLATION  
+   # - Assuming instead of asking = VIOLATION
    
-   # The docs are the SINGLE SOURCE OF TRUTH
+   # The workflow ensures human sovereignty
    ```
 
 2. **Create Feature Branch**

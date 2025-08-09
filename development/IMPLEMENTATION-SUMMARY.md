@@ -27,6 +27,12 @@ dotnet ef database update --project veritheia.Data --startup-project veritheia.A
 dotnet run --project veritheia.AppHost
 ```
 
+### Development Workflow (MANDATORY)
+1. **READ FIRST**: development/DEVELOPMENT-WORKFLOW.md
+2. **Signal gaps** before making changes
+3. **Wait for human decisions** on ambiguities
+4. **Follow the flow**: Human → [Journey?] → Docs → Code
+
 ### PDCA for Each Phase
 1. **PLAN**: Read relevant docs (CLASS-MODEL, ENTITY-RELATIONSHIP, API-CONTRACTS)
 2. **DO**: Implement with frequent commits, update development/PROGRESS.md
@@ -35,6 +41,7 @@ dotnet run --project veritheia.AppHost
 
 ### Critical Rules
 - **ALWAYS read entire files** - no partial reads
+- **Signal and stop** - confirm before proceeding (use format from DEVELOPMENT-WORKFLOW.md)
 - **Commit frequently** with descriptive messages
 - **Update development/PROGRESS.md** before context switches
 - **Test as you go** - don't accumulate untested code

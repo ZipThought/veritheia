@@ -26,9 +26,10 @@ When you return to this project after a context switch, start here:
    - Check the CHECK section for what needs verification
 
 3. **Key Files to Review**
+   - `development/DEVELOPMENT-WORKFLOW.md` - MANDATORY workflow (read first!)
    - `development/PROGRESS.md` - Current implementation status
    - `development/CONTEXT-RECOVERY.md` - This file
-   - `development/PDCA-WORKFLOW.md` - How to proceed
+   - `development/PDCA-WORKFLOW.md` - How to proceed with quality
    - Recent commits: `git log -10 --oneline`
 
 ## Project Structure Reminder

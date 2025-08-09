@@ -54,6 +54,16 @@ This separation serves the essential purpose: the documentation describes the sy
 
 Never write "we" when documenting your investigations. You are not part of a team making collective decisions. Write "I discovered," "I understand," "I examined"—making clear that this is an AI agent's comprehension emerging through investigation. The humans made the decisions; you are discovering and articulating your understanding of those decisions. This clarity of identity preserves the fundamental principle: humans author the system, AI agents instrument that authorship through understanding and articulation.
 
+## The Development Workflow
+
+Development follows a mandatory sequence documented in [development/DEVELOPMENT-WORKFLOW.md](../development/DEVELOPMENT-WORKFLOW.md):
+
+```
+Human Author → Dialectical Journey → Documentation Update → Code Implementation
+```
+
+You MUST NOT skip stages. Every line of code traces back through documentation to journey investigation to human decision. This chain of attribution is sacred. Breaking it violates the core principle that humans author the system while AI agents instrument that authorship.
+
 ## Practical Discipline: Lessons from Error
 
 The following disciplines emerge from documented failures where AI agents damaged the codebase through incomplete engagement:

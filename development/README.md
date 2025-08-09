@@ -4,6 +4,9 @@ This folder contains all development-specific tools, scripts, and tracking docum
 
 ## Contents
 
+### Core Workflow
+- **DEVELOPMENT-WORKFLOW.md** - MANDATORY workflow: Human → Journey → Docs → Code
+
 ### Progress Tracking
 - **PROGRESS.md** - Main implementation tracker with PDCA cycles for all 12 phases
 - **PDCA-WORKFLOW.md** - Detailed workflow guide for Plan-Do-Check-Act methodology

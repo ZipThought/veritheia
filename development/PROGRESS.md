@@ -2,58 +2,110 @@
 
 This document tracks implementation progress using PDCA cycles. Each phase has clear checkpoints that survive context switches.
 
-**Phase Documentation**: Each phase now maintains detailed investigation records under `development/phases/`. See [PHASE-TRACKING.md](./PHASE-TRACKING.md) for the investigative method using 5W+1H and dialectical testing.
+## Phase Investigation Structure
 
-## Progress Tracking Format
+When a phase requires investigation (per [DEVELOPMENT-WORKFLOW.md](./DEVELOPMENT-WORKFLOW.md)), create a journey under `development/phases/`:
 
-Each phase follows this structure:
+```
+development/phases/
+├── phase-01-database/      # Example: Database investigation
+│   ├── README.md          # Phase overview and status
+│   ├── JOURNEY.md         # Investigation chronicle
+│   └── artifacts/         # Code experiments, proofs
+```
+
+### Journey Investigation Method
+
+For significant technical decisions, use the dialectical method:
+
+1. **5W+1H Investigation**: Examine What, Who, When, Where, Why, and How
+2. **Dialectical Testing**: Present thesis vs antithesis to reveal synthesis
+3. **Evidence Gathering**: Code experiments, benchmarks, error discoveries
+4. **Decision Recording**: What emerged from investigation and why
+5. **Implementation Notes**: What actually happened vs what was planned
+
+The Phase 1 Database journey demonstrates this method in practice. Not all phases need investigation - conventional patterns and minor decisions can proceed directly to implementation.
+
+## PDCA Workflow for Each Phase
+
+Following [DEVELOPMENT-WORKFLOW.md](./DEVELOPMENT-WORKFLOW.md), each phase embodies the PDCA cycle with documentation BEFORE implementation:
+
+### PLAN - Documentation First
+1. **Read Documentation**: Review all relevant specs for the phase
+2. **Signal Gaps**: If docs are unclear or missing, STOP and signal
+3. **Confirm Understanding**: Ensure specs match current architecture
+4. **Define Deliverables**: List specific, verifiable outputs
+
+### DO - Implementation with Awareness
+1. **Follow Specifications**: Implement exactly what's documented
+2. **Signal Discoveries**: When finding undocumented code or issues
+3. **Document Decisions**: Record any deviations or choices made
+4. **Mark TODOs**: Explicitly track temporary solutions
+
+### CHECK - Verification Against Specs
+1. **Test Against Documentation**: Does implementation match specs?
+2. **Run Automated Tests**: Unit, integration, and relevant tests
+3. **Manual Verification**: Confirm expected behaviors work
+4. **Code Review**: Ensure patterns and conventions are followed
+
+### ACT - Learning and Adjustment
+1. **Update Documentation**: If reality differs from specs, update docs
+2. **Record Learnings**: What worked, what didn't, what surprised
+3. **Identify Dependencies**: What this enables for next phases
+4. **Propagate Changes**: If specs changed, update related docs
+
+## Phase Structure Template
+
 ```
 ### Phase X: [Name]
 **Status**: Not Started | In Progress | Completed | Blocked
 **Started**: YYYY-MM-DD
 **Completed**: YYYY-MM-DD
+**Journey**: Link to investigation if exists
+**Docs**: Links to relevant documentation
 
-#### PLAN
-- [ ] Specific deliverable 1
-- [ ] Specific deliverable 2
+#### PLAN (Documentation Review)
+- [ ] Review [specific doc section]
+- [ ] Confirm [specific decision]
+- [ ] Signal any gaps found
 
-#### DO (Implementation Notes)
-- Note: What was actually implemented
-- Decision: Key decisions made
-- Change: Deviations from plan
-- TODO: List any temporary solutions or incomplete work
+#### DO (Implementation)
+- [ ] Implement [specific component]
+- [ ] Follow [specific pattern from docs]
+- Note: What was actually done
+- Decision: Choices made during implementation
+- TODO: Temporary solutions needing future work
 
 #### CHECK (Verification)
-- [ ] Unit tests pass
-- [ ] Integration tests pass
-- [ ] Manual verification complete
-- [ ] Code review complete
+- [ ] Implementation matches [doc section]
+- [ ] Tests pass for [specific functionality]
+- [ ] Manual verification of [specific behavior]
+- [ ] Patterns from [DESIGN-PATTERNS.md] followed
 
-#### ACT (Next Steps)
-- Learning: What we learned
-- Improvement: What to change
-- Dependency: What this enables
+#### ACT (Learning & Updates)
+- Learning: What we discovered
+- Doc Updates: What specs need updating
+- Dependencies: What this enables
 ```
 
 ---
 
 ## Phase Status Overview
 
-| Phase | Name | Status | Progress | Documentation |
+| Phase | Name | Status | Documentation | Progress |
 |-------|------|--------|----------|---------------|
-| 1 | Database Infrastructure | Not Started | 0% | [IMPLEMENTATION.md#data-architecture](../docs/IMPLEMENTATION.md#data-architecture) |
-| 2 | Core Domain Models | Not Started | 0% | [CLASS-MODEL.md](../docs/CLASS-MODEL.md) |
-| 3 | Repository Pattern | Not Started | 0% | [DESIGN-PATTERNS.md#2-repository-pattern](../docs/DESIGN-PATTERNS.md#2-repository-pattern) |
-| 4 | Knowledge Database APIs | Not Started | 0% | [MVP-SPECIFICATION.md#13-knowledge-layer-api](../docs/MVP-SPECIFICATION.md#13-knowledge-layer-api) |
-| 5 | Service Layer | Not Started | 0% | [IMPLEMENTATION.md#service-architecture](../docs/IMPLEMENTATION.md#service-architecture) |
-| 6 | Process Engine Infrastructure | Not Started | 0% | [ARCHITECTURE.md#process-execution-architecture](../docs/ARCHITECTURE.md#process-execution-architecture) |
-| 7 | Platform Services | Not Started | 0% | [MVP-SPECIFICATION.md#22-platform-services](../docs/MVP-SPECIFICATION.md#22-platform-services) |
-| 8 | User & Journey System | Not Started | 0% | [USER-MODEL.md](../docs/USER-MODEL.md) |
-| 9 | Cognitive Adapter | Not Started | 0% | [DESIGN-PATTERNS.md#5-adapter-pattern-for-cognitive-system](../docs/DESIGN-PATTERNS.md#5-adapter-pattern-for-cognitive-system) |
-| 10 | Systematic Screening Process | Not Started | 0% | [MVP-SPECIFICATION.md#231-systematic-screening-process](../docs/MVP-SPECIFICATION.md#231-systematic-screening-process) |
-| 11 | Constrained Composition Process | Not Started | 0% | [MVP-SPECIFICATION.md#232-constrained-composition-process](../docs/MVP-SPECIFICATION.md#232-constrained-composition-process) |
-| 12 | Blazor UI | Not Started | 0% | [MVP-SPECIFICATION.md#iii-presentation-desktop-web-client](../docs/MVP-SPECIFICATION.md#iii-presentation-desktop-web-client) |
-| 13 | Testing & Documentation | Not Started | 0% | [TESTING-STRATEGY.md](../docs/TESTING-STRATEGY.md) |
+| 1 | Database Infrastructure | Not Started | [ENTITY-RELATIONSHIP.md](../docs/ENTITY-RELATIONSHIP.md), [Phase 1 Journey](./phases/phase-01-database/JOURNEY.md) | 0% |
+| 2 | Core Domain Models | Not Started | [CLASS-MODEL.md](../docs/CLASS-MODEL.md) | 0% |
+| 3 | Repository Pattern | Not Started | [DESIGN-PATTERNS.md#2-repository-pattern](../docs/DESIGN-PATTERNS.md#2-repository-pattern) | 0% |
+| 4 | Knowledge Database APIs | Not Started | [API-CONTRACTS.md](../docs/API-CONTRACTS.md) | 0% |
+| 5 | Process Engine Infrastructure | Not Started | [ARCHITECTURE.md#22-process-engine](../docs/ARCHITECTURE.md#22-process-engine) | 0% |
+| 6 | Platform Services | Not Started | [MVP-SPECIFICATION.md#22-platform-services](../docs/MVP-SPECIFICATION.md#22-platform-services) | 0% |
+| 7 | User & Journey System | Not Started | [USER-MODEL.md](../docs/USER-MODEL.md) | 0% |
+| 8 | Cognitive Adapter | Not Started | [DESIGN-PATTERNS.md#5-adapter-pattern-for-cognitive-system](../docs/DESIGN-PATTERNS.md#5-adapter-pattern-for-cognitive-system) | 0% |
+| 9 | Systematic Screening Process | Not Started | [MVP-SPECIFICATION.md#231-systematic-screening-process](../docs/MVP-SPECIFICATION.md#231-systematic-screening-process) | 0% |
+| 10 | Constrained Composition Process | Not Started | [MVP-SPECIFICATION.md#232-constrained-composition-process](../docs/MVP-SPECIFICATION.md#232-constrained-composition-process) | 0% |
+| 11 | Blazor UI | Not Started | [MVP-SPECIFICATION.md#iii-presentation-desktop-web-client](../docs/MVP-SPECIFICATION.md#iii-presentation-desktop-web-client) | 0% |
+| 12 | Testing & Documentation | Not Started | [TESTING-STRATEGY.md](../docs/TESTING-STRATEGY.md) | 0% |
 
 ---
 
@@ -63,16 +115,23 @@ Each phase follows this structure:
 **Status**: Not Started
 **Started**: -
 **Completed**: -
-**Docs**: [IMPLEMENTATION.md#data-architecture](../docs/IMPLEMENTATION.md#data-architecture)
+**Journey**: [Phase 1 Journey Investigation](./phases/phase-01-database/JOURNEY.md)
+**Docs**: [ENTITY-RELATIONSHIP.md](../docs/ENTITY-RELATIONSHIP.md), [IMPLEMENTATION.md#data-architecture](../docs/IMPLEMENTATION.md#data-architecture)
 
-#### PLAN
-- [ ] Install PostgreSQL with pgvector extension ([IMPLEMENTATION.md#i-knowledge-database--postgresql-with-pgvector](../docs/IMPLEMENTATION.md#i-knowledge-database--postgresql-with-pgvector))
+#### PLAN (Documentation Review)
+- [ ] Review journey investigation for UUIDv7 decision
+- [ ] Review ENTITY-RELATIONSHIP.md for journey projection tables
+- [ ] Review IMPLEMENTATION.md for polymorphic vector storage
+- [ ] Confirm all specifications are current
+
+#### DO (Implementation)
+- [ ] Install PostgreSQL 16+ with pgvector extension
 - [ ] Add EF Core packages to veritheia.Data project
-- [ ] Implement ULID value converter ([IMPLEMENTATION.md#primary-key-strategy](../docs/IMPLEMENTATION.md#primary-key-strategy))
-- [ ] Create VeritheiaDbContext with connection configuration
-- [ ] Configure UTC DateTime converter ([IMPLEMENTATION.md#database-design-patterns](../docs/IMPLEMENTATION.md#database-design-patterns))
-- [ ] Create initial migration with pgvector setup
-- [ ] Verify database creation and pgvector functionality
+- [ ] NO ULID - Use Guid.CreateVersion7() for UUIDv7 primary keys
+- [ ] Create VeritheiaDbContext with journey projection entities
+- [ ] Configure JSONB converters for flexible schemas
+- [ ] Create initial migration with pgvector and journey tables
+- [ ] Implement polymorphic vector storage pattern
 
 #### DO (Implementation Notes)
 - Note: 
@@ -98,14 +157,20 @@ Each phase follows this structure:
 **Completed**: -
 **Docs**: [CLASS-MODEL.md](../docs/CLASS-MODEL.md), [ENTITY-RELATIONSHIP.md](../docs/ENTITY-RELATIONSHIP.md)
 
-#### PLAN
-- [ ] Create BaseEntity abstract class with ULID primary key ([IMPLEMENTATION.md#entity-model](../docs/IMPLEMENTATION.md#entity-model))
-- [ ] Implement User & Journey entities ([USER-MODEL.md](../docs/USER-MODEL.md))
-- [ ] Implement Journal & JournalEntry entities ([USER-MODEL.md#journal-system](../docs/USER-MODEL.md#journal-system))
-- [ ] Implement Document & ProcessedContent entities ([ARCHITECTURE.md#iv-data-model](../docs/ARCHITECTURE.md#iv-data-model))
-- [ ] Implement Process infrastructure entities ([ARCHITECTURE.md#process-execution-architecture](../docs/ARCHITECTURE.md#process-execution-architecture))
-- [ ] Create all enumerations per CLASS-MODEL.md
-- [ ] Configure EF Core mappings with value converters
+#### PLAN (Documentation Review)
+- [ ] Review CLASS-MODEL.md for journey projection entities
+- [ ] Review ENTITY-RELATIONSHIP.md for table relationships
+- [ ] Confirm formation tracking is included
+
+#### DO (Implementation)
+- [ ] Create BaseEntity with Guid (UUIDv7) primary key
+- [ ] Implement User, Journey, JourneyFramework entities
+- [ ] Implement JourneyDocumentSegment (NOT ProcessedContent)
+- [ ] Implement SearchIndex and SearchVector polymorphic pattern
+- [ ] Implement JourneySegmentAssessment entity
+- [ ] Implement JourneyFormation for insight tracking
+- [ ] Implement Journal & JournalEntry entities
+- [ ] Configure all JSONB properties correctly
 
 #### DO (Implementation Notes)
 - Note: 
@@ -196,12 +261,17 @@ Each phase follows this structure:
 **Completed**: -
 **Docs**: [IMPLEMENTATION.md#service-architecture](../docs/IMPLEMENTATION.md#service-architecture)
 
-#### PLAN
-- [ ] Create service interfaces following DDD patterns ([DESIGN-PATTERNS.md#1-domain-driven-design-ddd](../docs/DESIGN-PATTERNS.md#1-domain-driven-design-ddd))
-- [ ] Implement DocumentService for file operations
-- [ ] Implement SearchService for queries
-- [ ] Implement ScopeService for knowledge organization
-- [ ] Register services with proper lifetimes ([IMPLEMENTATION.md#dependency-injection-structure](../docs/IMPLEMENTATION.md#dependency-injection-structure))
+#### PLAN (Documentation Review)
+- [ ] Review ARCHITECTURE.md Process Engine section
+- [ ] Review process extension patterns
+- [ ] Confirm IAnalyticalProcess interface design
+
+#### DO (Implementation)
+- [ ] Create IAnalyticalProcess interface
+- [ ] Implement ProcessContext with journey awareness
+- [ ] Create ProcessRegistry for discovery
+- [ ] Implement ProcessExecutionEngine
+- [ ] Add journey-scoped process execution
 
 #### DO (Implementation Notes)
 - Note: 
@@ -221,7 +291,7 @@ Each phase follows this structure:
 
 ---
 
-### Phase 6: Process Engine Infrastructure
+### Phase 6: Platform Services
 **Status**: Not Started
 **Started**: -
 **Completed**: -
@@ -252,7 +322,7 @@ Each phase follows this structure:
 
 ---
 
-### Phase 7: Platform Services
+### Phase 7: User & Journey System
 **Status**: Not Started
 **Started**: -
 **Completed**: -
@@ -283,7 +353,7 @@ Each phase follows this structure:
 
 ---
 
-### Phase 8: User & Journey System
+### Phase 8: Cognitive Adapter
 **Status**: Not Started
 **Started**: -
 **Completed**: -
@@ -314,7 +384,7 @@ Each phase follows this structure:
 
 ---
 
-### Phase 9: Cognitive Adapter
+### Phase 9: Systematic Screening Process
 **Status**: Not Started
 **Started**: -
 **Completed**: -
@@ -345,7 +415,7 @@ Each phase follows this structure:
 
 ---
 
-### Phase 10: Systematic Screening Process
+### Phase 10: Constrained Composition Process
 **Status**: Not Started
 **Started**: -
 **Completed**: -
@@ -376,7 +446,7 @@ Each phase follows this structure:
 
 ---
 
-### Phase 11: Constrained Composition Process
+### Phase 11: Blazor UI
 **Status**: Not Started
 **Started**: -
 **Completed**: -
@@ -407,7 +477,7 @@ Each phase follows this structure:
 
 ---
 
-### Phase 12: Blazor UI
+### Phase 12: Testing & Documentation
 **Status**: Not Started
 **Started**: -
 **Completed**: -
@@ -438,7 +508,7 @@ Each phase follows this structure:
 
 ---
 
-### Phase 13: Testing & Documentation
+### Phase 13: Deployment & Operations
 **Status**: Not Started
 **Started**: -
 **Completed**: -
