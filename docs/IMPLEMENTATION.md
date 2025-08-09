@@ -42,31 +42,47 @@ The data layer (`veritheia.Data`) defines these core entities:
 
 ### Primary Key Strategy
 
-All entities use **ULID (Universally Unique Lexicographically Sortable Identifier)** as primary keys:
+All entities use **UUIDv7 (RFC 9562)** as primary keys:
 
-- **Format**: 26-character string representation
+- **Format**: Standard UUID format (36 characters with hyphens in string form, 16 bytes binary)
 - **Benefits**: 
-  - Lexicographically sortable (time-ordered)
-  - Globally unique without coordination
-  - Better index performance than UUID
-  - Human-readable when encoded
-- **Implementation**: Custom EF Core value converter for ULID ↔ string conversion
-- **Example**: `01ARZ3NDEKTSV4RRFFQ69G5FAV`
+  - Time-ordered like ULID (48-bit Unix timestamp in milliseconds)
+  - Native PostgreSQL UUID type support (no conversion needed)
+  - Built-in .NET 8+ support via `Guid.CreateVersion7()`
+  - RFC standardization ensures long-term stability
+  - Forward compatible with PostgreSQL 18's native `uuidv7()` function
+- **Implementation**: Direct mapping between C# `Guid` and PostgreSQL `uuid` type
+- **Example**: `018e3d28-a729-7000-8000-000000000000`
+
+Previous specification (ULID) was reconsidered due to:
+- UUIDv7 provides same temporal ordering benefits
+- Native database type eliminates conversion overhead
+- Industry standard with wider tooling support
 
 ### Database Design Patterns
 
 - **Repository Pattern**: Generic `IRepository<T>` with concrete implementations
 - **Unit of Work**: Transaction management across repositories
 - **Specification Pattern**: Complex queries via `ISpecification<T>`
-- **Value Converters**: ULID, UTC DateTime, JSONB for PostgreSQL
+- **Value Converters**: UTC DateTime, JSONB for PostgreSQL
 - **Soft Deletes**: Logical deletion with `DeletedAt` timestamp
 - **Auditing**: CreatedAt, UpdatedAt, CreatedBy, UpdatedBy on all entities
+- **Query Optimization**: Use `.AsNoTracking()` for all read-only operations
+- **Vector Queries**: Use `FromSqlRaw()` for pgvector operations with `<->` operator
 
 ### Vector Storage Strategy
 
-- **Embedding Dimension**: 1536 (compatible with common models)
-- **Index Type**: IVFFlat with cosine distance for similarity search
-- **Query Optimization**: Approximate nearest neighbor for performance
+- **Multiple Embedding Support**: Dimension-grouped columns to support model evolution
+  - `embedding_1536`: OpenAI ada-002, Cohere embed-v3
+  - `embedding_768`: E5-large-v2, BGE-large
+  - `embedding_384`: Lightweight/mobile models
+- **Index Type**: HNSW (Hierarchical Navigable Small World) with filtered indexes
+  - Filtered by `processing_model` to reduce index size
+  - Separate index per model for optimal performance
+  - O(log n) search complexity
+  - Default parameters: m=16, ef_construction=64
+- **Query Routing**: Service layer selects column based on embedding dimension
+- **Model Migration**: Add column for new dimension, background re-embedding, atomic switch
 
 ### Database Migrations
 

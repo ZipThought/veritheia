@@ -4,9 +4,21 @@
 
 Formation represents the accumulated insights derived from user journeys through knowledge. In Veritheia, a journey consists of structured engagement with source materials guided by user-defined research questions and conceptual frameworks. Each journey generates insights—understanding that emerges from the intersection of user perspective and source content. These insights accumulate over time to constitute formation, which shapes subsequent knowledge encounters. Formation remains non-transferable because insights require the specific context of their generative journey.
 
+### The Projection Space
+
+When documents enter a journey, they are not stored generically but projected into that journey's intellectual space. A systematic review projects documents through methodology sections and research questions. An educational journey projects the same documents through learning objectives and rubrics. A cross-disciplinary investigation projects through multiple conceptual vocabularies simultaneously. The document itself remains unchanged in storage, but its segmentation, its embedding context, its relevance assessment—all these exist only within the projection space created by the journey's framework.
+
+This projection is not mechanical chunking but intellectual transformation. The user's research questions determine how text is segmented. Their conceptual vocabulary shapes the embedding space. Their theoretical orientation guides relevance assessment. Through this projection, thousands of documents become tractable not by reducing them to summaries but by viewing them through the precise lens of the user's inquiry.
+
 ## 2. Design Philosophy
 
 Veritheia functions as epistemic infrastructure rather than an answer-generation system. The design ensures that all intellectual outputs—syntheses, connections, and comprehension—originate from user engagement rather than automated processing. For example, in systematic literature review, the system provides relevance assessments and contribution scores, but the synthesis and interpretation remain entirely user-authored.
+
+### Scale Without Oracle
+
+The system enables engagement with thousands of documents where manual review could handle only hundreds. This scale does not come from AI summarization or selection but from projection and measurement. When AI assesses three thousand articles against user-defined research questions, it acts as an instrument measuring each document's position in the user's projection space. The patterns that emerge—clusters of terminology, bridges between disciplines, evolution of concepts—these become visible to the user not as AI insights but as the natural topology of their projected knowledge space.
+
+Progressive refinement becomes possible at this scale. The first pass might cast a broad net to minimize false negatives. As patterns emerge, the user refines their framework—expanding vocabulary, sharpening questions, recognizing new connections. Each refinement creates a new projection, revealing different aspects of the same corpus. Formation happens through this iterative engagement with the full breadth of available knowledge, not through consumption of AI-generated summaries.
 
 ## 3. User Agency Model
 
@@ -25,6 +37,12 @@ It remembers conceptual journeys, not to analyze but to maintain continuity in d
 ## 6. Domain Applications
 
 Veritheia's architecture ensures domain-specific insights remain contextualized to their authors. In business intelligence applications, the system produces analyses that reflect the specific questions, frameworks, and reasoning paths of individual analysts rather than generic market reports. This design principle extends across all domains: educational assessment reflects teacher pedagogical philosophy, research synthesis embodies researcher theoretical orientation, and civic analysis captures leader community understanding. The non-transferability of insights represents a core architectural feature.
+
+### Cross-Disciplinary Formation
+
+When a computer scientist studies "neural network robustness" and a psychologist investigates "cognitive resilience patterns," they may be examining the same underlying phenomena through different disciplinary lenses. Veritheia enables this discovery not by imposing a universal ontology but by allowing each discipline to project the same documents through their own conceptual framework. 
+
+The computer scientist's journey segments papers by algorithmic descriptions and mathematical proofs. The psychologist's journey segments the same papers by behavioral observations and theoretical frameworks. When both projections identify the same document as highly relevant, the users—not the system—discover the conceptual bridge between their fields. The system merely provided the measurements that made this discovery possible at scale.
 
 ## 7. Case Study: Systematic Literature Review
 

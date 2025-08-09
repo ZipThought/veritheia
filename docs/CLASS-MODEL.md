@@ -131,7 +131,9 @@ classDiagram
     class ProcessedContent {
         +Guid DocumentId
         +string Content
-        +float[] Embedding
+        +float[]? Embedding1536
+        +float[]? Embedding768
+        +float[]? Embedding384
         +int ChunkIndex
         +int StartPosition
         +int EndPosition

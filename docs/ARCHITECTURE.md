@@ -36,6 +36,8 @@ The Knowledge Database provides persistent storage for source documents and deri
 
 The Process Engine executes analytical workflows through the IAnalyticalProcess interface. Each process maintains journey context, including user research questions, conceptual vocabulary, and formation markers. The engine provides platform services (document ingestion, embedding generation, metadata extraction) while ensuring process outputs reflect user interpretation rather than automated analysis.
 
+The Process Engine does not operate on documents directly but on their projections into journey-specific spaces. When a document enters a journey, the engine applies the journey's framework to determine segmentation strategy, embedding context, and assessment criteria. The same document projected into different journeys produces different segments, different embeddings, and different relevance assessments. This projection mechanism enables scale—thousands of documents become tractable when viewed through the precise lens of a user's inquiry—while preserving intellectual sovereignty.
+
 ### 2.3 Presentation Tier
 
 The Presentation tier implements user interfaces for journey management, journal composition, and process execution. It maintains strict separation between user-authored content and system-provided structure. All displays reflect the user's developing understanding without imposing system-generated interpretations.
@@ -74,17 +76,16 @@ The data within the Knowledge Database is structured into three distinct, extens
 
 *   **Raw Corpus:** This layer represents the ground truth. It consists of the original, unmodified source artifacts (e.g., PDF, text files, images) provided by the user.
 
-*   **Processed Representation:** This layer contains structured data derived directly from the Raw Corpus. It is stored in the relational plane of the database and includes:
-    *   Semantic extractions (entities, topics)
-    *   Tags and metadata
-    *   Summaries
-    *   Extracted relationships
-    *   Vector embeddings
-    *   Full-text search indexes
+*   **Journey Projections:** This layer contains journey-specific transformations of the Raw Corpus. Rather than universal processing, each journey projects documents according to its framework:
+    *   Journey-specific segmentation based on research questions
+    *   Contextualized embeddings shaped by conceptual vocabulary
+    *   Assessment scores relative to journey criteria
+    *   Formation tracking of accumulated insights
+    *   Cross-journey concept mappings for collaboration
     
-    All entries in this layer are versioned and include metadata about their provenance (e.g., the model version used for summary generation, the embedding model name).
+    The same document exists differently in each journey's projection space. All projections are versioned and include their generating framework for full provenance.
 
-*   **Knowledge Layer:** This is the queryable, semantic API exposed by the Knowledge Database to the Process Engine. It provides high-level capabilities to access the underlying data, such as semantic search via vector distance calculations (e.g., cosine similarity).
+*   **Knowledge Layer:** This is the queryable, semantic API exposed by the Knowledge Database to the Process Engine. It provides journey-scoped access to projections, enabling search and discovery within the user's intellectual space rather than generic retrieval.
 
 ### V. Process Model
 

@@ -27,6 +27,7 @@ Through disciplined inquiry, you develop your own understanding. Through structu
 Comprehensive project documentation is available in the [docs](docs/) directory:
 
 - [Documentation Index](docs/README.md) - Complete guide to all documentation
+- [AI Agent Guide](docs/AI-AGENT-GUIDE.md) - Epistemic collaboration principles for AI agents
 - [Architecture](docs/ARCHITECTURE.md) - System design and conceptual model
 - [MVP Specification](docs/MVP-SPECIFICATION.md) - Feature requirements and functionality
 - [Implementation](docs/IMPLEMENTATION.md) - Technical details and development guide

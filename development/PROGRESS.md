@@ -2,6 +2,8 @@
 
 This document tracks implementation progress using PDCA cycles. Each phase has clear checkpoints that survive context switches.
 
+**Phase Documentation**: Each phase now maintains detailed investigation records under `development/phases/`. See [PHASE-TRACKING.md](./PHASE-TRACKING.md) for the investigative method using 5W+1H and dialectical testing.
+
 ## Progress Tracking Format
 
 Each phase follows this structure:

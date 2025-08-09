@@ -16,64 +16,69 @@ Start with the [VISION](./VISION.md) to understand how Veritheia ensures intelle
    - Why every output bears the author's intellectual fingerprint
    - The architecture of intellectual sovereignty
 
-2. **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System design supporting authorship
+2. **[AI-AGENT-GUIDE.md](./AI-AGENT-GUIDE.md)** - Epistemic collaboration principles
+   - How AI agents work as instruments, not authors
+   - The discipline of observation without interpretation
+   - Preserving human sovereignty in development
+
+3. **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System design supporting authorship
    - Components that amplify rather than replace thinking
    - Patterns that ensure personal understanding
    - Models that make insights non-transferable
    
-3. **[MVP-SPECIFICATION.md](./MVP-SPECIFICATION.md)** - Features for formation
+4. **[MVP-SPECIFICATION.md](./MVP-SPECIFICATION.md)** - Features for formation
    - Capabilities that develop understanding
    - Interfaces that support authorship
    - Processes that ensure intellectual ownership
 
-4. **[IMPLEMENTATION.md](./IMPLEMENTATION.md)** - Technical foundation for sovereignty
+5. **[IMPLEMENTATION.md](./IMPLEMENTATION.md)** - Technical foundation for sovereignty
    - Technologies that preserve the journey
    - Workflows that maintain context
    - Systems that protect formation
 
-5. **[DESIGN-PATTERNS.md](./DESIGN-PATTERNS.md)** - Imperative implementation patterns
+6. **[DESIGN-PATTERNS.md](./DESIGN-PATTERNS.md)** - Imperative implementation patterns
    - Domain-Driven Design patterns
    - Repository and Specification patterns
    - CQRS and Unit of Work
    - Code examples and checklists
 
-6. **[EXTENSION-GUIDE.md](./EXTENSION-GUIDE.md)** - Creating full-stack extensions
+7. **[EXTENSION-GUIDE.md](./EXTENSION-GUIDE.md)** - Creating full-stack extensions
    - Process implementation patterns
    - Domain model integration
    - UI component development
    - Distribution and testing
 
-7. **[API-CONTRACTS.md](./API-CONTRACTS.md)** - Interface definitions and contracts
+8. **[API-CONTRACTS.md](./API-CONTRACTS.md)** - Interface definitions and contracts
    - Core process interfaces
    - Platform service contracts
    - Data transfer objects
    - HTTP API specifications
 
-8. **[USER-MODEL.md](./USER-MODEL.md)** - User, journey, and journal architecture
+9. **[USER-MODEL.md](./USER-MODEL.md)** - User, journey, and journal architecture
    - User as the constant with persona and knowledge base
    - Journeys as process instances
    - Journals as narrative records
    - Future sharing patterns
 
-9. **[CLASS-MODEL.md](./CLASS-MODEL.md)** - Core domain classes and their relationships
-   - Comprehensive Mermaid class diagram
-   - Aggregate boundaries and design principles
-   - Process-specific domain models
-   - Repository and service patterns
+10. **[CLASS-MODEL.md](./CLASS-MODEL.md)** - Core domain classes and their relationships
+    - Comprehensive Mermaid class diagram
+    - Aggregate boundaries and design principles
+    - Process-specific domain models
+    - Repository and service patterns
 
-10. **[ENTITY-RELATIONSHIP.md](./ENTITY-RELATIONSHIP.md)** - Database schema and data model
+11. **[ENTITY-RELATIONSHIP.md](./ENTITY-RELATIONSHIP.md)** - Database schema and data model
     - PostgreSQL schema with pgvector extension
     - Comprehensive ERD using Mermaid
     - Table definitions with indexes
     - Migration strategy and security patterns
 
-11. **[TESTING-STRATEGY.md](./TESTING-STRATEGY.md)** - Test types, coverage expectations, and behavioral specs
+12. **[TESTING-STRATEGY.md](./TESTING-STRATEGY.md)** - Test types, coverage expectations, and behavioral specs
     - Testing philosophy aligned with formation principles
     - Unit, integration, and behavioral test patterns
     - Context assembly and journey integrity tests
     - Extension testing guidelines
 
-12. **[PROMPT-ENGINEERING.md](./PROMPT-ENGINEERING.md)** - Prompt patterns that maintain formation boundaries
+13. **[PROMPT-ENGINEERING.md](./PROMPT-ENGINEERING.md)** - Prompt patterns that maintain formation boundaries
     - Role constraints for AI assistance
     - Context assembly from journey and journals
     - Validation patterns preventing insight generation
