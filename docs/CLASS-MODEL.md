@@ -2,6 +2,12 @@
 
 This document defines the core domain classes and their relationships within Veritheia. The model implements **journey-specific projection spaces** where documents are transformed according to user-defined intellectual frameworks. The architecture clearly separates the core platform (required for all deployments) from process-specific extensions (which demonstrate extensibility patterns).
 
+## Important Architecture Note
+
+**Entities serve as domain models**: In this MVP architecture, the entity classes in `veritheia.Data/Entities` ARE the domain models. There is no separate domain model layer. Business logic resides in services (Phase 6), not in the models themselves. This is an intentional simplification appropriate for the MVP.
+
+**Journey Projections Replace Universal Processing**: Documents don't have universal chunks or embeddings. Instead, each journey projects documents into its own intellectual space through `JourneyDocumentSegment`. The older `ProcessedContent` concept has been replaced by this journey-specific architecture.
+
 ## Overview Diagram
 
 ```mermaid
@@ -116,13 +122,10 @@ classDiagram
         +string FilePath
         +long FileSize
         +DateTime UploadedAt
-        +Guid EncounteredByJourneyId
-        +string EncounterContext
-        +DateTime EncounteredAt
-        +Journey EncounteredByJourney
-        +ICollection~ProcessedContent~ ProcessedContents
+        +Guid? ScopeId
+        +KnowledgeScope Scope
+        +ICollection~JourneyDocumentSegment~ JourneySegments
         +DocumentMetadata Metadata
-        +ICollection~DocumentEncounter~ Encounters
     }
 
     class DocumentMetadata {
@@ -134,30 +137,82 @@ classDiagram
         +Document Document
     }
 
-    class ProcessedContent {
-        +Guid DocumentId
-        +string Content
-        +float[]? Embedding1536
-        +float[]? Embedding768
-        +float[]? Embedding384
-        +int ChunkIndex
-        +int StartPosition
-        +int EndPosition
-        +string ProcessingModel
-        +string ProcessingVersion
-        +Document Document
+    %% Journey Projection Classes (Core)
+    class JourneyFramework {
+        +Guid JourneyId
+        +string JourneyType
+        +Dictionary~string,object~ FrameworkElements
+        +Dictionary~string,object~ ProjectionRules
+        +Journey Journey
     }
 
-    class DocumentEncounter {
-        +Guid DocumentId
+    class JourneyDocumentSegment {
         +Guid JourneyId
-        +DateTime EncounteredAt
-        +string SearchQuery
-        +string WhyRelevant
-        +float RelevanceScore
-        +Document Document
+        +Guid DocumentId
+        +string SegmentContent
+        +string? SegmentType
+        +string? SegmentPurpose
+        +Dictionary~string,object~? StructuralPath
+        +int SequenceIndex
+        +NpgsqlRange~int~? ByteRange
+        +string? CreatedByRule
+        +string? CreatedForQuestion
         +Journey Journey
-        +JournalEntry ReflectionEntry
+        +Document Document
+        +ICollection~SearchIndex~ SearchIndexes
+        +ICollection~JourneySegmentAssessment~ Assessments
+    }
+
+    class SearchIndex {
+        +Guid SegmentId
+        +string VectorModel
+        +int VectorDimension
+        +DateTime IndexedAt
+        +JourneyDocumentSegment Segment
+    }
+
+    class SearchVector1536 {
+        +Guid IndexId
+        +Vector Embedding
+        +SearchIndex Index
+    }
+
+    class SearchVector768 {
+        +Guid IndexId
+        +Vector Embedding
+        +SearchIndex Index
+    }
+
+    class SearchVector384 {
+        +Guid IndexId
+        +Vector Embedding
+        +SearchIndex Index
+    }
+
+    class JourneySegmentAssessment {
+        +Guid SegmentId
+        +string AssessmentType
+        +int? ResearchQuestionId
+        +float? RelevanceScore
+        +float? ContributionScore
+        +Dictionary~string,object~? RubricScores
+        +string? AssessmentReasoning
+        +Dictionary~string,object~? ReasoningChain
+        +string? AssessedByModel
+        +DateTime AssessedAt
+        +JourneyDocumentSegment Segment
+    }
+
+    class JourneyFormation {
+        +Guid JourneyId
+        +string InsightType
+        +string InsightContent
+        +Dictionary~string,object~? FormedFromSegments
+        +Dictionary~string,object~? FormedThroughQuestions
+        +string? FormationReasoning
+        +string? FormationMarker
+        +DateTime FormedAt
+        +Journey Journey
     }
 
     class KnowledgeScope {
@@ -265,6 +320,8 @@ classDiagram
 
 ### Core Enumerations
 
+These enumerations are defined in `veritheia.Core/Enums` but stored as strings in the database to maintain flexibility:
+
 ```mermaid
 classDiagram
     class JourneyState {
@@ -327,7 +384,7 @@ classDiagram
 
 ### Core Value Objects
 
-These are transient or stored as JSONB within core entities:
+These value objects are defined in `veritheia.Core/ValueObjects` and are either transient or stored as JSONB within entities:
 
 ```mermaid
 classDiagram
@@ -492,6 +549,26 @@ classDiagram
 - Access other processes' data directly
 - Create users outside platform
 - Store data outside ProcessResult without proper relationships
+
+## Implementation Structure
+
+### Project Organization
+
+The domain model is split across two projects:
+
+**veritheia.Data**:
+- `/Entities/` - All entity classes (21 total) that map to database tables
+- `VeritheiaDbContext.cs` - EF Core context configuration
+- `/Migrations/` - Database migrations
+
+**veritheia.Core**:
+- `/Enums/` - Domain enumerations (7 total)
+- `/ValueObjects/` - Transient objects and DTOs (5 total)
+
+This separation allows:
+- Entities to remain focused on data persistence
+- Value objects to be shared across layers
+- Enums to be used consistently throughout the application
 
 ## Storage Patterns for Extensions
 

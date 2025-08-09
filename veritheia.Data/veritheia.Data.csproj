@@ -15,4 +15,8 @@
     <PackageReference Include="Pgvector.EntityFrameworkCore" Version="0.2.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\veritheia.Core\veritheia.Core.csproj" />
+  </ItemGroup>
+
 </Project>

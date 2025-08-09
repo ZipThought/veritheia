@@ -9,7 +9,7 @@ public class Journey : BaseEntity
     public Guid PersonaId { get; set; }
     public string ProcessType { get; set; } = string.Empty;
     public string Purpose { get; set; } = string.Empty;
-    public string State { get; set; } = "Active"; // Active, Paused, Completed, Abandoned
+    public string State { get; set; } = "Active"; // Maps to JourneyState enum
     public Dictionary<string, object> Context { get; set; } = new();
     
     // Navigation properties
