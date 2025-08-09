@@ -81,6 +81,7 @@ public class EnumSerializationTests : DatabaseTestBase
             Name = "Systematic Screening",
             Description = "Literature review process",
             Category = ProcessCategory.Analytical.ToString(),
+            TriggerType = "Manual",  // Required by database constraint
             CreatedAt = DateTime.UtcNow
         };
         
