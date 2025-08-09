@@ -43,7 +43,24 @@ dotnet build
 dotnet run --project veritheia.AppHost
 ```
 
-### VI. Provenance
+### VI. Current Status
+
+**Phase 1: Database Infrastructure** (In Progress)
+- PostgreSQL 17 with pgvector running in Docker via .NET Aspire
+- 21 journey projection tables created 
+- Entity classes implemented with UUIDv7 primary keys
+- Repository pattern not yet implemented
+- No CRUD operations available yet
+
+See [Development Progress](development/PROGRESS.md) for detailed implementation status.
+
+### VII. Technical Requirements
+
+- .NET 9 SDK (for native UUIDv7 support)
+- Docker Desktop (for PostgreSQL container)
+- .NET Aspire workload
+
+### VIII. Provenance
 
 The architecture and its methodologies are derived from the following research.
 

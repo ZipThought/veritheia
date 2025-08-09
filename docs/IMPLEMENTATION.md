@@ -9,11 +9,13 @@ This document specifies the technical implementation of Veritheia. The system op
 
 ### 2.1 Knowledge Database
 
-PostgreSQL 16 with pgvector extension provides unified storage for documents, metadata, and embeddings. The pgvector extension enables efficient similarity search over 1536-dimensional embedding vectors while maintaining ACID guarantees for relational data. Deployment uses containerization through .NET Aspire for consistent development and production environments.
+**PostgreSQL 17** with pgvector extension provides unified storage for documents, metadata, and embeddings, running in Docker containers orchestrated by .NET Aspire. The pgvector extension enables efficient similarity search over 1536-dimensional embedding vectors while maintaining ACID guarantees for relational data. The system uses PostgreSQL 17 (upgradeable to 18 when released) via the `pgvector/pgvector:17-pg17` Docker image, ensuring consistent environments across development and production.
 
 ### 2.2 Process Engine
 
-ASP.NET Core 8.0 implements the Process Engine as a RESTful API service. The architecture employs Domain-Driven Design with aggregate boundaries around User, Journey, and Document entities. Data access uses the Repository pattern with Entity Framework Core 8.0, while CQRS separates read and write operations for scalability.
+**ASP.NET Core 9.0** (STS release) implements the Process Engine as a RESTful API service. We use .NET 9 specifically for native UUIDv7 support via `Guid.CreateVersion7()`, providing time-ordered primary keys without custom implementations. The architecture employs Domain-Driven Design with aggregate boundaries around User, Journey, and Document entities. Data access uses the Repository pattern with Entity Framework Core 9.0, while CQRS separates read and write operations for scalability.
+
+**Note on .NET 9**: This is a Standard Term Support (STS) release, not Long Term Support (LTS). We accept this trade-off for the native UUIDv7 implementation which is critical for our temporal ordering requirements.
 
 ### 2.3 Presentation Tier
 

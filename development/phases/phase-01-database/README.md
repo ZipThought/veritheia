@@ -28,8 +28,10 @@ Through dialectical investigation, I have come to understand that Veritheia's da
 
 ### Critical Decisions
 
-- PostgreSQL with pgvector for unified storage (not separate databases)
+- **PostgreSQL 17** in Docker with pgvector extension (upgradeable to PostgreSQL 18)
+- Docker container via .NET Aspire orchestration (not bare metal or VMs)
 - UUIDv7 for temporal ordering (not ULID)
+- **.NET 9** for native UUIDv7 support via `Guid.CreateVersion7()` (STS release, not LTS)
 - HNSW indexing for vector search (not IVFFlat)
 - Entity Framework Core with strategic raw SQL (not Dapper or pure SQL)
 - Journey-specific projections (not universal processing)

@@ -2,10 +2,15 @@
 
 ## Quick Reference for Context Switches
 
+### Requirements
+- .NET 9 SDK (for native UUIDv7 support via Guid.CreateVersion7())
+- Docker Desktop (for PostgreSQL 17 container)
+- .NET Aspire workload (`dotnet workload install aspire`)
+
 ### Current Status
-- **Active Phase**: None (Ready to start Phase 1)
-- **Last Update**: Initial planning complete
-- **Next Action**: Start Phase 1 - Database Infrastructure
+- **Active Phase**: Phase 1 - Database Infrastructure (In Progress)
+- **Last Update**: 2025-08-09 - Tables created, repositories not yet implemented
+- **Next Action**: Implement repository pattern for CRUD operations
 
 ### Implementation Order
 1. Database → 2. Models → 3. Repositories → 4. APIs → 5. Process Engine → 6. Services → 7. User System → 8. Cognitive → 9. Screening → 10. Composition → 11. UI → 12. Testing
@@ -15,16 +20,16 @@
 # Check progress
 ./development/check-progress.sh
 
-# Start work
-git checkout -b phase-1-database
-# Update development/PROGRESS.md status to "In Progress"
-
-# Database work
-dotnet ef migrations add InitialCreate --project veritheia.Data --startup-project veritheia.ApiService
-dotnet ef database update --project veritheia.Data --startup-project veritheia.ApiService
-
-# Run application
+# Start PostgreSQL 17 with pgvector (requires Docker)
 dotnet run --project veritheia.AppHost
+
+# Database work 
+cd veritheia.Data
+dotnet ef migrations add <MigrationName>
+dotnet ef database update
+
+# Access PostgreSQL (port 57233 - may vary)
+docker exec <container-name> sh -c "PGPASSWORD='<password>' psql -U postgres -d veritheiadb"
 ```
 
 ### Development Workflow (MANDATORY)
