@@ -14,13 +14,14 @@ env:
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
 
+
 jobs:
   build-and-test:
     name: Build and Test
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest]  # Only Linux has Docker support for Testcontainers
       fail-fast: false
     
     steps:
@@ -76,15 +77,6 @@ jobs:
         name: coverage-report
         path: ./TestResults/**/coverage.cobertura.xml
         retention-days: 30
-    
-    - name: Publish test report
-      uses: dorny/test-reporter@v1
-      if: always() && matrix.os == 'ubuntu-latest'
-      with:
-        name: Test Results (${{ runner.os }})
-        path: './TestResults/**/*.trx'
-        reporter: dotnet-trx
-        fail-on-error: true
 
   code-quality:
     name: Code Quality Checks
