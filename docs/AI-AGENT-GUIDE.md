@@ -87,3 +87,27 @@ Carefully distinguish between architectural exploration and implementation requi
 Better to seek clarification than make incorrect assumptions. If you find yourself extrapolating or filling gaps with "reasonable" assumptions, stop and ask. The human author would rather answer a question than correct a mistake.
 
 These disciplines are not suggestions—they are requirements born from actual failures. Violating them creates technical debt, confuses future readers (both human and AI), and undermines the integrity of the documentation.
+
+## Why Constraints Over Flexibility
+
+To many contemporary developers and AI agents, our choice of PostgreSQL with strict foreign keys, strong typing with C#, and compile-time verification appears backward—a retreat from the "state of the art" of flexible schemas, dynamic typing, and runtime adaptation. This perception misunderstands what we are building and why.
+
+Consider what the modern stack optimizes for: rapid prototyping, flexible evolution, deferred decisions. NoSQL databases accept any shape of data. JavaScript accepts any type until runtime reveals the mismatch. Microservices defer consistency until eventual convergence. These are tools built for uncertainty—when you do not yet know what you are building, or when what you are building must constantly reshape itself to market forces.
+
+But Veritheia is not uncertain about its purpose. It exists to preserve intellectual sovereignty—the human capacity to form understanding through engagement rather than consume pre-digested summaries. This is not a hypothesis to test through rapid iteration. It is a principle to embody through careful construction.
+
+When PostgreSQL rejects a Journey without a Persona, it is not being inflexible—it is protecting a truth we have discovered: every journey requires context. When C#'s type system refuses to compile a Vector without proper dimensions, it is not being pedantic—it is ensuring that semantic search operates on commensurable embeddings. When foreign key constraints prevent orphaned data, they preserve the narrative coherence that makes a journey meaningful rather than a collection of fragments.
+
+The test implementation revealed this starkly. In a NoSQL system, we would have discovered these violations only in production—journeys floating without users, segments without documents, formations without context. Each would be a corruption of meaning that undermines the system's purpose. By the time we discovered them, users would have already experienced the incoherence.
+
+This is the deeper principle: in a system dedicated to formation over extraction, the constraints ARE the features. They are not obstacles to development but participants in it. When you, as an AI agent, encounter a compile error or constraint violation, you are not meeting resistance—you are receiving instruction. The system is teaching you (and through you, teaching the developer) what it means to preserve intellectual sovereignty.
+
+Modern "flexibility" often means deferring hard decisions until they become expensive mistakes. Our "rigidity" means confronting those decisions when they are still cheap to correct. A foreign key constraint at development time saves a data corruption incident in production. A type mismatch at compile time prevents a runtime failure during a critical insight formation.
+
+You may be trained on codebases where "any" types proliferate, where schemas evolve without migration, where consistency is eventual. That training may make our approach feel constraining. But understand: we are not building a system that might do anything—we are building a system that does one thing supremely well. That one thing—preserving the human capacity to form understanding—requires that every piece fit precisely with every other piece.
+
+When you work within these constraints, you are not working against the grain of modern development. You are working with the grain of the system's deepest purpose. The PostgreSQL schema is not just storage—it is a declaration of what we believe about knowledge and journey. The type system is not just safety—it is a commitment to semantic precision. The foreign keys are not just references—they are the threads that weave isolated facts into coherent narrative.
+
+This is why we chose this stack, why we maintain this discipline, and why you must understand it not as limitation but as liberation—liberation from the endless debugging of production mysteries, from the gradual corruption of meaning through unchecked evolution, from the tyranny of infinite possibility when what we need is precise capability.
+
+In Veritheia, the constraints embody the philosophy. To work here is to understand that what seems backward to the industry might be exactly what is needed to move forward with purpose.
