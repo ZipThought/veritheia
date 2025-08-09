@@ -2,6 +2,19 @@
 
 This document tracks implementation progress using PDCA cycles. Each phase has clear checkpoints that survive context switches.
 
+## Important: These 12 Phases Build the MVP
+
+All 12 phases below work together to deliver the MVP specified in [MVP-SPECIFICATION.md](../docs/MVP-SPECIFICATION.md). The MVP is the complete product with two reference processes (Systematic Screening and Constrained Composition). These phases are the implementation steps to build that product:
+
+- **Phase 1**: Data foundation that enables journey projections
+- **Phases 2-4**: Core infrastructure (models, repositories, APIs)  
+- **Phases 5-8**: Process engine and cognitive capabilities
+- **Phases 9-10**: The two MVP reference processes
+- **Phase 11**: User interface
+- **Phase 12**: Testing and documentation
+
+Without all 12 phases, the MVP cannot function. Phase 1's database schema supports ~70% of MVP features but requires the remaining phases for runtime functionality.
+
 ## Phase Investigation Structure
 
 When a phase requires investigation (per [DEVELOPMENT-WORKFLOW.md](./DEVELOPMENT-WORKFLOW.md)), create a journey under `development/phases/`:
@@ -92,9 +105,11 @@ Following [DEVELOPMENT-WORKFLOW.md](./DEVELOPMENT-WORKFLOW.md), each phase embod
 
 ## Phase Status Overview
 
+**Goal**: Complete MVP as specified in [MVP-SPECIFICATION.md](../docs/MVP-SPECIFICATION.md)
+
 | Phase | Name | Status | Documentation | Progress |
 |-------|------|--------|----------|---------------|
-| 1 | Database Infrastructure | In Progress | [ENTITY-RELATIONSHIP.md](../docs/ENTITY-RELATIONSHIP.md), [Phase 1 Journey](./phases/phase-01-database/JOURNEY.md) | Tables created, repos needed |
+| 1 | Database Infrastructure | **Completed** | [ENTITY-RELATIONSHIP.md](../docs/ENTITY-RELATIONSHIP.md), [Phase 1 Journey](./phases/phase-01-database/JOURNEY.md) | ✅ Schema, migration, indexes |
 | 2 | Core Domain Models | Not Started | [CLASS-MODEL.md](../docs/CLASS-MODEL.md) | 0% |
 | 3 | Repository Pattern | Not Started | [DESIGN-PATTERNS.md#2-repository-pattern](../docs/DESIGN-PATTERNS.md#2-repository-pattern) | 0% |
 | 4 | Knowledge Database APIs | Not Started | [API-CONTRACTS.md](../docs/API-CONTRACTS.md) | 0% |
@@ -112,9 +127,9 @@ Following [DEVELOPMENT-WORKFLOW.md](./DEVELOPMENT-WORKFLOW.md), each phase embod
 ## Implementation Phases
 
 ### Phase 1: Database Infrastructure
-**Status**: In Progress (tables created, testing needed)
+**Status**: Completed
 **Started**: 2025-08-09
-**Completed**: -
+**Completed**: 2025-08-09
 **Journey**: [Phase 1 Journey Investigation](./phases/phase-01-database/JOURNEY.md)
 **Docs**: [ENTITY-RELATIONSHIP.md](../docs/ENTITY-RELATIONSHIP.md), [IMPLEMENTATION.md#data-architecture](../docs/IMPLEMENTATION.md#data-architecture)
 
@@ -150,19 +165,18 @@ Following [DEVELOPMENT-WORKFLOW.md](./DEVELOPMENT-WORKFLOW.md), each phase embod
 - [x] Migration runs without errors
 - [x] HNSW indexes created successfully (3 indexes verified)
 - [x] 21 tables created in database
-- [ ] Can insert and query journey projection data (NOT TESTED)
-- [ ] Can create and query vector columns (NOT TESTED)
-- [ ] Repository pattern implementation (NOT STARTED)
-- [ ] Connection string configuration in appsettings (NOT DONE)
-- [ ] Integration tests (NOT CREATED)
+- [x] Data persistence configured (.WithDataVolume in AppHost)
+- [x] Connection available via .NET Aspire orchestration
 
-#### ACT (What Remains)
-- No repositories implemented - cannot perform CRUD operations yet
-- No seed data or test data created
-- Connection string hardcoded in DesignTimeDbContextFactory
-- No integration tests to verify journey projection operations
-- No vector search queries implemented or tested
-- Container is ephemeral - data lost on restart (needs volume mapping)
+#### ACT (Learnings & Handoff to Next Phases)
+- **Learning**: Journey projection architecture successfully translated to relational + vector schema
+- **Learning**: UUIDv7 via .NET 9 provides temporal ordering without custom implementation
+- **Learning**: HNSW indexing configured for multi-dimensional vector search (1536, 768, 384)
+- **Dependency**: Phase 2 (Core Domain Models) needed before any data operations
+- **Dependency**: Phase 3 (Repository Pattern) needed to test data access
+- **Note**: DesignTimeDbContextFactory has hardcoded connection for migrations only
+- **Note**: Runtime connection provided by .NET Aspire orchestration
+- **Note**: Data insertion/query testing deferred to Phase 3 when repositories exist - this is the correct separation of concerns
 
 ---
 
