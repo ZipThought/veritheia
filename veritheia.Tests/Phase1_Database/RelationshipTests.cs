@@ -25,10 +25,20 @@ public class RelationshipTests : DatabaseTestBase
             CreatedAt = DateTime.UtcNow
         };
         
+        var persona = new Persona
+        {
+            Id = Guid.CreateVersion7(),
+            UserId = user.Id,
+            Domain = "Researcher",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        
         var journey = new Journey
         {
             Id = Guid.CreateVersion7(),
             UserId = user.Id,
+            PersonaId = persona.Id,
             Purpose = "Literature review on AI safety",
             State = "Active",
             CreatedAt = DateTime.UtcNow
@@ -52,6 +62,7 @@ public class RelationshipTests : DatabaseTestBase
         
         // Act
         Context.Users.Add(user);
+        Context.Personas.Add(persona);
         Context.Journeys.Add(journey);
         Context.Journals.AddRange(researchJournal, methodJournal);
         await Context.SaveChangesAsync();
@@ -80,10 +91,20 @@ public class RelationshipTests : DatabaseTestBase
             CreatedAt = DateTime.UtcNow
         };
         
+        var persona = new Persona
+        {
+            Id = Guid.CreateVersion7(),
+            UserId = user.Id,
+            Domain = "Researcher",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        
         var journey = new Journey
         {
             Id = Guid.CreateVersion7(),
             UserId = user.Id,
+            PersonaId = persona.Id,
             Purpose = "Research journey",
             State = "Active",
             CreatedAt = DateTime.UtcNow
@@ -124,6 +145,7 @@ public class RelationshipTests : DatabaseTestBase
         
         // Act
         Context.Users.Add(user);
+        Context.Personas.Add(persona);
         Context.Journeys.Add(journey);
         Context.Documents.Add(document);
         Context.JourneyDocumentSegments.AddRange(segment1, segment2);
@@ -199,10 +221,20 @@ public class RelationshipTests : DatabaseTestBase
             CreatedAt = DateTime.UtcNow
         };
         
+        var persona = new Persona
+        {
+            Id = Guid.CreateVersion7(),
+            UserId = user.Id,
+            Domain = "Test",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        
         var journey = new Journey
         {
             Id = Guid.CreateVersion7(),
             UserId = user.Id,
+            PersonaId = persona.Id,
             Purpose = "Test cascade",
             State = "Active",
             CreatedAt = DateTime.UtcNow
@@ -217,6 +249,7 @@ public class RelationshipTests : DatabaseTestBase
         };
         
         Context.Users.Add(user);
+        Context.Personas.Add(persona);
         Context.Journeys.Add(journey);
         Context.Journals.Add(journal);
         await Context.SaveChangesAsync();

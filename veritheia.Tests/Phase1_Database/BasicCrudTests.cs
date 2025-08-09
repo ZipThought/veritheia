@@ -49,10 +49,20 @@ public class BasicCrudTests : DatabaseTestBase
             CreatedAt = DateTime.UtcNow
         };
         
+        var persona = new Persona
+        {
+            Id = Guid.CreateVersion7(),
+            UserId = user.Id,
+            Domain = "Research",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        
         var journey = new Journey
         {
             Id = Guid.CreateVersion7(),
             UserId = user.Id,
+            PersonaId = persona.Id,
             Purpose = "Test systematic review",
             State = "Active",
             CreatedAt = DateTime.UtcNow
@@ -60,6 +70,7 @@ public class BasicCrudTests : DatabaseTestBase
         
         // Act
         Context.Users.Add(user);
+        Context.Personas.Add(persona);
         Context.Journeys.Add(journey);
         await Context.SaveChangesAsync();
         

@@ -25,10 +25,20 @@ public class EnumSerializationTests : DatabaseTestBase
             CreatedAt = DateTime.UtcNow
         };
         
+        var persona = new Persona
+        {
+            Id = Guid.CreateVersion7(),
+            UserId = user.Id,
+            Domain = "EnumTester",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        
         var activeJourney = new Journey
         {
             Id = Guid.CreateVersion7(),
             UserId = user.Id,
+            PersonaId = persona.Id,
             Purpose = "Active journey",
             State = JourneyState.Active.ToString(),
             CreatedAt = DateTime.UtcNow
@@ -38,6 +48,7 @@ public class EnumSerializationTests : DatabaseTestBase
         {
             Id = Guid.CreateVersion7(),
             UserId = user.Id,
+            PersonaId = persona.Id,
             Purpose = "Paused journey",
             State = JourneyState.Paused.ToString(),
             CreatedAt = DateTime.UtcNow
@@ -45,6 +56,7 @@ public class EnumSerializationTests : DatabaseTestBase
         
         // Act
         Context.Users.Add(user);
+        Context.Personas.Add(persona);
         Context.Journeys.AddRange(activeJourney, pausedJourney);
         await Context.SaveChangesAsync();
         
@@ -81,10 +93,20 @@ public class EnumSerializationTests : DatabaseTestBase
             CreatedAt = DateTime.UtcNow
         };
         
+        var persona = new Persona
+        {
+            Id = Guid.CreateVersion7(),
+            UserId = user.Id,
+            Domain = "Process Tester",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        
         var journey = new Journey
         {
             Id = Guid.CreateVersion7(),
             UserId = user.Id,
+            PersonaId = persona.Id,
             Purpose = "Process test journey",
             State = JourneyState.Active.ToString(),
             CreatedAt = DateTime.UtcNow
@@ -104,6 +126,7 @@ public class EnumSerializationTests : DatabaseTestBase
         // Act
         Context.ProcessDefinitions.Add(processDefinition);
         Context.Users.Add(user);
+        Context.Personas.Add(persona);
         Context.Journeys.Add(journey);
         Context.ProcessExecutions.Add(execution);
         await Context.SaveChangesAsync();
@@ -135,10 +158,20 @@ public class EnumSerializationTests : DatabaseTestBase
             CreatedAt = DateTime.UtcNow
         };
         
+        var persona = new Persona
+        {
+            Id = Guid.CreateVersion7(),
+            UserId = user.Id,
+            Domain = "Journal Tester",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        
         var journey = new Journey
         {
             Id = Guid.CreateVersion7(),
             UserId = user.Id,
+            PersonaId = persona.Id,
             Purpose = "Journal test journey",
             State = JourneyState.Active.ToString(),
             CreatedAt = DateTime.UtcNow
@@ -178,6 +211,7 @@ public class EnumSerializationTests : DatabaseTestBase
         
         // Act
         Context.Users.Add(user);
+        Context.Personas.Add(persona);
         Context.Journeys.Add(journey);
         Context.Journals.AddRange(researchJournal, methodJournal, decisionJournal, reflectionJournal);
         await Context.SaveChangesAsync();
@@ -208,10 +242,20 @@ public class EnumSerializationTests : DatabaseTestBase
             CreatedAt = DateTime.UtcNow
         };
         
+        var persona = new Persona
+        {
+            Id = Guid.CreateVersion7(),
+            UserId = user.Id,
+            Domain = "Significance Tester",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        
         var journey = new Journey
         {
             Id = Guid.CreateVersion7(),
             UserId = user.Id,
+            PersonaId = persona.Id,
             Purpose = "Significance test journey",
             State = JourneyState.Active.ToString(),
             CreatedAt = DateTime.UtcNow
@@ -245,6 +289,7 @@ public class EnumSerializationTests : DatabaseTestBase
         
         // Act
         Context.Users.Add(user);
+        Context.Personas.Add(persona);
         Context.Journeys.Add(journey);
         Context.Journals.Add(journal);
         Context.JournalEntries.AddRange(criticalEntry, routineEntry);

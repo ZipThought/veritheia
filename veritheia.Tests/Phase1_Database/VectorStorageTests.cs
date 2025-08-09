@@ -26,10 +26,20 @@ public class VectorStorageTests : DatabaseTestBase
             CreatedAt = DateTime.UtcNow
         };
         
+        var persona = new Persona
+        {
+            Id = Guid.CreateVersion7(),
+            UserId = user.Id,
+            Domain = "Tester",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        
         var journey = new Journey
         {
             Id = Guid.CreateVersion7(),
             UserId = user.Id,
+            PersonaId = persona.Id,
             Purpose = "Vector test journey",
             State = "Active",
             CreatedAt = DateTime.UtcNow
@@ -82,6 +92,7 @@ public class VectorStorageTests : DatabaseTestBase
         
         // Act
         Context.Users.Add(user);
+        Context.Personas.Add(persona);
         Context.Journeys.Add(journey);
         Context.Documents.Add(document);
         Context.JourneyDocumentSegments.Add(segment);
@@ -116,10 +127,20 @@ public class VectorStorageTests : DatabaseTestBase
             CreatedAt = DateTime.UtcNow
         };
         
+        var persona = new Persona
+        {
+            Id = Guid.CreateVersion7(),
+            UserId = user.Id,
+            Domain = "E5 Tester",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        
         var journey = new Journey
         {
             Id = Guid.CreateVersion7(),
             UserId = user.Id,
+            PersonaId = persona.Id,
             Purpose = "E5 model test",
             State = "Active",
             CreatedAt = DateTime.UtcNow
@@ -172,6 +193,7 @@ public class VectorStorageTests : DatabaseTestBase
         
         // Act
         Context.Users.Add(user);
+        Context.Personas.Add(persona);
         Context.Journeys.Add(journey);
         Context.Documents.Add(document);
         Context.JourneyDocumentSegments.Add(segment);
@@ -199,10 +221,20 @@ public class VectorStorageTests : DatabaseTestBase
             CreatedAt = DateTime.UtcNow
         };
         
+        var persona = new Persona
+        {
+            Id = Guid.CreateVersion7(),
+            UserId = user.Id,
+            Domain = "Mini Tester",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        
         var journey = new Journey
         {
             Id = Guid.CreateVersion7(),
             UserId = user.Id,
+            PersonaId = persona.Id,
             Purpose = "Lightweight model test",
             State = "Active",
             CreatedAt = DateTime.UtcNow
@@ -255,6 +287,7 @@ public class VectorStorageTests : DatabaseTestBase
         
         // Act
         Context.Users.Add(user);
+        Context.Personas.Add(persona);
         Context.Journeys.Add(journey);
         Context.Documents.Add(document);
         Context.JourneyDocumentSegments.Add(segment);
@@ -282,10 +315,20 @@ public class VectorStorageTests : DatabaseTestBase
             CreatedAt = DateTime.UtcNow
         };
         
+        var persona = new Persona
+        {
+            Id = Guid.CreateVersion7(),
+            UserId = user.Id,
+            Domain = "Constraint Tester",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        
         var journey = new Journey
         {
             Id = Guid.CreateVersion7(),
             UserId = user.Id,
+            PersonaId = persona.Id,
             Purpose = "Unique constraint test",
             State = "Active",
             CreatedAt = DateTime.UtcNow
@@ -335,6 +378,7 @@ public class VectorStorageTests : DatabaseTestBase
         
         // Act & Assert
         Context.Users.Add(user);
+        Context.Personas.Add(persona);
         Context.Journeys.Add(journey);
         Context.Documents.Add(document);
         Context.JourneyDocumentSegments.Add(segment);
