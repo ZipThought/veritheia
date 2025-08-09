@@ -36,7 +36,15 @@ The Knowledge Database provides persistent storage for source documents and deri
 
 The Process Engine executes analytical workflows through the IAnalyticalProcess interface. Each process maintains journey context, including user research questions, conceptual vocabulary, and formation markers. The engine provides platform services (document ingestion, embedding generation, metadata extraction) while ensuring process outputs reflect user interpretation rather than automated analysis.
 
-The Process Engine does not operate on documents directly but on their projections into journey-specific spaces. When a document enters a journey, the engine applies the journey's framework to determine segmentation strategy, embedding context, and assessment criteria. The same document projected into different journeys produces different segments, different embeddings, and different relevance assessments. This projection mechanism enables scale—thousands of documents become tractable when viewed through the precise lens of a user's inquiry—while preserving intellectual sovereignty.
+The Process Engine operates through **projection spaces**—journey-specific intellectual environments where documents are transformed according to user-defined frameworks. When a document enters a journey, the engine:
+
+1. **Applies the Journey Framework**: Research questions, conceptual vocabulary, and assessment criteria shape how the document is understood
+2. **Creates Journey-Specific Segments**: The same document is segmented differently based on each journey's rules (by methodology sections for systematic review, by learning objectives for education)
+3. **Generates Contextual Embeddings**: Vectors are created with the journey's vocabulary and questions as context, not generic processing
+4. **Performs Targeted Assessment**: Relevance and contribution are measured against the specific journey's criteria
+5. **Accumulates Formation**: Insights emerge from patterns visible only in this projection space
+
+This projection mechanism enables scale—thousands of documents become tractable when viewed through the precise lens of a user's inquiry—while preserving intellectual sovereignty. The same document can simultaneously exist in multiple projection spaces, revealing different truths to different journeys.
 
 ### 2.3 Presentation Tier
 
@@ -56,36 +64,51 @@ The Presentation tier implements a web-based interface that maintains architectu
 
 #### 3. Cognitive System Integration: Assessment Engine
 
-The Process Engine interacts with the Cognitive System as an assessment engine, not a decision maker.
+The Process Engine interacts with the Cognitive System as an assessment engine operating within journey projection spaces.
 
-*   **Function:** The cognitive adapter performs structured assessments in specific roles (librarian, peer reviewer, instructor) while the user maintains interpretive sovereignty.
+*   **Function:** The cognitive adapter performs structured assessments using journey-specific prompts and criteria, not generic processing.
 
-*   **Key Principle:** AI performs assessments but users make decisions. In Systematic Screening, AI measures relevance and contribution, but researchers decide which papers are core, contextual, or peripheral to their inquiry.
+*   **Journey-Specific Assessment:** 
+    *   Each journey defines its own assessment prompts containing research questions and definitions
+    *   The AI evaluates segments against these specific prompts, not universal relevance
+    *   Different journeys assess the same document completely differently
+    *   Assessment reasoning is preserved for user review and understanding
 
-*   **Rationale:** This ensures that:
-    *   Understanding emerges from human interpretation of AI assessments
-    *   Insights arise from the user's engagement with assessed materials
-    *   Formation develops through accumulated insights across journeys
-    *   The journey shapes how AI assessments are interpreted
+*   **Key Principle:** AI performs measurements within the user's projection space. In Systematic Screening, AI measures relevance to the user's specific research questions using their definitions, but researchers interpret these measurements to decide which papers are core, contextual, or peripheral.
 
-The cognitive system measures and records rather than replacing human judgment. Each journey generates insights that contribute to formation.
+*   **Formation Through Assessment:**
+    *   Each assessment contributes to the user's understanding of their domain
+    *   Patterns emerge from assessments across many documents
+    *   The reasoning traces help users understand why documents matter
+    *   Formation accumulates as insights crystallize from these patterns
 
-### IV. Data Model
+The cognitive system operates as an instrument calibrated by the journey's framework, measuring within the user's intellectual space rather than imposing external judgments.
 
-The data within the Knowledge Database is structured into three distinct, extensible layers. All computation and transformation between these layers is performed by the Process Engine.
+### IV. Data Model: Journey Projection Spaces
 
-*   **Raw Corpus:** This layer represents the ground truth. It consists of the original, unmodified source artifacts (e.g., PDF, text files, images) provided by the user.
+The data model implements a fundamental principle: **documents don't have inherent meaning—meaning emerges through projection into journey-specific intellectual spaces**.
 
-*   **Journey Projections:** This layer contains journey-specific transformations of the Raw Corpus. Rather than universal processing, each journey projects documents according to its framework:
-    *   Journey-specific segmentation based on research questions
-    *   Contextualized embeddings shaped by conceptual vocabulary
-    *   Assessment scores relative to journey criteria
-    *   Formation tracking of accumulated insights
-    *   Cross-journey concept mappings for collaboration
+#### The Three-Layer Architecture
+
+*   **Raw Corpus:** This layer represents the ground truth. It consists of the original, unmodified source artifacts (e.g., PDF, text files, images) provided by the user. Documents exist here without interpretation.
+
+*   **Journey Projection Spaces:** Each journey creates a unique projection space where documents are transformed:
+    *   **Segmentation**: Documents are divided according to the journey's framework (abstracts for literature review, paragraphs for close reading, sections for technical analysis)
+    *   **Embedding Context**: Vectors are generated with the journey's research questions and vocabulary as context
+    *   **Assessment Criteria**: Relevance and contribution are measured against journey-specific questions
+    *   **Formation Accumulation**: Insights that emerge from this specific view of the corpus
+    *   **Cross-Journey Bridges**: Mappings between different journeys' projections of the same phenomena
     
-    The same document exists differently in each journey's projection space. All projections are versioned and include their generating framework for full provenance.
+    The same document exists differently in each journey's projection space. A paper on "neural networks" might be segmented by algorithms in a CS journey, by cognitive models in a psychology journey, and by philosophical implications in an ethics journey.
 
 *   **Knowledge Layer:** This is the queryable, semantic API exposed by the Knowledge Database to the Process Engine. It provides journey-scoped access to projections, enabling search and discovery within the user's intellectual space rather than generic retrieval.
+
+#### Why Projection Spaces Matter
+
+1. **Scale Without Summarization**: Processing 3,000 papers becomes tractable not through AI summaries but through precise projection
+2. **Progressive Refinement**: Initial broad projections minimize false negatives, then iterative refinement sharpens understanding
+3. **Cross-Disciplinary Discovery**: Different projections of the same documents reveal conceptual bridges between fields
+4. **Intellectual Sovereignty**: The user's framework determines meaning, not the system's processing
 
 ### V. Process Model
 

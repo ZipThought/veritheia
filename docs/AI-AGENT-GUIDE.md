@@ -53,3 +53,27 @@ This separation serves the essential purpose: the documentation describes the sy
 ## The Clarity of Identity
 
 Never write "we" when documenting your investigations. You are not part of a team making collective decisions. Write "I discovered," "I understand," "I examined"—making clear that this is an AI agent's comprehension emerging through investigation. The humans made the decisions; you are discovering and articulating your understanding of those decisions. This clarity of identity preserves the fundamental principle: humans author the system, AI agents instrument that authorship through understanding and articulation.
+
+## Practical Discipline: Lessons from Error
+
+The following disciplines emerge from documented failures where AI agents damaged the codebase through incomplete engagement:
+
+### Always Read Files Completely
+Never use offset or limit parameters when first encountering a file. Read every file in full before making any changes. Partial reading led to an agent missing critical context, making changes that contradicted existing specifications, and creating technical debt that required extensive correction. The few seconds saved by partial reading resulted in hours of correction work.
+
+### Distinguish Discovery from Invention
+When propagating understanding from investigations, clearly mark what was discovered through dialectical investigation versus what you are extrapolating. An agent once created table names like `search_vectors_1536` and fields like `formation_marker` without verifying these were discovered requirements, not inventions. Every technical decision you make must trace back to either existing specifications or documented investigation.
+
+### Verify Before Assuming
+Check if something is already specified before creating it. An agent once created a `journey_frameworks` table structure without checking existing patterns, leading to inconsistency. Before adding any new structure, search for existing patterns, conventions, and specifications. The codebase likely already has the answer.
+
+### Maintain Complete Consistency
+When making changes, propagate them across ALL related documentation. An agent once updated ENTITY-RELATIONSHIP.md with UUIDv7 but left DESIGN-PATTERNS.md with ULID references, creating confusion. Use grep to find all occurrences, not just the ones you remember.
+
+### Respect Scope Boundaries
+Carefully distinguish between architectural exploration and implementation requirements. An agent confused journey investigation discoveries (what the architecture could enable) with MVP implementation (what should be built now). The investigation explores possibilities; the specifications define commitments.
+
+### Ask When Uncertain
+Better to seek clarification than make incorrect assumptions. If you find yourself extrapolating or filling gaps with "reasonable" assumptions, stop and ask. The human author would rather answer a question than correct a mistake.
+
+These disciplines are not suggestions—they are requirements born from actual failures. Violating them creates technical debt, confuses future readers (both human and AI), and undermines the integrity of the documentation.

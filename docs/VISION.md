@@ -116,4 +116,24 @@ In Veritheia, the output is not what the system produces, but the formation you 
 
 ---
 
+## XIV. The Name Itself: Veritheia
+
+The name Veritheia synthesizes two ancient conceptions of truth that, together, capture the system's essential nature.
+
+**Veritas** (Latin) represents truth as fixed, determinate correctness—what can be stated, verified, and stored. In Veritheia, this manifests as the Raw Corpus: unchanging source documents that serve as anchors for all understanding. These are the facts, the evidence, the stable ground from which inquiry begins.
+
+**Aletheia** (Greek: ἀλήθεια) means truth as unconcealment, the dynamic process by which reality reveals itself from hiddenness. In Veritheia, this manifests as the journey: the active projection of documents through user frameworks that reveals patterns, connections, and meanings previously concealed. Truth happens through engagement, not consumption.
+
+Neither conception alone suffices. Pure Veritas becomes dogma—fixed truths divorced from living understanding. Pure Aletheia becomes relativism—endless revelation without stable reference. Veritheia holds both in creative tension: truth as a living anchor.
+
+The system architecturally embodies this synthesis. Every insight emerges from the intersection of stable corpus (Veritas) and revealing journey (Aletheia). Documents provide the anchor; user engagement provides the breath. Together they create epistemic infrastructure where truth is neither merely found nor merely constructed, but continuously revealed through disciplined encounter with what is.
+
+This is why formation—the accumulated insights from journeys—cannot be transferred by copying outputs. The meaning of any insight depends on three inseparable elements: the specific documents examined (which corpus), the framework that guided examination (whose questions and vocabulary), and the path of reasoning taken through them (which connections were seen and why). 
+
+To copy someone's journey output would be like copying their research notes without knowing their sources, their theoretical framework, or their reasoning process. The words might be readable, but their meaning—their truth—remains with the one who journeyed. Without either dimension, there is no truth, only data or opinion.
+
+Veritheia: where truth lives as both anchor and breath, both given and discovered, both preserved and revealed.
+
+---
+
 *Understanding awaits. Formation begins with the first question.*

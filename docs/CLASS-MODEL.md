@@ -1,6 +1,6 @@
 # Class Model
 
-This document defines the core domain classes and their relationships within Veritheia. The model clearly separates the core platform (which all deployments require) from process-specific extensions (which demonstrate extensibility patterns).
+This document defines the core domain classes and their relationships within Veritheia. The model implements **journey-specific projection spaces** where documents are transformed according to user-defined intellectual frameworks. The architecture clearly separates the core platform (required for all deployments) from process-specific extensions (which demonstrate extensibility patterns).
 
 ## Overview Diagram
 
@@ -10,7 +10,10 @@ classDiagram
         class BaseEntity
         class User
         class Journey
+        class JourneyFramework
         class Document
+        class JourneyDocumentSegment
+        class JourneyFormation
         class ProcessExecution
     }
     
@@ -24,6 +27,9 @@ classDiagram
         class EvaluationResult
     }
     
+    Journey --> JourneyFramework : defines projection
+    Document --> JourneyDocumentSegment : projected into
+    Journey --> JourneyFormation : accumulates insights
     ProcessResult ..> ScreeningResult : stores in data
     User ..> Assignment : creates
 ```
@@ -200,11 +206,15 @@ classDiagram
     BaseEntity <|-- User
     BaseEntity <|-- Persona
     BaseEntity <|-- Journey
+    BaseEntity <|-- JourneyFramework
     BaseEntity <|-- Journal
     BaseEntity <|-- JournalEntry
     BaseEntity <|-- Document
     BaseEntity <|-- DocumentMetadata
-    BaseEntity <|-- ProcessedContent
+    BaseEntity <|-- JourneyDocumentSegment
+    BaseEntity <|-- SearchIndex
+    BaseEntity <|-- JourneySegmentAssessment
+    BaseEntity <|-- JourneyFormation
     BaseEntity <|-- KnowledgeScope
     BaseEntity <|-- ProcessDefinition
     BaseEntity <|-- ProcessExecution
@@ -216,17 +226,35 @@ classDiagram
     User "1" --> "*" ProcessCapability : granted
     Persona "*" --> "1" User : belongs to
 
+    Journey "1" --> "1" JourneyFramework : defines
     Journey "1" --> "*" Journal : contains
     Journey "1" --> "*" ProcessExecution : tracks
+    Journey "1" --> "*" JourneyDocumentSegment : projects
+    Journey "1" --> "*" JourneyFormation : accumulates
     Journey "*" --> "1" User : belongs to
     Journey "*" --> "1" Persona : uses
+
+    JourneyFramework "1" --> "1" Journey : configures
 
     Journal "1" --> "*" JournalEntry : records
     Journal "*" --> "1" Journey : documents
 
     Document "1" --> "1" DocumentMetadata : has
-    Document "1" --> "*" ProcessedContent : generates
+    Document "1" --> "*" JourneyDocumentSegment : projected into
     Document "*" --> "0..1" KnowledgeScope : organized by
+
+    JourneyDocumentSegment "*" --> "1" Journey : belongs to
+    JourneyDocumentSegment "*" --> "1" Document : from
+    JourneyDocumentSegment "1" --> "*" SearchIndex : indexed by
+    JourneyDocumentSegment "1" --> "*" JourneySegmentAssessment : assessed
+
+    SearchIndex "*" --> "1" JourneyDocumentSegment : indexes
+    SearchIndex "1" --> "0..1" SearchVector1536 : stores in
+    SearchIndex "1" --> "0..1" SearchVector768 : stores in
+
+    JourneySegmentAssessment "*" --> "1" JourneyDocumentSegment : assesses
+
+    JourneyFormation "*" --> "1" Journey : formed by
 
     KnowledgeScope "1" --> "*" KnowledgeScope : contains
     KnowledgeScope "*" --> "0..1" KnowledgeScope : child of

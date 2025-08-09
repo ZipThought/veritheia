@@ -2,7 +2,7 @@
 
 ## 1. Overview
 
-This document specifies the technical implementation of Veritheia. The system operates as a local-first epistemic infrastructure with four primary components: PostgreSQL with pgvector for knowledge storage, ASP.NET Core for process orchestration, adapter-based LLM integration for assessments, and Blazor Server for user interfaces. All components enforce user data sovereignty and prevent automated insight generation.
+This document specifies the technical implementation of Veritheia. The system operates as a local-first epistemic infrastructure with four primary components: PostgreSQL with pgvector for journey-specific projection spaces, ASP.NET Core for process orchestration, adapter-based LLM integration for journey-calibrated assessments, and Blazor Server for user interfaces. All components enforce user data sovereignty and ensure insights emerge from user engagement within their projection spaces.
 
 
 ## 2. Technology Stack
@@ -21,24 +21,34 @@ Blazor Server provides the web interface, enabling real-time updates through Sig
 
 ### 2.4 Cognitive System Integration
 
-The ICognitiveAdapter interface abstracts LLM implementation details, supporting multiple backends: LlamaCppAdapter for local inference, SemanticKernelAdapter for Microsoft Semantic Kernel, and OpenAIAdapter for cloud-based models. Each adapter implements assessment-only operations, preventing insight generation through prompt engineering constraints.
+The ICognitiveAdapter interface abstracts LLM implementation details, supporting multiple backends: LlamaCppAdapter for local inference, SemanticKernelAdapter for Microsoft Semantic Kernel, and OpenAIAdapter for cloud-based models. Each adapter performs journey-calibrated assessments using journey-specific prompts and criteria, ensuring assessments occur within the user's projection space rather than generic processing.
 
 ## Data Architecture
 
-### Entity Model
+### Entity Model: Journey Projection Architecture
 
-The data layer (`veritheia.Data`) defines these core entities:
+The data layer (`veritheia.Data`) implements journey-specific projection spaces:
 
-- **Document**: Represents raw corpus materials (PDFs, text files)
-- **ProcessedContent**: Stores embeddings and extracted text chunks
-- **KnowledgeScope**: Defines virtual boundaries for knowledge organization
-- **ProcessDefinition**: Metadata describing available processes
-- **ProcessExecution**: Tracks process runs and their state
-- **ProcessResult**: Stores process outputs with extensible JSON schema
-- **User**: Core identity with associated persona and knowledge base
+**Core Entities**:
+- **User**: Core identity with evolving persona
 - **Journey**: User's engagement instance with a process
-- **Journal**: Narrative record of intellectual development (Research, Method, Decision, Reflection)
-- **JournalEntry**: Individual narrative entries within journals
+- **JourneyFramework**: Defines how this journey projects documents
+
+**Projection Entities**:
+- **Document**: Raw corpus materials (unchanged originals)
+- **JourneyDocumentSegment**: Document projected into journey-specific segments
+- **SearchIndex**: Metadata for segment embeddings
+- **SearchVector_{dimension}**: Polymorphic vector storage by dimension
+- **JourneySegmentAssessment**: Journey-specific relevance/contribution scores
+- **JourneyFormation**: Accumulated insights from the journey
+
+**Supporting Entities**:
+- **KnowledgeScope**: Organizational boundaries for documents
+- **ProcessDefinition**: Available process types
+- **ProcessExecution**: Process run tracking
+- **ProcessResult**: Process outputs
+- **Journal**: Narrative record (Research, Method, Decision, Reflection)
+- **JournalEntry**: Individual narrative entries
 
 ### Primary Key Strategy
 
@@ -54,10 +64,25 @@ All entities use **UUIDv7 (RFC 9562)** as primary keys:
 - **Implementation**: Direct mapping between C# `Guid` and PostgreSQL `uuid` type
 - **Example**: `018e3d28-a729-7000-8000-000000000000`
 
-Previous specification (ULID) was reconsidered due to:
-- UUIDv7 provides same temporal ordering benefits
-- Native database type eliminates conversion overhead
-- Industry standard with wider tooling support
+**Implementation Example**:
+```csharp
+public abstract class BaseEntity
+{
+    public Guid Id { get; set; } = Guid.CreateVersion7();
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? UpdatedAt { get; set; }
+}
+
+// Entity Framework configuration
+modelBuilder.Entity<MyEntity>()
+    .Property(e => e.Id)
+    .HasColumnType("uuid"); // Direct mapping, no converter needed
+```
+
+Previous specification (ULID) was reconsidered through dialectical investigation:
+- UUIDv7 provides same temporal ordering benefits with native type support
+- Eliminates string conversion overhead (16 bytes binary vs 26 bytes string)
+- RFC 9562 standardization ensures long-term stability
 
 ### Database Design Patterns
 
@@ -67,29 +92,124 @@ Previous specification (ULID) was reconsidered due to:
 - **Value Converters**: UTC DateTime, JSONB for PostgreSQL
 - **Soft Deletes**: Logical deletion with `DeletedAt` timestamp
 - **Auditing**: CreatedAt, UpdatedAt, CreatedBy, UpdatedBy on all entities
-- **Query Optimization**: Use `.AsNoTracking()` for all read-only operations
+- **Query Optimization**: 
+  - Use `.AsNoTracking()` for ALL read operations
+  - Use change tracking only for domain aggregate updates
+  - Compile frequently-used queries for performance
 - **Vector Queries**: Use `FromSqlRaw()` for pgvector operations with `<->` operator
+- **Journey Scoping**: All queries filtered by journey context
+- **Formation Tracking**: Persist accumulated insights per journey
 
-### Vector Storage Strategy
+### Vector Storage: Polymorphic Table Architecture
 
-- **Multiple Embedding Support**: Dimension-grouped columns to support model evolution
-  - `embedding_1536`: OpenAI ada-002, Cohere embed-v3
-  - `embedding_768`: E5-large-v2, BGE-large
-  - `embedding_384`: Lightweight/mobile models
-- **Index Type**: HNSW (Hierarchical Navigable Small World) with filtered indexes
-  - Filtered by `processing_model` to reduce index size
-  - Separate index per model for optimal performance
-  - O(log n) search complexity
-  - Default parameters: m=16, ef_construction=64
-- **Query Routing**: Service layer selects column based on embedding dimension
-- **Model Migration**: Add column for new dimension, background re-embedding, atomic switch
+**Design**: Separate tables per vector dimension with metadata in `search_indexes`.
 
-### Database Migrations
+**Structure**:
+```csharp
+// Metadata tracks all embeddings
+public class SearchIndex : BaseEntity
+{
+    public Guid SegmentId { get; set; }
+    public string VectorModel { get; set; } // "openai-ada-002", "e5-large-v2"
+    public int VectorDimension { get; set; } // 1536, 768, 384
+    public DateTime IndexedAt { get; set; }
+    
+    public JourneyDocumentSegment Segment { get; set; }
+}
 
-The system uses Entity Framework Core migrations with this workflow:
+// Dimension-specific storage
+public class SearchVector1536
+{
+    public Guid IndexId { get; set; }
+    public float[] Embedding { get; set; } // Maps to vector(1536)
+    
+    public SearchIndex Index { get; set; }
+}
+```
+
+**Index Strategy**: HNSW (Hierarchical Navigable Small World)
+- Better query performance than IVFFlat (O(log n) vs O(√n))
+- Can be created on empty tables (no data required)
+- Parameters: m=16 (bi-directional links), ef_construction=64 (build quality)
+
+**Query Pattern**:
+```csharp
+public async Task<IEnumerable<SearchResult>> SearchSimilar(
+    Guid journeyId, float[] queryVector, string model, int limit = 10)
+{
+    var dimension = queryVector.Length;
+    var vectorTable = $"search_vectors_{dimension}";
+    
+    var sql = $@"
+        SELECT s.id, s.segment_content, v.embedding <-> @query as distance
+        FROM journey_document_segments s
+        JOIN search_indexes si ON si.segment_id = s.id
+        JOIN {vectorTable} v ON v.index_id = si.id
+        WHERE s.journey_id = @journeyId 
+          AND si.vector_model = @model
+        ORDER BY distance
+        LIMIT @limit";
+    
+    return await _context.Database
+        .SqlQueryRaw<SearchResult>(sql, 
+            new NpgsqlParameter("@query", queryVector),
+            new NpgsqlParameter("@journeyId", journeyId),
+            new NpgsqlParameter("@model", model),
+            new NpgsqlParameter("@limit", limit))
+        .AsNoTracking()
+        .ToListAsync();
+}
+```
+
+### Database Migrations with pgvector
+
+**Workflow**:
 1. Define entity changes in `veritheia.Data`
-2. Generate migrations from `veritheia.ApiService` context
-3. Apply migrations during startup or deployment
+2. Generate migration: `dotnet ef migrations add MigrationName`
+3. Add raw SQL for PostgreSQL-specific features
+4. Apply: Auto in development, explicit in production
+
+**Initial Migration Example**:
+```csharp
+public partial class InitialProjectionSchema : Migration
+{
+    protected override void Up(MigrationBuilder migrationBuilder)
+    {
+        // Enable pgvector extension
+        migrationBuilder.Sql("CREATE EXTENSION IF NOT EXISTS vector;");
+        
+        // Create journey projection tables
+        migrationBuilder.CreateTable(
+            name: "journey_document_segments",
+            columns: table => new
+            {
+                id = table.Column<Guid>(type: "uuid", nullable: false),
+                journey_id = table.Column<Guid>(type: "uuid", nullable: false),
+                document_id = table.Column<Guid>(type: "uuid", nullable: false),
+                segment_content = table.Column<string>(type: "text", nullable: false),
+                // ... other columns
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_journey_document_segments", x => x.id);
+                // ... foreign keys
+            });
+        
+        // Create vector tables and HNSW indexes
+        migrationBuilder.Sql(@"
+            CREATE TABLE search_vectors_1536 (
+                index_id UUID PRIMARY KEY REFERENCES search_indexes(id),
+                embedding vector(1536) NOT NULL
+            );
+            
+            CREATE INDEX idx_vectors_1536_hnsw 
+            ON search_vectors_1536 
+            USING hnsw (embedding vector_cosine_ops)
+            WITH (m = 16, ef_construction = 64);
+        ");
+    }
+}
+```
 
 ## Service Architecture
 

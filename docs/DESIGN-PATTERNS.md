@@ -66,11 +66,11 @@ public record EmbeddingVector
 public interface IJourneyAwareRepository<T> where T : BaseEntity
 {
     // All queries filtered through journey context
-    Task<T?> GetByIdForJourneyAsync(Ulid id, Ulid journeyId, CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<T>> ListForJourneyAsync(Ulid journeyId, ISpecification<T> spec, CancellationToken cancellationToken = default);
-    Task<T> AddToJourneyAsync(T entity, Ulid journeyId, string encounterContext, CancellationToken cancellationToken = default);
-    Task UpdateInJourneyContextAsync(T entity, Ulid journeyId, CancellationToken cancellationToken = default);
-    Task<int> CountForJourneyAsync(Ulid journeyId, ISpecification<T> spec, CancellationToken cancellationToken = default);
+    Task<T?> GetByIdForJourneyAsync(Guid id, Guid journeyId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<T>> ListForJourneyAsync(Guid journeyId, ISpecification<T> spec, CancellationToken cancellationToken = default);
+    Task<T> AddToJourneyAsync(T entity, Guid journeyId, string encounterContext, CancellationToken cancellationToken = default);
+    Task UpdateInJourneyContextAsync(T entity, Guid journeyId, CancellationToken cancellationToken = default);
+    Task<int> CountForJourneyAsync(Guid journeyId, ISpecification<T> spec, CancellationToken cancellationToken = default);
 }
 ```
 
@@ -91,7 +91,7 @@ public interface ISpecification<T>
 // Example usage
 public class ActiveJourneysSpecification : BaseSpecification<Journey>
 {
-    public ActiveJourneysSpecification(Ulid userId)
+    public ActiveJourneysSpecification(Guid userId)
     {
         AddCriteria(j => j.UserId == userId && j.CompletedAt == null);
         AddInclude(j => j.JournalEntries);
@@ -109,11 +109,11 @@ public class AuthoredResult<T>
     public bool IsSuccess { get; }
     public T? Value { get; }
     public string Error { get; }
-    public Ulid JourneyId { get; } // Every result tied to journey
+    public Guid JourneyId { get; } // Every result tied to journey
     public DateTime AuthoredAt { get; } // When this understanding emerged
     public JournalEntry[] GeneratedNarratives { get; } // New insights to record
     
-    protected AuthoredResult(bool isSuccess, T? value, string error, Ulid journeyId)
+    protected AuthoredResult(bool isSuccess, T? value, string error, Guid journeyId)
     {
         IsSuccess = isSuccess;
         Value = value;
@@ -123,9 +123,9 @@ public class AuthoredResult<T>
         GeneratedNarratives = Array.Empty<JournalEntry>();
     }
     
-    public static AuthoredResult<T> Success(T value, Ulid journeyId, params JournalEntry[] narratives) 
+    public static AuthoredResult<T> Success(T value, Guid journeyId, params JournalEntry[] narratives) 
         => new(true, value, string.Empty, journeyId) { GeneratedNarratives = narratives };
-    public static AuthoredResult<T> Failure(string error, Ulid journeyId) 
+    public static AuthoredResult<T> Failure(string error, Guid journeyId) 
         => new(false, default, error, journeyId);
 }
 
@@ -213,7 +213,7 @@ public class AssessmentResult
     public string Content { get; set; }
     public AssessmentRole Role { get; set; }
     public Dictionary<string, object> Metadata { get; set; } // Scores, rationales, etc.
-    public Ulid JourneyId { get; set; }
+    public Guid JourneyId { get; set; }
     public DateTime AssessedAt { get; set; }
 }
 
@@ -517,7 +517,7 @@ public class CreateJourneyCommandValidator : AbstractValidator<CreateJourneyComm
             .WithMessage("Process does not exist");
     }
     
-    private async Task<bool> ProcessExists(Ulid processId, CancellationToken cancellationToken)
+    private async Task<bool> ProcessExists(Guid processId, CancellationToken cancellationToken)
     {
         // Check process registry
         return true;
@@ -580,7 +580,7 @@ public class GlobalExceptionMiddleware
 When implementing any feature, verify:
 
 - [ ] Aggregate boundaries are respected
-- [ ] All entities inherit from BaseEntity with ULID primary keys
+- [ ] All entities inherit from BaseEntity with UUIDv7 (Guid) primary keys
 - [ ] Repositories use the generic interface
 - [ ] Complex queries use specifications
 - [ ] Operations return Result<T> types

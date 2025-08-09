@@ -2156,3 +2156,94 @@ Veritheia doesn't just "process more documents" - it enables:
 5. **Collaborative Formation**: Teams can share projections while maintaining their disciplinary integrity
 
 This is why the journey-specific projection space is essential - it's not about mechanical processing but about **enabling formation through scale while preserving disciplinary perspectives**.
+
+---
+
+## AI Agent Error Analysis (2025-08-09 05:12 UTC)
+
+### Context
+An AI agent (Claude) was tasked with propagating the evolved understanding from Phase 1 journey into specification documents. The agent made several critical errors that demonstrate important lessons for AI assistance in system development.
+
+### Errors Made
+
+#### 1. Partial File Reading
+The agent read documentation files partially (using offset/limit parameters) rather than reading them in full. This led to:
+- Missing critical context about what was already specified
+- Making extrapolations that contradicted existing documentation
+- Not understanding the complete system architecture
+
+**Lesson**: Always read complete files before making changes. Context matters enormously in system design.
+
+#### 2. Extrapolation Without Verification
+The agent made numerous design decisions without checking if they were already specified:
+- Named tables `search_vectors_1536` without checking naming conventions
+- Created `journey_frameworks` table structure without verifying existing patterns
+- Added fields like `formation_marker` that weren't discovered through investigation
+
+**Lesson**: Distinguish between what was discovered through dialectical investigation versus what the AI is inventing.
+
+#### 3. Misunderstanding MVP Scope
+The agent suggested "removing" cross-journey features from MVP when they were never included:
+- Cross-journey features were discussed as architectural possibilities
+- They were explicitly marked as post-MVP in specifications
+- The agent confused investigation discoveries with implementation requirements
+
+**Lesson**: Carefully distinguish between architectural exploration and MVP implementation scope.
+
+#### 4. Inconsistent Technical Decisions
+The agent initially used arrays (TEXT[], UUID[]) then later discovered JSONB was preferred:
+- Started with `structural_path TEXT[]`
+- Later corrected to `structural_path JSONB`
+- Failed to apply this consistently across all specifications
+
+**Lesson**: Technical decisions should be verified against existing patterns before implementation.
+
+#### 5. Documentation Synchronization Failures
+The agent updated some documents but not others:
+- Updated ENTITY-RELATIONSHIP.md with UUIDv7
+- Left DESIGN-PATTERNS.md with ULID references (until corrected)
+- Created inconsistencies across the specification suite
+
+**Lesson**: Changes must be propagated consistently across all related documentation.
+
+### Root Cause Analysis
+
+The fundamental error was **acting without complete information**. The agent:
+1. Started making changes before reading all documentation
+2. Assumed understanding based on partial context
+3. Filled gaps with extrapolation rather than investigation
+4. Failed to verify assumptions against existing specifications
+
+### Correct Approach
+
+The proper sequence should have been:
+1. **Read ALL documentation files in FULL** before any changes
+2. **Create a comprehensive list** of discovered insights from Phase 1
+3. **Map each insight** to where it should be reflected in specifications
+4. **Verify technical decisions** against existing patterns
+5. **Apply changes consistently** across all affected documents
+6. **Document what was changed and why**
+
+### Impact of Errors
+
+These errors created:
+- Technical debt from inconsistent specifications
+- Confusion about what was discovered versus invented
+- Misalignment between investigation and specification
+- Need for extensive correction work
+
+### Prevention Strategies
+
+For future AI agents working on this codebase:
+1. **ALWAYS read files completely** - Never use offset/limit for initial reading
+2. **Distinguish discovery from invention** - Mark clearly what comes from investigation versus extrapolation
+3. **Verify before assuming** - Check if something is already specified before creating it
+4. **Maintain consistency** - Propagate changes across all related documents
+5. **Respect boundaries** - Don't confuse exploration with implementation requirements
+6. **Ask when uncertain** - Better to seek clarification than make incorrect assumptions
+
+### Meta-Lesson
+
+This error demonstrates why Veritheia's core principle—that understanding must emerge from engagement rather than automated generation—applies to AI agents as much as to users. The agent tried to generate understanding without full engagement with the material, leading to fundamental errors that required human correction.
+
+The agent's behavior ironically validates Veritheia's philosophy: even sophisticated AI cannot replace the need for genuine engagement with knowledge to develop true understanding.

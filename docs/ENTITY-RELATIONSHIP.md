@@ -13,8 +13,10 @@ Based on dialectical investigation documented in [Phase 01 Database Journey](../
 1. **Primary Keys**: Application-generated UUIDv7 via `Guid.CreateVersion7()` for temporal ordering
 2. **Vector Indexes**: HNSW for superior query performance over IVFFlat
 3. **Data Access**: Entity Framework Core with `.AsNoTracking()` for reads and `FromSqlRaw()` for vector operations
-4. **Multiple Embeddings**: Dimension-grouped columns (embedding_1536, embedding_768, etc.) with filtered indexes per model
-5. **Migrations**: EF Core migrations with embedded raw SQL for PostgreSQL-specific features
+4. **Journey-Specific Projections**: Documents are projected into journey-specific intellectual spaces, not processed generically
+5. **Polymorphic Vector Storage**: Separate tables per dimension with metadata in search_indexes
+6. **Formation Tracking**: Accumulated insights from journeys are persisted as formation
+7. **Migrations**: EF Core migrations with embedded raw SQL for PostgreSQL-specific features
 
 ## Naming Conventions
 
@@ -23,6 +25,17 @@ Classes use singular names (User, Document) while database tables use plural (us
 ## Core Platform Schema
 
 These tables are required for all Veritheia deployments and cannot be modified by extensions.
+
+### Fundamental Concept: Journey Projection Spaces
+
+Documents in Veritheia don't have universal chunks or embeddings. Instead, each journey creates a **projection space** where documents are transformed according to the journey's intellectual framework:
+
+1. **Journey Framework**: User defines research questions, conceptual vocabulary, and assessment criteria
+2. **Document Projection**: Documents are segmented, embedded, and assessed specifically for that journey
+3. **Formation Accumulation**: Insights emerge from engaging with documents in the projection space
+4. **Cross-Journey Bridges**: Different journeys can reveal shared concepts through different projections
+
+This means the same document appears differently in each journey - segmented by different rules, embedded with different context, and assessed by different criteria.
 
 ### Core Platform ERD
 
@@ -74,6 +87,16 @@ erDiagram
         timestamp updated_at
     }
 
+    journey_frameworks {
+        uuid id PK
+        uuid journey_id FK UK
+        varchar journey_type
+        jsonb framework_elements
+        jsonb projection_rules
+        timestamp created_at
+        timestamp updated_at
+    }
+
     journals {
         uuid id PK
         uuid journey_id FK
@@ -117,19 +140,63 @@ erDiagram
         timestamp updated_at
     }
 
-    processed_contents {
+    journey_document_segments {
         uuid id PK
+        uuid journey_id FK
         uuid document_id FK
-        text content
-        vector embedding_1536
-        vector embedding_768
-        vector embedding_384
-        int chunk_index
-        int start_position
-        int end_position
-        varchar processing_model
-        varchar processing_version
+        text segment_content
+        varchar segment_type
+        text segment_purpose
+        jsonb structural_path
+        int sequence_index
+        int4range byte_range
+        varchar created_by_rule
+        varchar created_for_question
         timestamp created_at
+    }
+
+    search_indexes {
+        uuid id PK
+        uuid segment_id FK
+        varchar vector_model
+        int vector_dimension
+        timestamp indexed_at
+    }
+
+    search_vectors_1536 {
+        uuid index_id PK FK
+        vector embedding
+    }
+
+    search_vectors_768 {
+        uuid index_id PK FK
+        vector embedding
+    }
+
+    journey_segment_assessments {
+        uuid id PK
+        uuid segment_id FK
+        varchar assessment_type
+        int research_question_id
+        float relevance_score
+        float contribution_score
+        jsonb rubric_scores
+        text assessment_reasoning
+        jsonb reasoning_chain
+        varchar assessed_by_model
+        timestamp assessed_at
+    }
+
+    journey_formations {
+        uuid id PK
+        uuid journey_id FK
+        varchar insight_type
+        text insight_content
+        jsonb formed_from_segments
+        jsonb formed_through_questions
+        text formation_reasoning
+        text formation_marker
+        timestamp formed_at
     }
 
     knowledge_scopes {
@@ -191,8 +258,18 @@ erDiagram
     journals ||--o{ journal_entries : "records"
 
     documents ||--|| document_metadata : "has"
-    documents ||--o{ processed_contents : "generates"
+    documents ||--o{ journey_document_segments : "projected into"
     documents }o--o| knowledge_scopes : "organized by"
+    
+    journeys ||--|| journey_frameworks : "defines"
+    journeys ||--o{ journey_document_segments : "creates"
+    journeys ||--o{ journey_formations : "accumulates"
+    
+    journey_document_segments ||--o{ search_indexes : "indexed by"
+    journey_document_segments ||--o{ journey_segment_assessments : "assessed"
+    
+    search_indexes ||--|| search_vectors_1536 : "stores in"
+    search_indexes ||--|| search_vectors_768 : "stores in"
 
     knowledge_scopes ||--o{ knowledge_scopes : "contains"
 
@@ -206,6 +283,8 @@ erDiagram
 ##### users
 Primary table for user accounts:
 ```sql
+CREATE EXTENSION IF NOT EXISTS vector;
+
 CREATE TABLE users (
     id UUID PRIMARY KEY, -- UUIDv7 generated by application via Guid.CreateVersion7()
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -246,7 +325,7 @@ CREATE INDEX idx_personas_active ON personas(user_id, is_active);
 Tracks which processes users can access:
 ```sql
 CREATE TABLE process_capabilities (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY, -- UUIDv7 generated by application
     user_id UUID NOT NULL,
     process_type VARCHAR(255) NOT NULL,
     is_enabled BOOLEAN DEFAULT true,
@@ -265,7 +344,7 @@ CREATE INDEX idx_capabilities_user ON process_capabilities(user_id);
 Represents user engagement with processes:
 ```sql
 CREATE TABLE journeys (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY, -- UUIDv7 generated by application
     user_id UUID NOT NULL,
     persona_id UUID NOT NULL,
     process_type VARCHAR(255) NOT NULL,
@@ -284,11 +363,44 @@ CREATE INDEX idx_journeys_state ON journeys(state);
 CREATE INDEX idx_journeys_process ON journeys(process_type);
 ```
 
+##### journey_frameworks
+Defines how each journey projects documents into its intellectual space:
+```sql
+CREATE TABLE journey_frameworks (
+    id UUID PRIMARY KEY, -- UUIDv7 generated by application
+    journey_id UUID NOT NULL UNIQUE,
+    journey_type VARCHAR(100) NOT NULL, -- 'systematic_review', 'educational', 'research_formation'
+    
+    -- The intellectual framework that shapes projections
+    framework_elements JSONB NOT NULL, -- {
+                                       --   "research_questions": [...],
+                                       --   "conceptual_vocabulary": {...},
+                                       --   "assessment_criteria": {...},
+                                       --   "theoretical_orientation": "..."
+                                       -- }
+    
+    -- Rules for transforming documents in this journey's space
+    projection_rules JSONB NOT NULL, -- {
+                                     --   "segmentation": {"strategy": "...", "rules": [...]},
+                                     --   "embedding_context": {...},
+                                     --   "assessment_prompts": [...],
+                                     --   "discovery_parameters": {...}
+                                     -- }
+    
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE,
+    CONSTRAINT fk_journey FOREIGN KEY (journey_id) REFERENCES journeys(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_frameworks_journey ON journey_frameworks(journey_id);
+CREATE INDEX idx_frameworks_type ON journey_frameworks(journey_type);
+```
+
 ##### journals
 Narrative records within journeys:
 ```sql
 CREATE TABLE journals (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY, -- UUIDv7 generated by application
     journey_id UUID NOT NULL,
     type VARCHAR(50) NOT NULL,
     is_shareable BOOLEAN DEFAULT false,
@@ -306,7 +418,7 @@ CREATE INDEX idx_journals_type ON journals(type);
 Individual narrative entries:
 ```sql
 CREATE TABLE journal_entries (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY, -- UUIDv7 generated by application
     journal_id UUID NOT NULL,
     content TEXT NOT NULL,
     significance VARCHAR(50) NOT NULL DEFAULT 'Routine',
@@ -329,7 +441,7 @@ CREATE INDEX idx_entries_created ON journal_entries(created_at DESC);
 Source materials in the knowledge base:
 ```sql
 CREATE TABLE documents (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY, -- UUIDv7 generated by application
     file_name VARCHAR(500) NOT NULL,
     mime_type VARCHAR(100) NOT NULL,
     file_path VARCHAR(1000) NOT NULL,
@@ -349,7 +461,7 @@ CREATE INDEX idx_documents_uploaded ON documents(uploaded_at DESC);
 Extracted document properties:
 ```sql
 CREATE TABLE document_metadata (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY, -- UUIDv7 generated by application
     document_id UUID UNIQUE NOT NULL,
     title VARCHAR(1000),
     authors TEXT[],
@@ -364,43 +476,155 @@ CREATE INDEX idx_metadata_title ON document_metadata(title);
 CREATE INDEX idx_metadata_authors ON document_metadata USING GIN(authors);
 ```
 
-##### processed_contents
-Chunked and embedded document content:
+##### journey_document_segments
+Documents projected into journey-specific segments:
 ```sql
-CREATE TABLE processed_contents (
+CREATE TABLE journey_document_segments (
     id UUID PRIMARY KEY, -- UUIDv7 generated by application
+    journey_id UUID NOT NULL,
     document_id UUID NOT NULL,
-    content TEXT NOT NULL,
-    embedding_1536 vector(1536), -- For OpenAI, Cohere models
-    embedding_768 vector(768),   -- For E5, BGE models
-    embedding_384 vector(384),   -- For lightweight models
-    chunk_index INTEGER NOT NULL,
-    start_position INTEGER NOT NULL,
-    end_position INTEGER NOT NULL,
-    processing_model VARCHAR(255) NOT NULL,
-    processing_version VARCHAR(50) NOT NULL,
+    
+    -- Content shaped by journey's projection rules
+    segment_content TEXT NOT NULL,
+    segment_type VARCHAR(50), -- 'abstract', 'methodology', 'paragraph', etc.
+    segment_purpose TEXT, -- Why this segment exists for this journey
+    
+    -- Structure and position
+    structural_path JSONB, -- {"path": ["section-2", "subsection-3", "paragraph-5"]}
+    sequence_index INTEGER NOT NULL,
+    byte_range INT4RANGE, -- Original position in document
+    
+    -- Projection metadata
+    created_by_rule VARCHAR(255), -- Which segmentation rule created this
+    created_for_question VARCHAR(255), -- Which research question drove this
+    
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_document FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE
+    CONSTRAINT fk_journey FOREIGN KEY (journey_id) REFERENCES journeys(id) ON DELETE CASCADE,
+    CONSTRAINT fk_document FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
+    CONSTRAINT uq_journey_doc_seq UNIQUE(journey_id, document_id, sequence_index)
 );
 
-CREATE INDEX idx_processed_document ON processed_contents(document_id);
-CREATE INDEX idx_processed_chunk ON processed_contents(document_id, chunk_index);
+CREATE INDEX idx_segments_journey ON journey_document_segments(journey_id);
+CREATE INDEX idx_segments_document ON journey_document_segments(document_id);
+CREATE INDEX idx_segments_type ON journey_document_segments(segment_type);
+```
 
--- Filtered HNSW indexes for each model/dimension combination
-CREATE INDEX idx_embed_openai_ada ON processed_contents 
-    USING hnsw (embedding_1536 vector_cosine_ops)
-    WHERE processing_model = 'openai-ada-002' AND embedding_1536 IS NOT NULL;
+##### search_indexes
+Metadata for segment embeddings:
+```sql
+CREATE TABLE search_indexes (
+    id UUID PRIMARY KEY, -- UUIDv7 generated by application
+    segment_id UUID NOT NULL,
+    vector_model VARCHAR(100) NOT NULL,
+    vector_dimension INTEGER NOT NULL,
+    indexed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_segment FOREIGN KEY (segment_id) REFERENCES journey_document_segments(id) ON DELETE CASCADE,
+    CONSTRAINT uq_segment_model UNIQUE(segment_id, vector_model)
+);
 
-CREATE INDEX idx_embed_e5_large ON processed_contents 
-    USING hnsw (embedding_768 vector_cosine_ops)
-    WHERE processing_model = 'e5-large-v2' AND embedding_768 IS NOT NULL;
+CREATE INDEX idx_search_segment ON search_indexes(segment_id);
+CREATE INDEX idx_search_model ON search_indexes(vector_model);
+```
+
+##### search_vectors_1536, search_vectors_768, search_vectors_384
+Polymorphic vector storage by dimension:
+```sql
+-- 1536-dimensional vectors (OpenAI, Cohere)
+CREATE TABLE search_vectors_1536 (
+    index_id UUID PRIMARY KEY REFERENCES search_indexes(id) ON DELETE CASCADE,
+    embedding vector(1536) NOT NULL
+);
+
+CREATE INDEX idx_vectors_1536_hnsw ON search_vectors_1536 
+    USING hnsw (embedding vector_cosine_ops)
+    WITH (m = 16, ef_construction = 64);
+
+-- 768-dimensional vectors (E5, BGE)
+CREATE TABLE search_vectors_768 (
+    index_id UUID PRIMARY KEY REFERENCES search_indexes(id) ON DELETE CASCADE,
+    embedding vector(768) NOT NULL
+);
+
+CREATE INDEX idx_vectors_768_hnsw ON search_vectors_768 
+    USING hnsw (embedding vector_cosine_ops)
+    WITH (m = 16, ef_construction = 64);
+
+-- 384-dimensional vectors (lightweight models)
+CREATE TABLE search_vectors_384 (
+    index_id UUID PRIMARY KEY REFERENCES search_indexes(id) ON DELETE CASCADE,
+    embedding vector(384) NOT NULL
+);
+
+CREATE INDEX idx_vectors_384_hnsw ON search_vectors_384 
+    USING hnsw (embedding vector_cosine_ops)
+    WITH (m = 16, ef_construction = 64);
+```
+
+##### journey_segment_assessments
+Journey-specific assessment of segments:
+```sql
+CREATE TABLE journey_segment_assessments (
+    id UUID PRIMARY KEY, -- UUIDv7 generated by application
+    segment_id UUID NOT NULL,
+    
+    -- Assessment details
+    assessment_type VARCHAR(50) NOT NULL, -- 'relevance', 'contribution', 'rubric_match'
+    research_question_id INTEGER, -- Which RQ this assesses
+    
+    -- Scores based on journey type
+    relevance_score FLOAT,
+    contribution_score FLOAT,
+    rubric_scores JSONB, -- For educational journeys
+    
+    -- Reasoning preservation
+    assessment_reasoning TEXT,
+    reasoning_chain JSONB, -- Chain-of-thought steps
+    
+    -- Model tracking
+    assessed_by_model VARCHAR(100),
+    assessed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_segment FOREIGN KEY (segment_id) REFERENCES journey_document_segments(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_assessments_segment ON journey_segment_assessments(segment_id);
+CREATE INDEX idx_assessments_type ON journey_segment_assessments(assessment_type);
+CREATE INDEX idx_assessments_scores ON journey_segment_assessments(relevance_score, contribution_score);
+```
+
+##### journey_formations
+Accumulated insights from journeys:
+```sql
+CREATE TABLE journey_formations (
+    id UUID PRIMARY KEY, -- UUIDv7 generated by application
+    journey_id UUID NOT NULL,
+    
+    -- What was formed
+    insight_type VARCHAR(50) NOT NULL, -- 'conceptual', 'methodological', 'theoretical'
+    insight_content TEXT NOT NULL,
+    
+    -- How it was formed
+    formed_from_segments JSONB, -- {"segments": [uuid1, uuid2, ...]}
+    formed_through_questions JSONB, -- {"questions": ["RQ1", "RQ2", ...]}
+    formation_reasoning TEXT,
+    
+    -- When in the journey
+    formation_marker TEXT, -- Milestone or marker reached
+    formed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_journey FOREIGN KEY (journey_id) REFERENCES journeys(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_formations_journey ON journey_formations(journey_id);
+CREATE INDEX idx_formations_type ON journey_formations(insight_type);
+CREATE INDEX idx_formations_formed ON journey_formations(formed_at DESC);
 ```
 
 ##### knowledge_scopes
 Organizational boundaries for documents:
 ```sql
 CREATE TABLE knowledge_scopes (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY, -- UUIDv7 generated by application
     name VARCHAR(255) NOT NULL,
     description TEXT,
     type VARCHAR(50) NOT NULL,
@@ -421,7 +645,7 @@ CREATE INDEX idx_scopes_type ON knowledge_scopes(type);
 Metadata for available processes:
 ```sql
 CREATE TABLE process_definitions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY, -- UUIDv7 generated by application
     process_type VARCHAR(255) UNIQUE NOT NULL,
     name VARCHAR(255) NOT NULL,
     description TEXT,
@@ -440,7 +664,7 @@ CREATE TABLE process_definitions (
 Tracks process runs:
 ```sql
 CREATE TABLE process_executions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY, -- UUIDv7 generated by application
     journey_id UUID NOT NULL,
     process_type VARCHAR(255) NOT NULL,
     state VARCHAR(50) NOT NULL DEFAULT 'Pending',
@@ -463,7 +687,7 @@ CREATE INDEX idx_executions_started ON process_executions(started_at DESC);
 Stores process outputs:
 ```sql
 CREATE TABLE process_results (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY, -- UUIDv7 generated by application
     execution_id UUID UNIQUE NOT NULL,
     process_type VARCHAR(255) NOT NULL,
     data JSONB NOT NULL,
@@ -582,7 +806,7 @@ erDiagram
 Educational assignments for Guided Composition:
 ```sql
 CREATE TABLE assignments (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY, -- UUIDv7 generated by application
     title VARCHAR(500) NOT NULL,
     prompt TEXT NOT NULL,
     source_material TEXT,
@@ -603,7 +827,7 @@ CREATE INDEX idx_assignments_active ON assignments(is_active);
 Responses to assignments:
 ```sql
 CREATE TABLE student_submissions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY, -- UUIDv7 generated by application
     assignment_id UUID NOT NULL,
     student_id UUID NOT NULL,
     response TEXT NOT NULL,
@@ -622,7 +846,7 @@ CREATE INDEX idx_submissions_student ON student_submissions(student_id);
 Grading results with override capability:
 ```sql
 CREATE TABLE evaluation_results (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY, -- UUIDv7 generated by application
     submission_id UUID UNIQUE NOT NULL,
     score DECIMAL(5,2) NOT NULL,
     max_score DECIMAL(5,2) NOT NULL,
@@ -700,24 +924,26 @@ Trade-offs accepted:
 
 ### Vector Search Indexes
 ```sql
--- HNSW index for approximate nearest neighbor search
-CREATE INDEX idx_embeddings ON processed_contents USING hnsw (embedding vector_cosine_ops)
-WITH (m = 16, ef_construction = 64);
+-- HNSW indexes are created per dimension table (see search_vectors_* tables above)
+-- Each index uses optimal parameters for vector similarity search
+-- Parameters: m = 16 (connections per node), ef_construction = 64 (build quality)
 
--- Ensure proper statistics for query planning
-ALTER TABLE processed_contents SET (autovacuum_vacuum_scale_factor = 0.02);
+-- Ensure proper statistics for query planning on vector tables
+ALTER TABLE search_vectors_1536 SET (autovacuum_vacuum_scale_factor = 0.02);
+ALTER TABLE search_vectors_768 SET (autovacuum_vacuum_scale_factor = 0.02);
+ALTER TABLE search_vectors_384 SET (autovacuum_vacuum_scale_factor = 0.02);
 ```
 
 ### Full-Text Search
 ```sql
--- Full-text search on document content
-ALTER TABLE processed_contents ADD COLUMN content_tsv tsvector;
-UPDATE processed_contents SET content_tsv = to_tsvector('english', content);
-CREATE INDEX idx_content_fts ON processed_contents USING GIN(content_tsv);
+-- Full-text search on journey-specific segments
+ALTER TABLE journey_document_segments ADD COLUMN content_tsv tsvector;
+UPDATE journey_document_segments SET content_tsv = to_tsvector('english', segment_content);
+CREATE INDEX idx_segment_fts ON journey_document_segments USING GIN(content_tsv);
 
 -- Trigger to maintain tsvector
-CREATE TRIGGER tsvector_update BEFORE INSERT OR UPDATE ON processed_contents
-FOR EACH ROW EXECUTE FUNCTION tsvector_update_trigger(content_tsv, 'pg_catalog.english', content);
+CREATE TRIGGER tsvector_update BEFORE INSERT OR UPDATE ON journey_document_segments
+FOR EACH ROW EXECUTE FUNCTION tsvector_update_trigger(content_tsv, 'pg_catalog.english', segment_content);
 ```
 
 ### JSONB Indexes
@@ -745,7 +971,8 @@ When a journey is deleted:
 
 ### Document Deletion Cascades
 When a document is deleted:
-- **CASCADE**: document_metadata, processed_contents → Remove all derived data
+- **CASCADE**: document_metadata, journey_document_segments → Remove all projections
+- **CASCADE**: All downstream search_indexes, search_vectors_*, assessments
 - **SET NULL**: References from scopes → Documents can exist without scopes
 
 ### Scope Deletion Cascades
