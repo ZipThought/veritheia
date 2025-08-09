@@ -4,6 +4,58 @@
 
 This document specifies the testing methodology for Veritheia. Tests verify technical implementation, architectural boundaries, and adherence to formation principles. The strategy implements four test levels with specific coverage targets and verification patterns.
 
+## Test Infrastructure (Phase 3 Decision)
+
+### Database Testing Approach: PostgreSQL with Respawn
+
+All tests use real PostgreSQL 17 with pgvector, using Respawn for fast isolation:
+
+```csharp
+public class DatabaseFixture : IAsyncLifetime
+{
+    private PostgreSqlContainer _container;
+    private Respawner _respawner;
+    
+    public async Task InitializeAsync()
+    {
+        // Single container for all tests
+        _container = new PostgreSqlBuilder()
+            .WithImage("pgvector/pgvector:pg17")
+            .Build();
+        await _container.StartAsync();
+        
+        // Respawn for fast data reset (~50ms)
+        _respawner = await Respawner.CreateAsync(connection, new RespawnerOptions
+        {
+            TablesToIgnore = new[] { "__EFMigrationsHistory" }
+        });
+    }
+    
+    public async Task ResetAsync()
+    {
+        // Fast reset between tests - data only, not schema
+        await _respawner.ResetAsync(connection);
+    }
+}
+```
+
+**Rationale**:
+- Journey projections require real PostgreSQL (vectors, JSONB, ranges)
+- Respawn provides fast isolation without container overhead
+- Can test transactions and raw SQL operations
+- No false positives from in-memory database differences
+
+### Test Organization
+
+```
+veritheia.Tests/
+├── TestBase/              # Shared infrastructure
+├── Phase1_Database/       # Schema and basic CRUD
+├── Phase2_DomainModels/   # Value objects and enums
+├── Phase3_Repositories/   # Repository patterns
+└── Integration/           # Full stack tests
+```
+
 ## Testing Philosophy
 
 ### Core Principles

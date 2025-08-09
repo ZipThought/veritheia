@@ -2,6 +2,13 @@
 
 This document tracks implementation progress using PDCA cycles. Each phase has clear checkpoints that survive context switches.
 
+## ⚠️ CRITICAL: Phases 1 & 2 Need Basic Testing Before Phase 3
+
+**Discovery from Phase 3 investigation**: We conflated "basic data access" with "Repository Pattern", leaving Phases 1 & 2 untested. Before proceeding to Phase 3's domain repositories, we need:
+- **Phase 1**: Basic CRUD to verify database accepts data
+- **Phase 2**: Simple tests that enums and value objects work
+- This is NOT the full Repository Pattern (Phase 3) - just basic verification
+
 ## Important: These 12 Phases Build the MVP
 
 All 12 phases below work together to deliver the MVP specified in [MVP-SPECIFICATION.md](../docs/MVP-SPECIFICATION.md). The MVP is the complete product with two reference processes (Systematic Screening and Constrained Composition). These phases are the implementation steps to build that product:
@@ -109,9 +116,9 @@ Following [DEVELOPMENT-WORKFLOW.md](./DEVELOPMENT-WORKFLOW.md), each phase embod
 
 | Phase | Name | Status | Documentation | Progress |
 |-------|------|--------|----------|---------------|
-| 1 | Database Infrastructure | **Completed** | [ENTITY-RELATIONSHIP.md](../docs/ENTITY-RELATIONSHIP.md), [Phase 1 Journey](./phases/phase-01-database/JOURNEY.md) | ✅ Schema, migration, indexes |
-| 2 | Core Domain Models | **Completed** | [CLASS-MODEL.md](../docs/CLASS-MODEL.md), [Phase 2 Journey](./phases/phase-02-domain-models/JOURNEY.md) | ✅ Enums, value objects |
-| 3 | Repository Pattern | Not Started | [DESIGN-PATTERNS.md#2-repository-pattern](../docs/DESIGN-PATTERNS.md#2-repository-pattern) | 0% |
+| 1 | Database Infrastructure | **Needs Testing** | [ENTITY-RELATIONSHIP.md](../docs/ENTITY-RELATIONSHIP.md), [Phase 1 Journey](./phases/phase-01-database/JOURNEY.md) | ⚠️ Schema done, needs basic testing |
+| 2 | Core Domain Models | **Needs Testing** | [CLASS-MODEL.md](../docs/CLASS-MODEL.md), [Phase 2 Journey](./phases/phase-02-domain-models/JOURNEY.md) | ⚠️ Types done, needs verification |
+| 3 | Repository Pattern | Investigation | [DESIGN-PATTERNS.md#2-repository-pattern](../docs/DESIGN-PATTERNS.md#2-repository-pattern) | Journey prepared |
 | 4 | Knowledge Database APIs | Not Started | [API-CONTRACTS.md](../docs/API-CONTRACTS.md) | 0% |
 | 5 | Process Engine Infrastructure | Not Started | [ARCHITECTURE.md#22-process-engine](../docs/ARCHITECTURE.md#22-process-engine) | 0% |
 | 6 | Platform Services | Not Started | [MVP-SPECIFICATION.md#22-platform-services](../docs/MVP-SPECIFICATION.md#22-platform-services) | 0% |
@@ -127,11 +134,19 @@ Following [DEVELOPMENT-WORKFLOW.md](./DEVELOPMENT-WORKFLOW.md), each phase embod
 ## Implementation Phases
 
 ### Phase 1: Database Infrastructure
-**Status**: Completed
+**Status**: Needs Testing ⚠️
 **Started**: 2025-08-09
-**Completed**: 2025-08-09
+**Completed**: Structure done, testing needed
 **Journey**: [Phase 1 Journey Investigation](./phases/phase-01-database/JOURNEY.md)
 **Docs**: [ENTITY-RELATIONSHIP.md](../docs/ENTITY-RELATIONSHIP.md), [IMPLEMENTATION.md#data-architecture](../docs/IMPLEMENTATION.md#data-architecture)
+
+#### WHAT REMAINS TO TRULY COMPLETE PHASE 1
+- [ ] Create BasicDataAccess class with simple CRUD methods
+- [ ] Test inserting a User entity
+- [ ] Test inserting a Journey with relationships
+- [ ] Test inserting JourneyDocumentSegments
+- [ ] Verify vector storage works (SearchVector1536)
+- [ ] Confirm relationships load properly
 
 #### PLAN (Documentation Review)
 - [x] Review journey investigation for UUIDv7 decision
@@ -176,16 +191,31 @@ Following [DEVELOPMENT-WORKFLOW.md](./DEVELOPMENT-WORKFLOW.md), each phase embod
 - **Dependency**: Phase 3 (Repository Pattern) needed to test data access
 - **Note**: DesignTimeDbContextFactory has hardcoded connection for migrations only
 - **Note**: Runtime connection provided by .NET Aspire orchestration
-- **Note**: Data insertion/query testing deferred to Phase 3 when repositories exist - this is the correct separation of concerns
+
+#### IMPORTANT CLARIFICATION: Repository Layers
+- **What Phase 1 needed**: Basic data access layer for testing (simple CRUD)
+- **What Phase 3 delivers**: Domain repository pattern (journey-aware boundaries)
+- **Key insight**: "Repository" has multiple abstraction layers:
+  - Layer 1: Basic data access (could test DB works)
+  - Layer 2: Domain repositories (business rules)
+  - Layer 3: Application services (orchestration)
+- **For future context**: Phase 1 deferred testing because we conflated basic data access with full Repository Pattern
 
 ---
 
 ### Phase 2: Core Domain Models
-**Status**: Completed
+**Status**: Needs Testing ⚠️
 **Started**: 2025-08-09
-**Completed**: 2025-08-09
+**Completed**: Structure done, testing needed
 **Journey**: [Phase 2 Journey Investigation](./phases/phase-02-domain-models/JOURNEY.md)
 **Docs**: [CLASS-MODEL.md](../docs/CLASS-MODEL.md), [ENTITY-RELATIONSHIP.md](../docs/ENTITY-RELATIONSHIP.md)
+
+#### WHAT REMAINS TO TRULY COMPLETE PHASE 2
+- [ ] Verify enums serialize correctly to database strings
+- [ ] Test value objects can be created and used
+- [ ] Confirm ProcessContext can carry journey information
+- [ ] Validate InputDefinition fluent API works
+- [ ] Ensure Core<->Data project references work properly
 
 #### PLAN (Documentation Review)
 - [x] Review CLASS-MODEL.md for domain requirements
@@ -218,9 +248,10 @@ Following [DEVELOPMENT-WORKFLOW.md](./DEVELOPMENT-WORKFLOW.md), each phase embod
 ---
 
 ### Phase 3: Repository Pattern
-**Status**: Not Started
-**Started**: -
+**Status**: Investigation
+**Started**: 2025-08-09
 **Completed**: -
+**Journey**: [Phase 3 Journey Investigation](./phases/phase-03-repository-pattern/JOURNEY.md)
 **Docs**: [DESIGN-PATTERNS.md#2-repository-pattern](../docs/DESIGN-PATTERNS.md#2-repository-pattern)
 
 #### PLAN
