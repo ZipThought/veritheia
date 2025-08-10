@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Veritheia.Data.Entities;
 using Veritheia.Data.Services;
+using veritheia.Tests.TestBase;
 using Xunit;
 
 namespace Veritheia.Tests.Phase7_UserJourneySystem;
@@ -14,10 +15,13 @@ namespace Veritheia.Tests.Phase7_UserJourneySystem;
 /// Tests for Phase 7 User & Journey System
 /// Validates user management, journey lifecycle, personas, and journaling
 /// </summary>
-[Collection("Database")]
+[Collection("DatabaseTests")]
 [Trait("Category", "Integration")]
 public class UserJourneySystemTests : DatabaseTestBase
 {
+    public UserJourneySystemTests(DatabaseFixture fixture) : base(fixture)
+    {
+    }
     [Fact]
     public async Task UserService_CreatesDefaultUser()
     {

@@ -10,6 +10,7 @@ using Veritheia.Data;
 using Veritheia.Data.Entities;
 using Veritheia.Data.Processes;
 using Veritheia.Data.Services;
+using veritheia.Tests.TestBase;
 using Xunit;
 
 namespace Veritheia.Tests.Phase5_ProcessEngine;
@@ -18,14 +19,14 @@ namespace Veritheia.Tests.Phase5_ProcessEngine;
 /// Tests for Phase 5 Process Engine Infrastructure
 /// Validates process registration, discovery, and execution
 /// </summary>
-[Collection("Database")]
+[Collection("DatabaseTests")]
 [Trait("Category", "Integration")]
 public class ProcessEngineTests : DatabaseTestBase
 {
     private readonly ProcessEngine _processEngine;
     private readonly IServiceProvider _serviceProvider;
     
-    public ProcessEngineTests()
+    public ProcessEngineTests(DatabaseFixture fixture) : base(fixture)
     {
         var services = new ServiceCollection();
         services.AddSingleton(Context);

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Veritheia.Data;
 using Veritheia.Data.Entities;
+using veritheia.Tests.TestBase;
 using Xunit;
 
 namespace Veritheia.Tests.Phase4_APIs;
@@ -16,14 +17,14 @@ namespace Veritheia.Tests.Phase4_APIs;
 /// Integration tests for Phase 4 Knowledge Database APIs
 /// Validates that API endpoints actually work end-to-end
 /// </summary>
-[Collection("Database")]
+[Collection("DatabaseTests")]
 [Trait("Category", "Integration")]
 public class ApiIntegrationTests : DatabaseTestBase
 {
     private readonly WebApplicationFactory<Program> _factory;
     private readonly HttpClient _client;
     
-    public ApiIntegrationTests()
+    public ApiIntegrationTests(DatabaseFixture fixture) : base(fixture)
     {
         _factory = new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
@@ -254,10 +255,10 @@ public class ApiIntegrationTests : DatabaseTestBase
         await Context.SaveChangesAsync();
     }
     
-    public override void Dispose()
+    public override async Task DisposeAsync()
     {
         _client?.Dispose();
         _factory?.Dispose();
-        base.Dispose();
+        await base.DisposeAsync();
     }
 }
