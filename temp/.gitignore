@@ -1,0 +1,6 @@
+# Ignore everything in temp folder
+*
+# Except this .gitignore file
+!.gitignore
+# And the README explaining the purpose
+!README.md

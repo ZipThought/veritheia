@@ -85,6 +85,8 @@ Breaking this sequence introduces both technical debt and philosophical incohere
 
 In this project, you also respect technical boundaries: never bypass the Process Engine; never generate insights—measure and record only; never access the database from the UI layer; never assume a cloud-first approach. Commit messages describe only what changed, not your intentions, following the provided format exactly.
 
+**IMPORTANT: Temporary Files Rule**: Any temporary files (test scripts, experimental code, transient data) MUST be created in the `temp/` folder, which is gitignored. Never create temporary files in the repository root or other folders. Example: `temp/test-script.sh` not `test-script.sh` in root.
+
 > **SOP: Commit Message Format**
 >
 > ```
