@@ -32,19 +32,36 @@ Veritheia is an epistemic infrastructure that enables users to author understand
 
 The Knowledge Database provides persistent storage for source documents and derived representations. It maintains three data layers: Raw Corpus (original documents), Processed Representation (embeddings, metadata, relationships), and Knowledge Layer (semantic query API). The database preserves provenance and versioning for all transformations.
 
-### 2.2 Process Engine
+### 2.2 Process Engine: Neurosymbolic Orchestration
 
-The Process Engine executes analytical workflows through the IAnalyticalProcess interface. Each process maintains journey context, including user research questions, conceptual vocabulary, and formation markers. The engine provides platform services (document ingestion, embedding generation, metadata extraction) while ensuring process outputs reflect user interpretation rather than automated analysis.
+The Process Engine implements **neurosymbolic architecture, transcended** by mechanically orchestrating the systematic application of user-authored symbolic frameworks through neural semantic understanding.
 
-The Process Engine operates through **projection spaces**—journey-specific intellectual environments where documents are transformed according to user-defined frameworks. When a document enters a journey, the engine:
+**As Demonstrated in Foundational Research:**
+- **[LLAssist](./papers/2407.13993v3.pdf)** processed datasets of 17, 37, 115, and 2,576 articles with identical methodology - demonstrating mechanical orchestration that scales without bias
+- **[EdgePrompt](./papers/3701716.3717810.pdf)** applied the same evaluation framework to ALL student responses regardless of quality - showing systematic fairness through mechanical processing
+- **[Contextualized AI](./papers/2409.13524v1.pdf)** Method B used consistent multi-stage processing across large document sets - exemplifying systematic application of user-defined frameworks
 
-1. **Applies the Journey Framework**: Research questions, conceptual vocabulary, and assessment criteria shape how the document is understood
-2. **Creates Journey-Specific Segments**: The same document is segmented differently based on each journey's rules (by methodology sections for systematic review, by learning objectives for education)
-3. **Generates Contextual Embeddings**: Vectors are created with the journey's vocabulary and questions as context, not generic processing
-4. **Performs Targeted Assessment**: Relevance and contribution are measured against the specific journey's criteria
-5. **Accumulates Formation**: Insights emerge from patterns visible only in this projection space
+The Process Engine operates through **projection spaces**—journey-specific intellectual environments where documents are transformed according to user-authored frameworks that become dynamic symbolic systems. The Process Engine mechanically ensures that:
 
-This projection mechanism enables scale—thousands of documents become tractable when viewed through the precise lens of a user's inquiry—while preserving intellectual sovereignty. The same document can simultaneously exist in multiple projection spaces, revealing different truths to different journeys.
+1. **ALL Documents Receive Identical Treatment**: Whether processing 200 papers or 3000 papers, every single document gets the same systematic processing through the user's framework
+2. **No Selective Processing**: The engine mechanically processes every document without LLM judgment about which documents are "worth" processing
+3. **Complete Coverage Guarantee**: The mechanical orchestration ensures no document is skipped or treated differently
+4. **Framework Consistency**: The same user-authored symbolic framework gets applied to every document systematically
+
+**Within each document processing step, the neurosymbolic transcendence occurs:**
+
+*   **User-Authored Symbolic Framework**: The user's natural language framework becomes their personal symbolic system
+*   **Neural Semantic Understanding**: The LLM comprehends the user's authored symbolic framework and applies that understanding to each document
+*   **Mechanical Application**: The Process Engine mechanically ensures this neural understanding of the symbolic framework gets applied to ALL documents
+
+**The Projection Process:**
+1. **Mechanical Document Iteration**: Process Engine systematically takes each document in the corpus
+2. **Neural Framework Comprehension**: LLM semantically understands the user's authored framework for this specific document
+3. **Symbolic Application**: The user's framework (as symbolic system) gets applied through neural semantic understanding
+4. **Mechanical Storage**: Results are systematically stored for user engagement
+5. **Formation Enablement**: User develops understanding through engagement with systematically processed documents
+
+This projection mechanism enables scale—thousands of documents become tractable through mechanical systematic processing guided by neural understanding of user-authored symbolic frameworks—while preserving intellectual sovereignty through complete, fair, and consistent treatment of ALL documents.
 
 ### 2.3 Presentation Tier
 
@@ -84,11 +101,20 @@ The Web API serves a different constituency: headless automation, third-party in
 
 This dual-interface architecture reflects a fundamental recognition: different consumers require different interaction models. Power users engaged in complex intellectual work benefit from Blazor's rich, stateful interaction. Automated systems and lightweight consumers need the simplicity and standardization of REST APIs. By providing both, the system avoids forcing either constituency into an inappropriate interaction pattern. The same service layer supports both interfaces, ensuring consistency while allowing each to optimize for its specific use case.
 
-#### 3. Scalability Through Formation
+#### 3. Scalability Through Neurosymbolic Transcendence
 
-The system's scalability model derives from its telos: formation of understanding rather than production of knowledge. Traditional knowledge management systems pursue mechanical scalability—processing millions of documents, serving billions of queries, generating endless summaries. They become factories where scale means volume. Veritheia scales differently: as an individualized formative tool where scale means depth of engagement per user rather than breadth of users served.
+The system's scalability model derives from its neurosymbolic transcended architecture: mechanical orchestration of user-authored symbolic frameworks through neural semantic understanding enables unprecedented scale while maintaining formation through authorship.
 
-Consider what actually scales in this architecture. Each user's journey creates a bounded projection space containing only the documents relevant to their inquiry. A researcher examining 3,000 papers doesn't burden the system with 3,000 global documents but creates a focused lens through which those documents gain meaning. Ten thousand users each with their own 3,000-document corpus don't create a system managing 30 million documents but rather 10,000 individual formation spaces, each internally coherent and bounded. The computational complexity scales linearly with active journeys, not exponentially with total content.
+**Demonstrated Scalability in Foundational Research:**
+- **[LLAssist](./papers/2407.13993v3.pdf)** scaled from 17 articles to 2,576 articles using identical methodology - the mechanical orchestration handled 150x volume increase without degradation
+- **[EdgePrompt](./papers/3701716.3717810.pdf)** processed ALL student responses (whether 10 or 100) with identical evaluation framework - demonstrating mechanical fairness that scales
+- **[Contextualized AI](./papers/2409.13524v1.pdf)** Method B processed large datasets through multi-stage consistent frameworks - showing systematic processing scales across volume
+
+**Neurosymbolic Scalability Model:**
+
+The mechanical orchestration component scales deterministically - whether processing 100 or 10,000 documents, the same systematic steps are applied to each document. The neural semantic understanding component applies the user's authored symbolic framework consistently at any scale. This creates **linear computational complexity** where doubling the documents doubles the processing time, but maintains identical quality and completeness.
+
+**Formation-Centric Scalability:** Each user's journey creates a bounded projection space containing only the documents relevant to their inquiry. A researcher examining 3,000 papers doesn't burden the system with 3,000 global documents but creates a focused lens through which those documents gain meaning through their authored framework. Ten thousand users each with their own 3,000-document corpus don't create a system managing 30 million documents but rather 10,000 individual formation spaces, each internally coherent and bounded by user-authored symbolic systems.
 
 The stateful Blazor connections that would seem unscalable for consumer internet become entirely appropriate for this model. A user engaged in deep intellectual work maintains a session for hours or days, not seconds. The server resources dedicated to maintaining their state pale compared to the intellectual value being created. This is not a system where millions browse casually but where thousands engage seriously. The "scalability problem" of maintaining state per user becomes the scalability solution of maintaining context per journey.
 
@@ -110,27 +136,23 @@ Yet the same architecture that prevents surveillance enables rich sharing when u
 
 Note: Not all capabilities described in this architecture—particularly cross-user sharing, federation, and multi-node partitioning—will be available in the MVP or even the first release. However, the system is designed from the foundation to support these capabilities without architectural revision. The database schema, partition strategy, and identity model are structured to enable these features when needed. Building with the end in mind ensures that early implementation decisions don't preclude future capabilities. The MVP focuses on single-user formation within a monolithic deployment, but every design choice preserves the path to collaborative, distributed operation.
 
-#### 3. Cognitive System Integration: Assessment Engine
+#### 3. Neurosymbolic Architecture: Transcended Integration
 
-The Process Engine interacts with the Cognitive System as an assessment engine operating within journey projection spaces.
+Veritheia implements a neurosymbolic architecture that transcends traditional approaches by transforming user-authored natural language frameworks into dynamic symbolic systems. This transcendence manifests through the mechanical orchestration of neural semantic understanding applied to user-defined intellectual structures.
 
-*   **Function:** The cognitive adapter performs structured assessments using journey-specific prompts and criteria, not generic processing.
+The architecture draws directly from foundational research that demonstrates this transcendent integration in practice. EdgePrompt (Syah et al., 2025) establishes the neurosymbolic pattern where teacher-authored rubrics and safety constraints function as the symbolic system, while large language models provide neural comprehension, with mechanical orchestration guaranteeing identical treatment across all student responses regardless of volume or quality variation. LLAssist (Haryanto, 2024) exemplifies this architecture through systematic processing that scales from 17 to 2,576 academic papers while maintaining identical evaluation methodology, demonstrating how researcher-authored questions and definitions create personalized symbolic frameworks that neural systems can comprehend and apply consistently. The Cognitive Silicon framework (Haryanto & Lomempow, 2025) provides the philosophical foundation by establishing formation through authorship as the core principle, where users create their intellectual frameworks as living symbolic systems and develop understanding through engagement with systematically processed results.
 
-*   **Journey-Specific Assessment:** 
-    *   Each journey defines its own assessment prompts containing research questions and definitions
-    *   The AI evaluates segments against these specific prompts, not universal relevance
-    *   Different journeys assess the same document completely differently
-    *   Assessment reasoning is preserved for user review and understanding
+The transcendent neurosymbolic design integrates three essential components that operate in coordination rather than isolation. The neural component, implemented through large language models, provides semantic understanding of user-authored natural language frameworks, interpreting complex intellectual stances expressed in natural discourse rather than formal notation. The symbolic component emerges from the user's intellectual framework itself, which becomes the symbolic system governing processing—not predetermined rules encoded by system designers, but authored intellectual stances that reflect individual theoretical orientations, research methodologies, and assessment criteria. The mechanical orchestration, implemented through the Process Engine, ensures systematic application of the symbolic framework derived from neural understanding to every document in the corpus without exception, maintaining consistency and fairness through deterministic processing rather than selective judgment.
 
-*   **Key Principle:** AI performs measurements within the user's projection space. In Systematic Screening, AI measures relevance to the user's specific research questions using their definitions, but researchers interpret these measurements to decide which papers are core, contextual, or peripheral.
+The user-authored symbolic systems distinguish this architecture from traditional neurosymbolic approaches that rely on hardcoded symbolic rules. Users express their intellectual frameworks through natural language discourse that reflects their authentic scholarly voice: research questions articulated as the researcher would naturally phrase them within their disciplinary context, definitions that embody the user's theoretical perspective and specialized vocabulary, assessment criteria that express their scholarly expectations and methodological standards, and comprehensive approaches described in their own intellectual idiom rather than formalized notation.
 
-*   **Formation Through Assessment:**
-    *   Each assessment contributes to the user's understanding of their domain
-    *   Patterns emerge from assessments across many documents
-    *   The reasoning traces help users understand why documents matter
-    *   Formation accumulates as insights crystallize from these patterns
+Neural semantic understanding operates through large language models that provide comprehensive interpretation of these user-authored frameworks. The neural component comprehends research intent holistically rather than parsing discrete components, applying semantic understanding that encompasses the user's definitions, criteria, and methodological stance as an integrated intellectual position. Each document receives processing through the lens of the user's complete expressed intellectual stance, creating symbolic processing systems that are entirely unique to each user's authored framework and producing fundamentally different analytical outcomes even when applied to identical source materials.
 
-The cognitive system operates as an instrument calibrated by the journey's framework, measuring within the user's intellectual space rather than imposing external judgments.
+Mechanical systematic application ensures absolute consistency through deterministic orchestration. The Process Engine mechanically guarantees that every document receives identical treatment regardless of scale—whether processing responses from 10 students or 100 students, analyzing 200 academic papers or 3,000 papers, every item in the corpus undergoes the same systematic processing through the user's framework. No neural judgment determines processing priority or scope; mechanical orchestration ensures complete coverage without selective attention or qualitative filtering. The user's authored framework functions as the governing symbolic system that gets systematically applied without exception, creating consistency and fairness through deterministic application rather than artificial intelligence discretion.
+
+This architecture enables transcendent formation by synthesizing user authorship with systematic processing. Users create their own symbolic systems through natural language frameworks that express their unique intellectual positions, while neural understanding provides semantic interpretation that enables systematic application of these authored systems to large document corpora. Mechanical orchestration ensures that this processing occurs without bias, omission, or inconsistency, creating conditions where formation emerges from authentic engagement with documents that have been systematically processed through the user's own authored intellectual framework.
+
+This transcends traditional neurosymbolic approaches by making the symbolic component user-authored and dynamically created for each journey, while maintaining mechanical systematic application through neural semantic understanding.
 
 ### IV. Data Model: Journey Projection Spaces
 
@@ -140,14 +162,14 @@ The data model implements a fundamental principle: **documents don't have inhere
 
 *   **Raw Corpus:** This layer represents the ground truth. It consists of the original, unmodified source artifacts (e.g., PDF, text files, images) provided by the user. Documents exist here without interpretation.
 
-*   **Journey Projection Spaces:** Each journey creates a unique projection space where documents are transformed:
-    *   **Segmentation**: Documents are divided according to the journey's framework (abstracts for literature review, paragraphs for close reading, sections for technical analysis)
-    *   **Embedding Context**: Vectors are generated with the journey's research questions and vocabulary as context
-    *   **Assessment Criteria**: Relevance and contribution are measured against journey-specific questions
-    *   **Formation Accumulation**: Insights that emerge from this specific view of the corpus
-    *   **Cross-Journey Bridges**: Mappings between different journeys' projections of the same phenomena
+*   **Journey Projection Spaces:** Each journey creates a unique projection space where documents are transformed according to the user's natural language framework:
+    *   **Semantic Segmentation**: Documents are divided according to what the LLM understands from the user's natural language description of their approach
+    *   **Contextualized Embedding**: Vectors are generated with the LLM's semantic understanding of the user's framework as context
+    *   **Framework-Based Assessment**: Relevance and contribution are measured through the LLM's comprehension of the user's expressed criteria
+    *   **Formation Accumulation**: Insights that emerge from engagement with documents projected through the user's authored framework
+    *   **Cross-Journey Bridges**: Different users' natural language frameworks may reveal shared concepts through different semantic projections
     
-    The same document exists differently in each journey's projection space. A paper on "neural networks" might be segmented by algorithms in a CS journey, by cognitive models in a psychology journey, and by philosophical implications in an ethics journey.
+    The same document exists differently in each journey's projection space because each user's natural language framework creates a unique semantic lens. A paper on "neural networks" is processed completely differently when one user writes "I'm investigating algorithmic robustness in deep learning architectures" versus another who writes "I'm exploring how artificial networks might model human cognitive processes."
 
 *   **Knowledge Layer:** This is the queryable, semantic API exposed by the Knowledge Database to the Process Engine. It provides journey-scoped access to projections, enabling search and discovery within the user's intellectual space rather than generic retrieval.
 
@@ -171,11 +193,11 @@ The Process Engine executes two distinct categories of processes through a unifi
     
     These services never generate insights—they prepare materials for analysis. They are triggered by user actions and serve the inquiry.
 
-*   **Reference Processes:** The platform includes two fully-implemented processes that demonstrate the architecture:
-    *   **SystematicScreeningProcess:** Analytical pattern for literature review with dual relevance/contribution assessment
-    *   **GuidedCompositionProcess:** Compositional pattern for structured content creation with constraints and evaluation
+*   **Reference Processes:** The platform includes two fully-implemented processes that directly embody the foundational research:
+    *   **SystematicScreeningProcess:** Direct implementation of **[LLAssist](./papers/2407.13993v3.pdf)** methodology - dual relevance/contribution assessment with user-authored research questions and definitions
+    *   **ConstrainedCompositionProcess:** Direct implementation of **[EdgePrompt](./papers/3701716.3717810.pdf)** methodology - structured content creation with teacher-authored rubrics and safety constraints
     
-    These reference implementations show how processes orchestrate intellectual work through the platform services.
+    These reference implementations demonstrate how **[Cognitive Silicon](./papers/2504.16622v1.pdf)** principles of formation through authorship are realized through systematic processing orchestrated by the platform services.
 
 *   **Process Categories:** Extensions typically fall into these patterns:
     *   **Methodological Processes:** Guide structured inquiry through established methodologies

@@ -1,12 +1,17 @@
-# Class Model
+# Class Model: Neurosymbolic Transcended Architecture
 
-This document defines the core domain classes and their relationships within Veritheia. The model implements **journey-specific projection spaces** where documents are transformed according to user-defined intellectual frameworks. The architecture clearly separates the core platform (required for all deployments) from process-specific extensions (which demonstrate extensibility patterns).
+This document defines the domain classes that enable Veritheia's neurosymbolic transcended architecture through user-partitioned journey projection spaces. The model implements **formation through authorship** where user-authored natural language frameworks become dynamic symbolic systems that are mechanically applied through neural semantic understanding.
 
-## Important Architecture Note
+## Neurosymbolic Architecture Foundation
 
-**Entities serve as domain models**: In this MVP architecture, the entity classes in `veritheia.Data/Entities` ARE the domain models. There is no separate domain model layer. Business logic resides in services (Phase 6), not in the models themselves. This is an intentional simplification appropriate for the MVP.
+**User Partition Sovereignty**: All user-owned entities use composite primary keys `(UserId, Id)` to enforce intellectual sovereignty at the database level. Users cannot accidentally access or modify each other's intellectual work because the schema prevents cross-partition queries.
 
-**Journey Projections Replace Universal Processing**: Documents don't have universal chunks or embeddings. Instead, each journey projects documents into its own intellectual space through `JourneyDocumentSegment`. The older `ProcessedContent` concept has been replaced by this journey-specific architecture.
+**Journey Projection Spaces**: Documents are never processed generically. Instead, each user's journey creates a unique projection space where the same documents are transformed according to their authored intellectual framework. This enables the neurosymbolic transcendence where:
+- **User's Natural Language Framework**: Becomes their personal symbolic system stored as JSONB
+- **Neural Semantic Understanding**: LLM comprehends the user's framework and applies it systematically
+- **Mechanical Orchestration**: Process Engine ensures ALL documents receive identical treatment
+
+**Entities as Domain Truth**: The entity classes in `veritheia.Data/Entities` ARE the domain models. Intelligence lives in LLMs and Process Engine, not in domain objects. PostgreSQL constraints enforce all domain rules. We explicitly reject DDD praxis while embracing its ontology of precise domain modeling.
 
 ## Overview Diagram
 
@@ -48,16 +53,22 @@ These classes form the foundation that all processes depend on. They cannot be m
 
 ```mermaid
 classDiagram
-    %% Base Classes
+    %% Base Classes - User Partition Foundation
     class BaseEntity {
         <<abstract>>
         +Guid Id
         +DateTime CreatedAt
         +DateTime? UpdatedAt
     }
+    
+    class IUserOwned {
+        <<interface>>
+        +Guid UserId "Partition key for sovereignty"
+    }
 
     %% User and Journey Domain (Core)
     class User {
+        +Guid Id "Global identity - only table without composite keys"
         +string Email
         +string DisplayName
         +DateTime LastActiveAt
@@ -67,31 +78,37 @@ classDiagram
     }
 
     class Persona {
-        +Guid UserId
+        +Guid UserId "Partition key - intellectual persona ownership"
+        +Guid Id "UUIDv7 identifier within user partition"
         +string Domain
         +bool IsActive
-        +Dictionary~string,int~ ConceptualVocabulary
-        +List~InquiryPattern~ Patterns
-        +List~string~ MethodologicalPreferences
-        +List~FormationMarker~ Markers
+        +Dictionary~string,int~ ConceptualVocabulary "User's symbolic vocabulary"
+        +List~InquiryPattern~ Patterns "Recurring intellectual structures"
+        +List~string~ MethodologicalPreferences "User's natural approaches"
+        +List~FormationMarker~ Markers "Development milestones"
         +DateTime LastEvolved
     }
 
     class Journey {
-        +Guid UserId
-        +Guid PersonaId
-        +string ProcessType
-        +string Purpose
+        +Guid UserId "Partition key - intellectual sovereignty"
+        +Guid Id "UUIDv7 journey identifier within user partition"
+        +Guid PersonaId "Within same user partition"
+        +string ProcessType "Which neurosymbolic process"
+        +string Purpose "User's authored intention for formation"
         +JourneyState State
-        +Dictionary~string,object~ Context
+        +Dictionary~string,object~ Context "Journey-specific parameters"
         +User User
         +Persona Persona
         +ICollection~Journal~ Journals
         +ICollection~ProcessExecution~ Executions
+        +ICollection~JourneyDocumentSegment~ DocumentSegments
+        +ICollection~JourneyFormation~ Formations
     }
 
     class Journal {
-        +Guid JourneyId
+        +Guid UserId "Partition key - narrative ownership"
+        +Guid Id "UUIDv7 journal identifier"
+        +Guid JourneyId "Within same user partition"
         +JournalType Type
         +bool IsShareable
         +Journey Journey
@@ -99,17 +116,20 @@ classDiagram
     }
 
     class JournalEntry {
-        +Guid JournalId
-        +string Content
+        +Guid UserId "Partition key - entry ownership"
+        +Guid Id "UUIDv7 entry identifier"
+        +Guid JournalId "Within same user partition"
+        +string Content "User's authored narrative of formation"
         +EntrySignificance Significance
         +List~string~ Tags
-        +Dictionary~string,object~ Metadata
+        +Dictionary~string,object~ Metadata "Formation markers and context"
         +Journal Journal
     }
 
     class ProcessCapability {
-        +Guid UserId
-        +string ProcessType
+        +Guid UserId "Partition key - capability sovereignty"
+        +Guid Id "UUIDv7 capability identifier"
+        +string ProcessType "Which neurosymbolic process enabled"
         +bool IsEnabled
         +DateTime GrantedAt
         +User User
@@ -117,19 +137,23 @@ classDiagram
 
     %% Knowledge Domain (Core)
     class Document {
+        +Guid UserId "Partition key - document ownership"
+        +Guid Id "UUIDv7 document identifier"
         +string FileName
         +string MimeType
         +string FilePath
         +long FileSize
         +DateTime UploadedAt
-        +Guid? ScopeId
+        +Guid? ScopeId "Within same user partition"
         +KnowledgeScope Scope
         +ICollection~JourneyDocumentSegment~ JourneySegments
         +DocumentMetadata Metadata
     }
 
     class DocumentMetadata {
-        +Guid DocumentId
+        +Guid UserId "Partition key - metadata ownership"
+        +Guid Id "UUIDv7 metadata identifier"
+        +Guid DocumentId "Within same user partition"
         +string Title
         +List~string~ Authors
         +DateTime? PublicationDate
@@ -137,26 +161,30 @@ classDiagram
         +Document Document
     }
 
-    %% Journey Projection Classes (Core)
+    %% Journey Projection Classes - Neurosymbolic Core
     class JourneyFramework {
-        +Guid JourneyId
-        +string JourneyType
-        +Dictionary~string,object~ FrameworkElements
-        +Dictionary~string,object~ ProjectionRules
+        +Guid UserId "Partition key - framework ownership"
+        +Guid Id "UUIDv7 framework identifier"
+        +Guid JourneyId "Within same user partition"
+        +string JourneyType "Type of formative journey"
+        +Dictionary~string,object~ FrameworkElements "User's natural language symbolic system"
+        +Dictionary~string,object~ ProjectionRules "How to apply framework systematically"
         +Journey Journey
     }
 
     class JourneyDocumentSegment {
-        +Guid JourneyId
-        +Guid DocumentId
-        +string SegmentContent
-        +string? SegmentType
-        +string? SegmentPurpose
+        +Guid UserId "Partition key - projection ownership"
+        +Guid Id "UUIDv7 segment identifier"
+        +Guid JourneyId "Within same user partition"
+        +Guid DocumentId "Within same user partition"
+        +string SegmentContent "Content shaped by user's framework"
+        +string? SegmentType "Type determined by projection rules"
+        +string? SegmentPurpose "Why this exists for this user's journey"
         +Dictionary~string,object~? StructuralPath
         +int SequenceIndex
         +NpgsqlRange~int~? ByteRange
-        +string? CreatedByRule
-        +string? CreatedForQuestion
+        +string? CreatedByRule "Which user rule created this"
+        +string? CreatedForQuestion "Which user question drove this"
         +Journey Journey
         +Document Document
         +ICollection~SearchIndex~ SearchIndexes
@@ -610,7 +638,7 @@ Example: GuidedCompositionProcess uses assignments, student_submissions, evaluat
 
 ## Data Access Patterns
 
-> **IMPERATIVE: No Repository Abstractions**: The entities defined above ARE the domain model. Entity Framework Core provides direct projection of database truth into runtime. We explicitly reject repository patterns - DbContext IS the unit of work, DbSet IS the repository. PostgreSQL constraints enforce domain rules, not C# abstractions.
+> **IMPERATIVE: Composite Keys with User Partition Boundaries**: All user-owned entities use composite primary keys `(UserId, Id)` to enforce intellectual sovereignty. Direct DbContext access with partition-aware query extensions ensures users can only access their own data. We explicitly reject repository abstractions - PostgreSQL constraints and composite keys ARE the domain rules.
 
 ### Direct DbContext Access
 

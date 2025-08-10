@@ -1,49 +1,69 @@
 # Entity-Relationship Model
 
-This document defines the database schema that persists Veritheia's domain model. The schema clearly separates core platform tables (required for all deployments) from extension tables (process-specific additions).
+This document defines the database schema that enables Veritheia's neurosymbolic transcended architecture through user-partitioned journey projection spaces. The schema enforces intellectual sovereignty through composite primary keys and partition boundaries while supporting the mechanical orchestration of user-authored symbolic frameworks through neural semantic understanding.
 
-## Database Overview
+## Architectural Foundation: User Partition Sovereignty
 
-Veritheia uses PostgreSQL 16 with the pgvector extension for unified storage of relational data and vector embeddings. The schema is organized into core platform areas and extension areas.
+Veritheia's database schema implements the core principle that **users own their intellectual work through partition boundaries enforced at the database level**. This manifests through:
 
-### Key Infrastructure Decisions
+1. **Composite Primary Keys**: All user-owned entities use `(UserId, Id)` as primary key, ensuring natural partitioning
+2. **Journey Projection Spaces**: Documents are transformed according to each journey's user-authored framework, not processed generically
+3. **Neurosymbolic Storage**: User's natural language frameworks become queryable symbolic systems
+4. **Formation Accumulation**: Insights authored through engagement are preserved as intellectual development
+
+As demonstrated in the foundational research that Veritheia embodies:
+- **[LLAssist](./papers/2407.13993v3.pdf)** processed 2,576 papers through researcher-authored frameworks with identical systematic treatment
+- **[EdgePrompt](./papers/3701716.3717810.pdf)** applied teacher-authored rubrics to ALL student responses with mechanical fairness
+- **[Contextualized AI](./papers/2409.13524v1.pdf)** Method B processed large document sets through consistent user-defined frameworks
+
+### Database Infrastructure Decisions
 
 Based on dialectical investigation documented in [Phase 01 Database Journey](../development/phases/phase-01-database/JOURNEY.md):
 
-1. **Primary Keys**: Application-generated UUIDv7 via `Guid.CreateVersion7()` for temporal ordering
-2. **Vector Indexes**: HNSW for superior query performance over IVFFlat
-3. **Data Access**: Entity Framework Core with `.AsNoTracking()` for reads and `FromSqlRaw()` for vector operations
-4. **Journey-Specific Projections**: Documents are projected into journey-specific intellectual spaces, not processed generically
-5. **Polymorphic Vector Storage**: Separate tables per dimension with metadata in search_indexes
-6. **Formation Tracking**: Accumulated insights from journeys are persisted as formation
-7. **Migrations**: EF Core migrations with embedded raw SQL for PostgreSQL-specific features
+1. **Primary Keys**: Composite `(UserId, Id)` using UUIDv7 via `Guid.CreateVersion7()` for partition enforcement and temporal ordering
+2. **Vector Indexes**: HNSW indexes partitioned by user for journey-specific semantic search
+3. **Data Access**: Entity Framework Core with partition-aware query extensions
+4. **Journey-Specific Projections**: Same document projected differently per journey through user-authored symbolic frameworks
+5. **Neurosymbolic Storage**: Natural language frameworks stored as JSONB with semantic search capabilities
+6. **Formation Tracking**: User-authored insights accumulated through systematic engagement
+7. **Partition Locality**: All indexes begin with `user_id` for optimal partition performance
 
-## Naming Conventions
+## Database Technology: PostgreSQL as Neurosymbolic Foundation
 
-Classes use singular names (User, Document) while database tables use plural (users, documents). This follows standard conventions for each domain.
+Veritheia leverages PostgreSQL 17 with pgvector extension as the unified foundation for both relational data and vector embeddings. This architectural decision enables neurosymbolic transcendence by storing user-authored natural language frameworks alongside the systematic processing results they generate.
+
+### Naming Conventions
+
+Classes use singular names (User, Document) while database tables use plural (users, documents). All user-owned entities implement composite keys `(user_id, id)` to enforce partition boundaries.
 
 ## Core Platform Schema
 
 These tables are required for all Veritheia deployments and cannot be modified by extensions.
 
-### Fundamental Concept: Journey Projection Spaces
+### Neurosymbolic Journey Projection Spaces
 
-Documents in Veritheia don't have universal chunks or embeddings. Instead, each journey creates a **projection space** where documents are transformed according to the journey's intellectual framework:
+The database schema enables neurosymbolic transcended architecture through journey projection spaces where user-authored natural language frameworks become dynamic symbolic systems. Documents don't have universal meaning—meaning emerges through projection into user-specific intellectual spaces.
 
-1. **Journey Framework**: User defines research questions, conceptual vocabulary, and assessment criteria
-2. **Document Projection**: Documents are segmented, embedded, and assessed specifically for that journey
-3. **Formation Accumulation**: Insights emerge from engaging with documents in the projection space
-4. **Cross-Journey Bridges**: Different journeys can reveal shared concepts through different projections
+**The Neurosymbolic Process:**
+1. **User-Authored Symbolic Framework**: User expresses their intellectual framework in natural language (research questions, theoretical orientation, assessment criteria) stored as JSONB
+2. **Neural Semantic Understanding**: LLM comprehends the user's natural language framework and applies semantic understanding to each document
+3. **Mechanical Systematic Application**: Process Engine ensures EVERY document receives identical treatment through the user's framework without exception
+4. **Journey-Specific Projection**: Same document transformed differently per journey based on user's authored symbolic system
+5. **Formation Accumulation**: User develops understanding through engagement with systematically processed documents
 
-This means the same document appears differently in each journey - segmented by different rules, embedded with different context, and assessed by different criteria.
+This transcends traditional neurosymbolic approaches because:
+- **Symbolic Component**: User-authored natural language frameworks (not hardcoded rules)
+- **Neural Component**: Semantic understanding of user's intellectual stance (not mechanical extraction)
+- **Systematic Processing**: Mechanical orchestration ensures fairness and completeness across ALL documents
+- **Formation Outcome**: User authorship through engagement (not AI-generated insights)
 
 ### Core Platform ERD
 
 ```mermaid
 erDiagram
-    %% User and Identity Tables (Core)
+    %% User and Identity Tables (Core) - User Partition Sovereignty
     users {
-        uuid id PK
+        uuid id PK "Global user identity"
         varchar email UK
         varchar display_name
         timestamp last_active_at
@@ -52,54 +72,56 @@ erDiagram
     }
 
     personas {
-        uuid id PK
-        uuid user_id FK
+        uuid user_id PK,FK "Partition key - always first"
+        uuid id PK "UUIDv7 for temporal ordering"
         varchar domain
         boolean is_active
-        jsonb conceptual_vocabulary
-        jsonb patterns
-        jsonb methodological_preferences
-        jsonb markers
+        jsonb conceptual_vocabulary "User's symbolic vocabulary"
+        jsonb patterns "Recurring intellectual structures"
+        jsonb methodological_preferences "User's approaches"
+        jsonb markers "Formation milestones"
         timestamp last_evolved
         timestamp created_at
         timestamp updated_at
     }
 
     process_capabilities {
-        uuid id PK
-        uuid user_id FK
+        uuid user_id PK,FK "Partition key - user sovereignty"
+        uuid id PK "UUIDv7 identifier"
         varchar process_type
         boolean is_enabled
         timestamp granted_at
         timestamp created_at
     }
 
-    %% Journey and Journal Tables (Core)
+    %% Journey and Journal Tables (Core) - Neurosymbolic Projection Spaces
     journeys {
-        uuid id PK
-        uuid user_id FK
-        uuid persona_id FK
-        varchar process_type
-        text purpose
+        uuid user_id PK,FK "Partition key - intellectual sovereignty"
+        uuid id PK "UUIDv7 journey identifier"
+        uuid persona_id FK "Within same user partition"
+        varchar process_type "Which neurosymbolic process"
+        text purpose "User's authored intention"
         varchar state
-        jsonb context
+        jsonb context "Journey-specific parameters"
         timestamp created_at
         timestamp updated_at
     }
 
     journey_frameworks {
-        uuid id PK
-        uuid journey_id FK UK
-        varchar journey_type
-        jsonb framework_elements
-        jsonb projection_rules
+        uuid user_id PK,FK "Partition key - framework ownership"
+        uuid id PK "UUIDv7 framework identifier"
+        uuid journey_id FK UK "Within same user partition"
+        varchar journey_type "Type of formative journey"
+        jsonb framework_elements "User's natural language symbolic system"
+        jsonb projection_rules "How to transform documents systematically"
         timestamp created_at
         timestamp updated_at
     }
 
     journals {
-        uuid id PK
-        uuid journey_id FK
+        uuid user_id PK,FK "Partition key - narrative ownership"
+        uuid id PK "UUIDv7 journal identifier"
+        uuid journey_id FK "Within same user partition"
         varchar type
         boolean is_shareable
         timestamp created_at
@@ -107,128 +129,139 @@ erDiagram
     }
 
     journal_entries {
-        uuid id PK
-        uuid journal_id FK
-        text content
+        uuid user_id PK,FK "Partition key - entry ownership"
+        uuid id PK "UUIDv7 entry identifier"
+        uuid journal_id FK "Within same user partition"
+        text content "User's authored narrative"
         varchar significance
         text[] tags
-        jsonb metadata
+        jsonb metadata "Formation markers"
         timestamp created_at
     }
 
-    %% Knowledge Tables (Core)
+    %% Knowledge Tables (Core) - Raw Corpus with User Ownership
     documents {
-        uuid id PK
+        uuid user_id PK,FK "Partition key - document ownership"
+        uuid id PK "UUIDv7 document identifier"
         varchar file_name
         varchar mime_type
         varchar file_path
         bigint file_size
         timestamp uploaded_at
-        uuid scope_id FK
+        uuid scope_id FK "Within same user partition"
         timestamp created_at
         timestamp updated_at
     }
 
     document_metadata {
-        uuid id PK
-        uuid document_id FK UK
+        uuid user_id PK,FK "Partition key - metadata ownership"
+        uuid id PK "UUIDv7 metadata identifier"
+        uuid document_id FK UK "Within same user partition"
         varchar title
         text[] authors
         date publication_date
-        jsonb extended_metadata
+        jsonb extended_metadata "Extracted document properties"
         timestamp created_at
         timestamp updated_at
     }
 
     journey_document_segments {
-        uuid id PK
-        uuid journey_id FK
-        uuid document_id FK
-        text segment_content
-        varchar segment_type
-        text segment_purpose
-        jsonb structural_path
+        uuid user_id PK,FK "Partition key - projection ownership"
+        uuid id PK "UUIDv7 segment identifier"
+        uuid journey_id FK "Within same user partition"
+        uuid document_id FK "Within same user partition"
+        text segment_content "Content shaped by user's framework"
+        varchar segment_type "Type determined by projection rules"
+        text segment_purpose "Why this exists for this user's journey"
+        jsonb structural_path "Position in original document"
         int sequence_index
         int4range byte_range
-        varchar created_by_rule
-        varchar created_for_question
+        varchar created_by_rule "Which user rule created this"
+        varchar created_for_question "Which user question drove this"
         timestamp created_at
     }
 
     search_indexes {
-        uuid id PK
-        uuid segment_id FK
-        varchar vector_model
-        int vector_dimension
+        uuid user_id PK,FK "Partition key - search ownership"
+        uuid id PK "UUIDv7 index identifier"
+        uuid segment_id FK "Within same user partition"
+        varchar vector_model "Which embedding model used"
+        int vector_dimension "Dimension for polymorphic storage"
         timestamp indexed_at
     }
 
     search_vectors_1536 {
-        uuid index_id PK FK
-        vector embedding
+        uuid user_id PK,FK "Partition key - vector ownership"
+        uuid index_id PK FK "Within same user partition"
+        vector embedding "Journey-contextualized embedding"
     }
 
     search_vectors_768 {
-        uuid index_id PK FK
-        vector embedding
+        uuid user_id PK,FK "Partition key - vector ownership"
+        uuid index_id PK FK "Within same user partition"
+        vector embedding "Journey-contextualized embedding"
     }
 
     journey_segment_assessments {
-        uuid id PK
-        uuid segment_id FK
-        varchar assessment_type
-        int research_question_id
-        float relevance_score
-        float contribution_score
-        jsonb rubric_scores
-        text assessment_reasoning
-        jsonb reasoning_chain
-        varchar assessed_by_model
+        uuid user_id PK,FK "Partition key - assessment ownership"
+        uuid id PK "UUIDv7 assessment identifier"
+        uuid segment_id FK "Within same user partition"
+        varchar assessment_type "Neural understanding type"
+        int research_question_id "Which user question"
+        float relevance_score "Neural semantic assessment"
+        float contribution_score "Neural understanding of contribution"
+        jsonb rubric_scores "For educational frameworks"
+        text assessment_reasoning "LLM's understanding of user framework"
+        jsonb reasoning_chain "Chain-of-thought through user's system"
+        varchar assessed_by_model "Which neural system provided understanding"
         timestamp assessed_at
     }
 
     journey_formations {
-        uuid id PK
-        uuid journey_id FK
-        varchar insight_type
-        text insight_content
-        jsonb formed_from_segments
-        jsonb formed_through_questions
-        text formation_reasoning
-        text formation_marker
+        uuid user_id PK,FK "Partition key - formation ownership"
+        uuid id PK "UUIDv7 formation identifier"
+        uuid journey_id FK "Within same user partition"
+        varchar insight_type "Type of user-authored insight"
+        text insight_content "User's authored understanding"
+        jsonb formed_from_segments "Which systematically processed segments"
+        jsonb formed_through_questions "Which user questions enabled formation"
+        text formation_reasoning "User's reasoning through engagement"
+        text formation_marker "Milestone in intellectual development"
         timestamp formed_at
     }
 
     knowledge_scopes {
-        uuid id PK
-        varchar name
+        uuid user_id PK,FK "Partition key - scope ownership"
+        uuid id PK "UUIDv7 scope identifier"
+        varchar name "User's organizational structure"
         text description
         varchar type
-        uuid parent_scope_id FK
+        uuid parent_scope_id FK "Within same user partition"
         timestamp created_at
         timestamp updated_at
     }
 
-    %% Process Tables (Core)
+    %% Process Tables (Core) - Neurosymbolic Process Infrastructure
     process_definitions {
-        uuid id PK
-        varchar process_type UK
-        varchar name
-        text description
-        varchar category
-        varchar trigger_type
-        jsonb inputs
-        jsonb configuration
+        uuid id PK "Global process definition (not user-specific)"
+        varchar process_type UK "Unique process type identifier"
+        varchar name "Human-readable process name"
+        text description "What this neurosymbolic process enables"
+        varchar category "Type of formative process"
+        varchar trigger_type "How process initiates"
+        jsonb inputs "Expected user framework structure"
+        jsonb configuration "Process-specific parameters"
         timestamp created_at
         timestamp updated_at
     }
 
     process_executions {
-        uuid id PK
-        uuid journey_id FK
-        varchar process_type
-        varchar state
-        jsonb inputs
+        uuid user_id PK,FK "Partition key - execution ownership"
+        uuid id PK "UUIDv7 execution identifier"
+        uuid journey_id FK "Within same user partition"
+        varchar process_type "Which neurosymbolic process"
+        varchar state "Current execution state"
+        jsonb inputs "User's authored framework for this execution"
         timestamp started_at
         timestamp completed_at
         text error_message
@@ -237,20 +270,21 @@ erDiagram
     }
 
     process_results {
-        uuid id PK
-        uuid execution_id FK UK
-        varchar process_type
-        jsonb data
-        jsonb metadata
+        uuid user_id PK,FK "Partition key - result ownership"
+        uuid id PK "UUIDv7 result identifier"
+        uuid execution_id FK UK "Within same user partition"
+        varchar process_type "Which neurosymbolic process produced this"
+        jsonb data "Systematic processing results for user engagement"
+        jsonb metadata "Process execution details"
         timestamp executed_at
         timestamp created_at
     }
 
-    %% Core Relationships
-    users ||--o{ personas : "has"
-    users ||--o{ process_capabilities : "granted"
-    users ||--o{ journeys : "owns"
-    personas ||--o{ journeys : "used by"
+    %% Core Relationships - User Partition Sovereignty
+    users ||--o{ personas : "owns intellectual personas"
+    users ||--o{ process_capabilities : "granted neurosymbolic processes"
+    users ||--o{ journeys : "owns formative journeys"
+    personas ||--o{ journeys : "enables projection through"
 
     journeys ||--o{ journals : "contains"
     journeys ||--o{ process_executions : "tracks"
@@ -364,7 +398,7 @@ CREATE INDEX idx_journeys_process ON journeys(process_type);
 ```
 
 ##### journey_frameworks
-Defines how each journey projects documents into its intellectual space:
+User-authored natural language frameworks that become symbolic systems - core of neurosymbolic transcendence:
 ```sql
 CREATE TABLE journey_frameworks (
     id UUID PRIMARY KEY, -- UUIDv7 generated by application
