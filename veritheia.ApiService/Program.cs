@@ -1,4 +1,9 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using Veritheia.Core.Interfaces;
+using Veritheia.Core.Services;
+using Veritheia.Data;
+using Veritheia.Data.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +12,19 @@ builder.AddServiceDefaults();
 
 // Add services to the container.
 builder.Services.AddProblemDetails();
+
+// Register Database
+builder.AddNpgsqlDbContext<VeritheiaDbContext>("veritheiadb");
+
+// Register Services (Post-DDD: Direct service registration)
+builder.Services.AddScoped<JourneyService>();
+builder.Services.AddScoped<DocumentService>();
+builder.Services.AddScoped<IDocumentStorageRepository>(sp =>
+{
+    var environment = sp.GetRequiredService<IWebHostEnvironment>();
+    var storagePath = Path.Combine(environment.ContentRootPath, "Storage");
+    return new FileStorageService(storagePath);
+});
 
 // Register Controllers
 builder.Services.AddControllers();
