@@ -44,7 +44,27 @@ This document inventories gaps and divergences between development documentation
 ### Root Cause Analysis
 Development followed **breadth-first skeleton creation** rather than documented **progressive enhancement**, creating complete architectural foundations but missing integration between components.
 
-## Critical Gaps Requiring Immediate Resolution
+## Critical Implementation Integrity Issues
+
+### URGENT: Fix Test Infrastructure
+**Location**: `/veritheia.Tests/`
+**Issue**: Test discovery completely broken - `dotnet test --list-tests` returns 0 tests
+**Impact**: Cannot verify any functionality claims, development quality unknown
+**Priority**: CRITICAL - Fix before any release claims
+
+### URGENT: Correct Implementation Status Claims  
+**Location**: `/development/PROGRESS.md`
+**Issue**: Claims "~85% complete", "Tested ✅", "42+ tests passing" are demonstrably false
+**Impact**: Misleads stakeholders about actual system readiness  
+**Priority**: CRITICAL - Update with honest assessment
+
+### URGENT: Document Missing Journey-Aware Processing
+**Location**: Multiple service implementations
+**Issue**: Core architectural claim of "journey projection spaces" not implemented
+**Impact**: System functions as basic CRUD app, not epistemic infrastructure
+**Priority**: HIGH - Either implement or document as future work
+
+## Legacy Documentation Alignment Gaps
 
 ### 1. Phase 3 Repository Pattern Documentation
 

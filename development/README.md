@@ -2,6 +2,12 @@
 
 This folder contains all development-specific tools, scripts, and tracking documents for the Veritheia implementation.
 
+## 🚨 CRITICAL: READ FIRST 🚨
+
+**[ALIGNMENT-GAPS.md](./ALIGNMENT-GAPS.md)** - URGENT documentation gaps and implementation reality check. Contains epistemic scan findings showing significant discrepancies between documented claims and actual implementation status.
+
+⚠️ **Key Finding**: Implementation is ~40-50% complete, not the claimed 85%. Test infrastructure broken. Journey projection spaces not implemented.
+
 ## Contents
 
 ### Core Workflow
