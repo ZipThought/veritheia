@@ -48,6 +48,7 @@ public class VectorStorageTests : DatabaseTestBase
         var document = new Document
         {
             Id = Guid.CreateVersion7(),
+            UserId = user.Id,  // Document ownership tracking
             FileName = "test.pdf",
             FilePath = "/test.pdf",
             MimeType = "application/pdf",
@@ -149,6 +150,7 @@ public class VectorStorageTests : DatabaseTestBase
         var document = new Document
         {
             Id = Guid.CreateVersion7(),
+            UserId = user.Id,  // Document ownership tracking
             FileName = "e5-test.pdf",
             FilePath = "/e5-test.pdf",
             MimeType = "application/pdf",
@@ -243,6 +245,7 @@ public class VectorStorageTests : DatabaseTestBase
         var document = new Document
         {
             Id = Guid.CreateVersion7(),
+            UserId = user.Id,  // Document ownership tracking
             FileName = "mini.pdf",
             FilePath = "/mini.pdf",
             MimeType = "application/pdf",
@@ -337,6 +340,7 @@ public class VectorStorageTests : DatabaseTestBase
         var document = new Document
         {
             Id = Guid.CreateVersion7(),
+            UserId = user.Id,  // Document ownership tracking
             FileName = "unique.pdf",
             FilePath = "/unique.pdf",
             MimeType = "application/pdf",

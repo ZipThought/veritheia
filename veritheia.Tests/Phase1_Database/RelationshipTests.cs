@@ -113,6 +113,7 @@ public class RelationshipTests : DatabaseTestBase
         var document = new Document
         {
             Id = Guid.CreateVersion7(),
+            UserId = user.Id,  // Document ownership tracking
             FileName = "test-paper.pdf",
             FilePath = "/documents/test-paper.pdf",
             MimeType = "application/pdf",

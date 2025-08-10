@@ -2304,3 +2304,168 @@ public class TestRepository<T> where T : BaseEntity
 The confusion arose from treating "repository" as a monolithic concept rather than recognizing multiple abstraction layers. Phase 1 correctly identified the need to test data operations but conflated basic data access with the full Repository Pattern.
 
 **For Future Context**: When Phase 1 says it needs repositories, it means basic data access for testing, NOT the full domain-driven repository pattern.
+
+---
+
+## 2025-08-10 - Critical Discovery: Document Ownership Tracking Required
+
+### Context
+
+Phase 3 investigation uncovered a critical requirement missing from Phase 1: Documents MUST have UserId for ownership tracking, even in single-user MVP.
+
+### Why This Matters (Even for Single-User)
+
+1. **Legal and Copyright**:
+   - When sharing is implemented, who owns the document?
+   - If user shares copyrighted material, who is liable?
+   - Must track who uploaded each document
+   - Clear ownership chain for legal protection
+
+2. **Future Migration Path**:
+   - Without UserId: Massive migration to add ownership later
+   - With UserId: Clean path to multi-user/sharing
+   - Database foreign keys enforce referential integrity from day one
+
+3. **Audit Trail**:
+   - Who uploaded what: Essential for debugging, support
+   - When documents entered system: Timestamp + user
+   - Chain of custody: Document → User → Journey → Formation
+
+4. **Sharing Attribution**:
+   - Future sharing: "Document X shared by User Y"
+   - Permission checks: Can only share what you own
+   - Derived works: Track original uploader vs. journey author
+
+### Implementation Decision
+
+Added UserId to Document entity with:
+- Required (NOT NULL) - every document must have an owner
+- Foreign key to users table with RESTRICT delete (can't delete user with documents)
+- Index on UserId for efficient queries by user
+
+This ensures even in single-user MVP:
+- Legal clarity on document ownership
+- Future sharing attribution ready
+- Clean migration path to multi-user
+- Audit trail from day one
+
+### Key Principle
+
+**"Design for the future, implement for today"**
+- Today: Single-user desktop
+- Design: Track ownership from day one
+- Future: Clean migration to sharing/multi-user
+- Always: Legal clarity on document ownership
+
+---
+
+## 2025-08-10 - RESTRICT Delete Behavior Decision
+
+### Context
+
+Phase 1 implementation chose DeleteBehavior.Restrict for User->Document relationship. This decision needs documentation.
+
+### Why RESTRICT Was Chosen
+
+**Options Considered:**
+1. **CASCADE** - Would delete all documents when user deleted (data loss risk)
+2. **SET NULL** - Would orphan documents without owner (legal/audit issues)
+3. **RESTRICT** - Prevents user deletion if documents exist (chosen)
+4. **NO ACTION** - Similar to RESTRICT but less explicit
+
+### Impact of RESTRICT
+
+**What It Does:**
+- Prevents accidental data loss by blocking user deletion
+- Forces explicit handling of documents before user removal
+- Maintains unbroken ownership chain for legal clarity
+- Protects audit trail and future permission systems
+
+**What It Prevents:**
+- Cannot delete user who owns documents (must handle documents first)
+- No orphaned documents without traceable owner
+- No cascade deletion accidentally removing years of research
+
+### Real-World Scenarios
+
+**Scenario 1: User Deletion Attempt**
+```csharp
+// This FAILS with RESTRICT:
+Context.Users.Remove(userWithDocuments);
+await Context.SaveChangesAsync(); // Foreign key violation!
+
+// Must explicitly handle documents first:
+var docs = await Context.Documents.Where(d => d.UserId == userId).ToListAsync();
+Context.Documents.RemoveRange(docs); // OR transfer to archive user
+await Context.SaveChangesAsync();
+Context.Users.Remove(user);
+await Context.SaveChangesAsync(); // Now succeeds
+```
+
+**Scenario 2: Document Preservation**
+Even if all journeys using a document are deleted, the document remains owned by its uploader. This preserves:
+- Legal accountability for uploaded content
+- Copyright ownership tracking
+- Audit trail for compliance
+- Future sharing permissions
+
+### Tests Added
+
+Created `OwnershipRestrictTests.cs` demonstrating:
+- User deletion blocked when documents exist
+- Successful deletion after document removal
+- Ownership transfer before user deletion
+- Document preservation when journeys deleted
+
+### Key Principle
+
+RESTRICT forces conscious decisions about data ownership. You cannot accidentally lose track of who uploaded what. This is critical for:
+- Legal compliance (copyright, liability)
+- Future sharing features (permission checks)
+- Audit requirements (who, what, when)
+- Migration safety (no orphaned data)
+
+---
+
+## 2025-08-10 - Test Implementation Findings
+
+### Critical Discovery: Foreign Key Constraints as Design Verification
+
+During test implementation, PostgreSQL's foreign key constraints immediately exposed fundamental design assumptions that would have remained hidden in NoSQL or dynamically-typed systems:
+
+```sql
+-- What the test failure revealed:
+ERROR: insert or update on table "journeys" violates foreign key constraint 
+"FK_journeys_personas_PersonaId"
+```
+
+This wasn't just a test bug—it was PostgreSQL enforcing a business rule that our design documents hadn't made explicit.
+
+### What SQL + Strong Typing Prevented
+
+Silent failures that would occur in other stacks:
+- Journey without Persona: FK constraint violation (not silently null)
+- Journey without User: FK constraint violation (not orphaned)
+- Invalid enum value: Type system rejection (not any string)
+- Wrong vector dimension: Compile-time error (not runtime)
+- Missing required fields: NOT NULL constraint (not undefined)
+- Deleting user with journeys: CASCADE or RESTRICT (not orphaned data)
+
+### The Gap Between Design and Reality
+
+**Design Document Said**: "User selects persona for journey"  
+**Database Schema Says**: "Journey MUST have PersonaId (NOT NULL)"  
+**Business Rule Discovered**: Every journey requires persona context—this isn't optional
+
+### Key Implementation Discoveries
+
+1. **Vector Storage Reality**: pgvector requires `new Vector(embedding)` wrapper, not raw float array
+2. **Dynamic JSON**: Required explicit `EnableDynamicJson()` for Dictionary<string,object>
+3. **Test Isolation**: Respawn model chosen (50ms reset) over transaction rollback or container-per-test
+4. **Database as Truth Enforcer**: PostgreSQL isn't just storage—it's a design verification system
+
+### Philosophical Insight
+
+In the Veritheia system where "intellectual sovereignty" and "formation over extraction" are core principles, having a database that enforces truth and consistency isn't a limitation—it's an embodiment of the system's values. Just as the system requires users to form their own understanding rather than accepting extracted summaries, the database requires developers to confront and resolve design ambiguities rather than postponing them until runtime.
+
+The PostgreSQL + C# stack doesn't just store data—it participates in the formation of a coherent system.

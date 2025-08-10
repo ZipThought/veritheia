@@ -18,6 +18,8 @@ Patterns preserve user intellectual sovereignty through journey-aware data acces
 
 ### 3.1 Domain-Driven Design
 
+> **Important Distinction**: Domain-Driven Design encompasses multiple patterns that can be adopted independently. The tactical patterns (Entities, Value Objects, Aggregates) establish the domain model and can exist with direct persistence through an ORM like Entity Framework. The Repository pattern adds an abstraction layer over persistence but is not required for a valid DDD implementation. Entities with proper aggregate boundaries, value objects, and domain rules enforced through constraints constitute complete DDD tactical patterns even when accessed directly through a DbContext.
+
 #### 3.1.1 Aggregate Boundaries
 ```csharp
 // User is an aggregate root with Journey as part of the aggregate
@@ -60,6 +62,8 @@ public record EmbeddingVector
 ```
 
 ### 2. Repository Pattern
+
+> **Abstraction over Persistence**: The Repository pattern provides an abstraction layer between the domain model and data persistence. While DDD entities can be persisted directly through an ORM's DbContext, repositories offer benefits: hiding persistence mechanisms (allowing technology changes), ensuring aggregate consistency (loading complete aggregates), enforcing domain-specific access patterns (like journey-awareness), and enabling testability through interface mocking. The repository is not the domain model itself but rather the gateway through which the domain model is persisted and retrieved.
 
 #### Generic Repository Interface
 ```csharp

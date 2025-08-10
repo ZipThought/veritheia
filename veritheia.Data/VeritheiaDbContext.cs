@@ -117,7 +117,7 @@ public class VeritheiaDbContext : DbContext
         modelBuilder.Entity<Journey>(entity =>
         {
             entity.ToTable("journeys", t => t.HasCheckConstraint("CK_Journey_State", 
-                "state IN ('Active', 'Paused', 'Completed', 'Abandoned')"));
+                "\"State\" IN ('Active', 'Paused', 'Completed', 'Abandoned')"));
             entity.HasKey(e => e.Id);
             entity.Property(e => e.ProcessType).HasMaxLength(255).IsRequired();
             entity.Property(e => e.Purpose).IsRequired();
@@ -155,7 +155,7 @@ public class VeritheiaDbContext : DbContext
         modelBuilder.Entity<Journal>(entity =>
         {
             entity.ToTable("journals", t => t.HasCheckConstraint("CK_Journal_Type",
-                "type IN ('Research', 'Method', 'Decision', 'Reflection')"));
+                "\"Type\" IN ('Research', 'Method', 'Decision', 'Reflection')"));
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Type).HasMaxLength(50).IsRequired();
             
@@ -169,7 +169,7 @@ public class VeritheiaDbContext : DbContext
         modelBuilder.Entity<JournalEntry>(entity =>
         {
             entity.ToTable("journal_entries", t => t.HasCheckConstraint("CK_JournalEntry_Significance",
-                "significance IN ('Routine', 'Notable', 'Critical', 'Milestone')"));
+                "\"Significance\" IN ('Routine', 'Notable', 'Critical', 'Milestone')"));
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Content).IsRequired();
             entity.Property(e => e.Significance).HasMaxLength(50).IsRequired();
@@ -189,7 +189,7 @@ public class VeritheiaDbContext : DbContext
         modelBuilder.Entity<KnowledgeScope>(entity =>
         {
             entity.ToTable("knowledge_scopes", t => t.HasCheckConstraint("CK_KnowledgeScope_Type",
-                "type IN ('Project', 'Topic', 'Subject', 'Custom')"));
+                "\"Type\" IN ('Project', 'Topic', 'Subject', 'Custom')"));
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).HasMaxLength(255).IsRequired();
             entity.Property(e => e.Type).HasMaxLength(50).IsRequired();
@@ -209,6 +209,11 @@ public class VeritheiaDbContext : DbContext
             entity.Property(e => e.MimeType).HasMaxLength(100).IsRequired();
             entity.Property(e => e.FilePath).HasMaxLength(1000).IsRequired();
             
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.Documents)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+                
             entity.HasOne(e => e.Scope)
                 .WithMany(s => s.Documents)
                 .HasForeignKey(e => e.ScopeId)
@@ -362,9 +367,9 @@ public class VeritheiaDbContext : DbContext
         {
             entity.ToTable("process_definitions", t => {
                 t.HasCheckConstraint("CK_ProcessDefinition_Category",
-                    "category IN ('Methodological', 'Developmental', 'Analytical', 'Compositional', 'Reflective')");
+                    "\"Category\" IN ('Methodological', 'Developmental', 'Analytical', 'Compositional', 'Reflective')");
                 t.HasCheckConstraint("CK_ProcessDefinition_Trigger",
-                    "trigger_type IN ('Manual', 'UserInitiated')");
+                    "\"TriggerType\" IN ('Manual', 'UserInitiated')");
             });
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.ProcessType).IsUnique();
@@ -380,7 +385,7 @@ public class VeritheiaDbContext : DbContext
         modelBuilder.Entity<ProcessExecution>(entity =>
         {
             entity.ToTable("process_executions", t => t.HasCheckConstraint("CK_ProcessExecution_State",
-                "state IN ('Pending', 'Running', 'Completed', 'Failed', 'Cancelled')"));
+                "\"State\" IN ('Pending', 'Running', 'Completed', 'Failed', 'Cancelled')"));
             entity.HasKey(e => e.Id);
             entity.Property(e => e.ProcessType).HasMaxLength(255).IsRequired();
             entity.Property(e => e.State).HasMaxLength(50).IsRequired();

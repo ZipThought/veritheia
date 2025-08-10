@@ -13,4 +13,5 @@ public class User : BaseEntity
     public ICollection<Persona> Personas { get; set; } = new List<Persona>();
     public ICollection<Journey> Journeys { get; set; } = new List<Journey>();
     public ICollection<ProcessCapability> ProcessCapabilities { get; set; } = new List<ProcessCapability>();
+    public ICollection<Document> Documents { get; set; } = new List<Document>();
 }

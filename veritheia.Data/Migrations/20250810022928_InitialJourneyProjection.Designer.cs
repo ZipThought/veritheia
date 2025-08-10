@@ -15,7 +15,7 @@ using Veritheia.Data;
 namespace veritheia.Data.Migrations
 {
     [DbContext(typeof(VeritheiaDbContext))]
-    [Migration("20250809101210_InitialJourneyProjection")]
+    [Migration("20250810022928_InitialJourneyProjection")]
     partial class InitialJourneyProjection
     {
         /// <inheritdoc />
@@ -65,9 +65,14 @@ namespace veritheia.Data.Migrations
                     b.Property<DateTime>("UploadedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ScopeId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("documents", (string)null);
                 });
@@ -139,7 +144,7 @@ namespace veritheia.Data.Migrations
 
                     b.ToTable("journals", null, t =>
                         {
-                            t.HasCheckConstraint("CK_Journal_Type", "type IN ('Research', 'Method', 'Decision', 'Reflection')");
+                            t.HasCheckConstraint("CK_Journal_Type", "\"Type\" IN ('Research', 'Method', 'Decision', 'Reflection')");
                         });
                 });
 
@@ -181,7 +186,7 @@ namespace veritheia.Data.Migrations
 
                     b.ToTable("journal_entries", null, t =>
                         {
-                            t.HasCheckConstraint("CK_JournalEntry_Significance", "significance IN ('Routine', 'Notable', 'Critical', 'Milestone')");
+                            t.HasCheckConstraint("CK_JournalEntry_Significance", "\"Significance\" IN ('Routine', 'Notable', 'Critical', 'Milestone')");
                         });
                 });
 
@@ -229,7 +234,7 @@ namespace veritheia.Data.Migrations
 
                     b.ToTable("journeys", null, t =>
                         {
-                            t.HasCheckConstraint("CK_Journey_State", "state IN ('Active', 'Paused', 'Completed', 'Abandoned')");
+                            t.HasCheckConstraint("CK_Journey_State", "\"State\" IN ('Active', 'Paused', 'Completed', 'Abandoned')");
                         });
                 });
 
@@ -457,7 +462,7 @@ namespace veritheia.Data.Migrations
 
                     b.ToTable("knowledge_scopes", null, t =>
                         {
-                            t.HasCheckConstraint("CK_KnowledgeScope_Type", "type IN ('Project', 'Topic', 'Subject', 'Custom')");
+                            t.HasCheckConstraint("CK_KnowledgeScope_Type", "\"Type\" IN ('Project', 'Topic', 'Subject', 'Custom')");
                         });
                 });
 
@@ -595,9 +600,9 @@ namespace veritheia.Data.Migrations
 
                     b.ToTable("process_definitions", null, t =>
                         {
-                            t.HasCheckConstraint("CK_ProcessDefinition_Category", "category IN ('Methodological', 'Developmental', 'Analytical', 'Compositional', 'Reflective')");
+                            t.HasCheckConstraint("CK_ProcessDefinition_Category", "\"Category\" IN ('Methodological', 'Developmental', 'Analytical', 'Compositional', 'Reflective')");
 
-                            t.HasCheckConstraint("CK_ProcessDefinition_Trigger", "trigger_type IN ('Manual', 'UserInitiated')");
+                            t.HasCheckConstraint("CK_ProcessDefinition_Trigger", "\"TriggerType\" IN ('Manual', 'UserInitiated')");
                         });
                 });
 
@@ -645,7 +650,7 @@ namespace veritheia.Data.Migrations
 
                     b.ToTable("process_executions", null, t =>
                         {
-                            t.HasCheckConstraint("CK_ProcessExecution_State", "state IN ('Pending', 'Running', 'Completed', 'Failed', 'Cancelled')");
+                            t.HasCheckConstraint("CK_ProcessExecution_State", "\"State\" IN ('Pending', 'Running', 'Completed', 'Failed', 'Cancelled')");
                         });
                 });
 
@@ -804,7 +809,15 @@ namespace veritheia.Data.Migrations
                         .HasForeignKey("ScopeId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("Veritheia.Data.Entities.User", "User")
+                        .WithMany("Documents")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Scope");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Veritheia.Data.Entities.DocumentMetadata", b =>
@@ -1060,6 +1073,8 @@ namespace veritheia.Data.Migrations
 
             modelBuilder.Entity("Veritheia.Data.Entities.User", b =>
                 {
+                    b.Navigation("Documents");
+
                     b.Navigation("Journeys");
 
                     b.Navigation("Personas");

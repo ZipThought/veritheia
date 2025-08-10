@@ -610,7 +610,9 @@ Example: GuidedCompositionProcess uses assignments, student_submissions, evaluat
 
 ## Repository Patterns
 
-### Core Repositories (Always Present)
+> **Note on Domain Model vs Repository**: The entities, value objects, and enums defined above constitute the complete domain model following DDD tactical patterns. Repositories are a separate concern - they provide persistence abstraction but are not part of the domain model itself. The domain model can exist and be valid without repositories, using direct ORM access through Entity Framework's DbContext. When repositories are introduced, they serve as the boundary between the domain and infrastructure, ensuring aggregates are loaded consistently and domain rules are enforced during persistence operations.
+
+### Core Repositories (When Abstraction Added)
 - `IUserRepository`
 - `IPersonaRepository` 
 - `IJourneyRepository`

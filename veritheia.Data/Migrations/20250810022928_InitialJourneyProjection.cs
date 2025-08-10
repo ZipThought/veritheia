@@ -84,6 +84,7 @@ namespace veritheia.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     FileName = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     MimeType = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     FilePath = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
@@ -102,6 +103,12 @@ namespace veritheia.Data.Migrations
                         principalTable: "knowledge_scopes",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_documents_users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -512,6 +519,11 @@ namespace veritheia.Data.Migrations
                 column: "ScopeId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_documents_UserId",
+                table: "documents",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_journal_entries_JournalId",
                 table: "journal_entries",
                 column: "JournalId");
@@ -603,25 +615,6 @@ namespace veritheia.Data.Migrations
                 table: "users",
                 column: "Email",
                 unique: true);
-
-            // Add HNSW indexes for vector search
-            migrationBuilder.Sql(@"
-                CREATE INDEX idx_vectors_1536_hnsw ON search_vectors_1536 
-                USING hnsw (""Embedding"" vector_cosine_ops)
-                WITH (m = 16, ef_construction = 64);
-            ");
-
-            migrationBuilder.Sql(@"
-                CREATE INDEX idx_vectors_768_hnsw ON search_vectors_768 
-                USING hnsw (""Embedding"" vector_cosine_ops)
-                WITH (m = 16, ef_construction = 64);
-            ");
-
-            migrationBuilder.Sql(@"
-                CREATE INDEX idx_vectors_384_hnsw ON search_vectors_384 
-                USING hnsw (""Embedding"" vector_cosine_ops)
-                WITH (m = 16, ef_construction = 64);
-            ");
         }
 
         /// <inheritdoc />

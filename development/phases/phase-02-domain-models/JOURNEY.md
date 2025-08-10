@@ -147,3 +147,152 @@ The entities ARE the domain models in this architecture.
 ## What This Means
 
 Phase 2 is about **completing** the domain model that Phase 1 started, not creating a parallel structure. The journey projection architecture is preserved in the entities themselves.
+
+---
+
+## 2025-08-10 - Anemic Domain Model Justification
+
+### Context
+
+Phase 2 implements an anemic domain model where entities are data containers and all behavior lives in services. This needs justification against DDD principles.
+
+### Analysis Against DDD Criteria
+
+**Why Anemic is RIGHT for Veritheia:**
+
+1. **Integration-Driven Architecture** (Criterion #3)
+   - Core purpose: Orchestrating cognitive processes through external LLMs
+   - Entities are projection spaces for AI processing
+   - Business logic = routing documents through analytical processes
+   - Our "domain" is orchestration, not the entities themselves
+
+2. **Performance and Serialization Constraints** (Criterion #5)
+   - Vector operations require efficient data structures
+   - Large document processing needs minimal object overhead
+   - Heavy JSONB usage requires clean serialization
+   - Journey projections involve intensive I/O operations
+
+3. **Not System of Record for Intelligence** (Criterion #2)
+   - Real intelligence lives in LLMs (external)
+   - Business rules in Process Definitions (configurable)
+   - Analytical structures in Journey Frameworks (user-defined)
+   - Entities just hold state between cognitive operations
+
+4. **Process-Oriented Domain**
+   - Similar to workflow engines or BPM systems
+   - Domain logic lives in Process Engine, not entities
+   - Processes are first-class citizens, entities are state
+   - Behavior = Process Execution, not entity methods
+
+### What This Means
+
+```csharp
+// WRONG for Veritheia (Rich Domain Model):
+public class Journey
+{
+    public void AddSegment(Document doc, string content)
+    {
+        // Business logic embedded in entity
+        ValidateSegment(content);
+        ApplyProjectionRules();
+        UpdateFormations();
+    }
+}
+
+// RIGHT for Veritheia (Anemic Model + Process Engine):
+public class Journey : BaseEntity
+{
+    // Pure state container
+    public Guid UserId { get; set; }
+    public string State { get; set; }
+    public Dictionary<string, object> Context { get; set; }
+}
+
+public class SegmentationProcess : IProcess
+{
+    public async Task Execute(Journey journey, Document doc)
+    {
+        // All behavior in process
+        var segments = await CognitiveSystem.Segment(doc);
+        await Repository.SaveSegments(journey.Id, segments);
+        await FormationProcess.Update(journey.Id);
+    }
+}
+```
+
+### The Key Principle
+
+**"Entities are projection spaces, Processes are projectors"**
+
+- Entities: Hold journey state and projections
+- Process Engine: Executes all transformations
+- Cognitive System: Provides intelligence
+- Repositories: Handle persistence
+
+This is not an anti-pattern but a conscious architectural choice aligned with Veritheia's orchestration-centric design.
+
+### Validation
+
+The anemic model is justified because:
+1. Domain complexity is in process orchestration, not entity behavior
+2. Intelligence is external (LLMs), not embedded
+3. Performance requires lightweight data structures
+4. Journey projections are data transformations, not business invariants
+
+If we had complex business rules about document ownership, journey state transitions, or formation validation that were intrinsic to the entities, we'd need a rich model. But these rules are:
+- Configurable (Process Definitions)
+- External (Cognitive System)
+- User-defined (Journey Frameworks)
+
+Therefore, the anemic model is not only acceptable but optimal for Veritheia's architecture.
+
+---
+
+## 2025-08-10 - Test Implementation Findings
+
+### The Fundamental Discovery
+
+Phase 2's journey revealed a critical architectural insight: **The entities created in Phase 1 ARE the domain models**. This wasn't immediately obvious from the documentation.
+
+### Value Objects: Design vs Reality
+
+The PersonaContext evolved from tracking simple vocabulary to tracking patterns of inquiry:
+
+**What Tests Expected**:
+```csharp
+public class PersonaContext {
+    public Guid PersonaId { get; set; }
+    public string Domain { get; set; }
+    public Dictionary<string, int> ConceptualVocabulary { get; set; }
+}
+```
+
+**What Actually Exists**:
+```csharp
+public class PersonaContext {
+    public string? DomainFocus { get; set; }
+    public List<string> RelevantVocabulary { get; set; }
+    public List<InquiryPattern> ActivePatterns { get; set; }
+    public List<string> MethodologicalPreferences { get; set; }
+}
+```
+
+The actual implementation is richer—it tracks patterns of inquiry, not just vocabulary frequency.
+
+### Critical Implementation Gaps
+
+1. **JourneyContext Missing JourneyId**: The context is OF a journey, not ABOUT a journey
+2. **InputDefinition's Sophisticated Design**: Fluent API with builder pattern
+3. **InquiryPattern as First-Class Concept**: System tracks HOW users think, not just WHAT
+
+### Philosophical Alignment
+
+The value objects embody Veritheia's principles:
+- **FormationMarker**: Captures moments of understanding (formation over extraction)
+- **InquiryPattern**: Tracks how users think (sovereignty of method)
+- **JourneyContext**: Preserves narrative continuity (journey-specific meaning)
+- **PersonaContext**: Evolves with user (growth over static profile)
+
+### The Meta-Insight
+
+Testing Phase 2 revealed that the confusion about "domain models" reflects a deeper truth: In a system about knowledge formation, even the code formation process involves discovering that what exists (entities) already serves the need we thought required new construction (separate domain models). The system teaches even as we build it.

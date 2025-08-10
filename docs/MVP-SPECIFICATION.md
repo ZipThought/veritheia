@@ -4,6 +4,29 @@
 
 This document specifies the Minimum Viable Product (MVP) features for Veritheia. Part A defines features for immediate implementation. Part B outlines post-MVP capabilities to inform architectural decisions. The MVP targets educational institutions and research groups requiring epistemic infrastructure for knowledge work.
 
+### 1.1 Deployment Architecture
+
+**The MVP is a single-user desktop application** with the following characteristics:
+
+- **Desktop-First**: Self-contained application installed on Windows/macOS/Linux
+- **Single-User Per Installation**: Each desktop installation serves one user
+- **Local Data Storage**: All documents, journeys, and formations stored locally
+- **No Cloud Dependencies**: Fully functional without internet connection
+- **Privacy by Default**: All data remains on the user's machine
+
+The architecture is designed to evolve post-MVP into a collaborative platform while preserving intellectual sovereignty. User management features in the MVP exist to:
+1. Track authorship within journeys
+2. Prepare for future cloud sync capabilities
+3. Enable future selective sharing features
+
+**Important**: Even though the MVP is single-user, documents MUST track ownership (UserId) for:
+1. Future sharing attribution (who owns what)
+2. Copyright and legal clarity
+3. Clean migration path to multi-user
+4. Audit trail of who uploaded what
+
+This ownership tracking is essential infrastructure even when there's only one user.
+
 ## Part A: MVP Features
 
 ### 2. Knowledge Database
@@ -245,6 +268,37 @@ Functionalities required for the infrastructure to be deployed and managed local
 # Part B: Post-MVP Roadmap (Conceptual Overview)
 
 These features guide architectural decisions but are not part of the initial release.
+
+## Evolution Path from Single-User to Collaborative
+
+The architecture evolves through distinct phases while preserving intellectual sovereignty:
+
+### Phase 1: Personal Desktop (MVP - Current)
+- Single-user desktop application
+- All data stored locally
+- Complete privacy and control
+- No sharing capabilities
+
+### Phase 2: Cloud Backup and Sync
+- Optional encrypted cloud backup
+- Sync across user's own devices
+- Data remains private to the user
+- Cloud as convenience, not requirement
+
+### Phase 3: Selective Explicit Sharing
+- User chooses specific journeys/results to share
+- Granular control over what is shared:
+  - Results only (conclusions without process)
+  - Journal entries (narrative without data)
+  - Complete journeys (full formative process)
+- Shared items are copies; originals remain private
+- Nothing shared without explicit user action
+
+### Phase 4: Collaborative Infrastructure
+- Multi-user installations for institutions
+- User data isolation within shared infrastructure
+- Collaborative journeys with attribution
+- Each user's intellectual sovereignty preserved
 
 ## I. Collaborative Journeys
 
