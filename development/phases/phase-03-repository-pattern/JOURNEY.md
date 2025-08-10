@@ -1067,9 +1067,11 @@ The generic repositories we built are unnecessary. The correct implementation:
 - All specification pattern abstractions
 - IUnitOfWork wrapper
 
-### What Was Created (Domain-Shaped Contracts)
+### What Was Created Then Deleted (Post-DDD Cleanup)
 
-#### 1. IDocumentStorageRepository
+After the architectural pivot to post-DDD first principles, we evaluated all abstractions:
+
+#### KEPT: IDocumentStorageRepository
 ```csharp
 public interface IDocumentStorageRepository
 {
@@ -1080,34 +1082,17 @@ public interface IDocumentStorageRepository
     Task<DocumentStorageMetadata> GetMetadataAsync(string storagePath);
 }
 ```
-This is a TRUE repository - it abstracts external resources (filesystem/S3).
+This provides real value - abstracts external storage (filesystem/S3) that PostgreSQL cannot handle.
 
-#### 2. IJourneyFormationRepository  
-```csharp
-public interface IJourneyFormationRepository
-{
-    Task RecordDocumentEncounterAsync(
-        Guid journeyId, Guid documentId,
-        string encounterContext,  // WHY was this accessed?
-        string formationPurpose);  // WHAT understanding is being formed?
-        
-    Task<IReadOnlyList<FormativeDocument>> GetFormativeDocumentsAsync(
-        Guid journeyId, DateTime since);
-}
-```
-This provides SEMANTIC awareness (journey formation tracking), not mechanical scoping.
+#### DELETED: IJourneyFormationRepository  
+- **Why deleted**: Just wrapped database operations
+- **Replacement**: Direct EF Core queries in services
+- **Semantic tracking**: Achieved through service methods, not abstraction layer
 
-#### 3. AuthoredResult<T> Pattern
-```csharp
-public class AuthoredResult<T>
-{
-    public bool IsSuccess { get; }
-    public T? Value { get; }
-    public Guid JourneyId { get; }  // Every result tied to journey
-    public IReadOnlyList<FormationNote> FormationNotes { get; }
-}
-```
-Implemented at service layer, not repository layer.
+#### DELETED: AuthoredResult<T> Pattern
+- **Why deleted**: Over-ceremonial wrapper
+- **Replacement**: Services return entities directly
+- **Journey tracking**: Handled at controller/process level
 
 ## Final Architectural Pivot: Explicit Rejection of DDD
 
