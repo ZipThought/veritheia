@@ -1,3 +1,14 @@
+⚠️ **ARCHITECTURAL IMPERATIVE VIOLATION WARNING** ⚠️
+==================================================
+THIS DOCUMENT CONTAINS OUTDATED PATTERNS THAT VIOLATE CURRENT ARCHITECTURAL IMPERATIVES:
+- References repository patterns (WE REJECT REPOSITORIES - DbContext IS the data layer)
+- Discusses DDD implementation (WE REJECT DDD praxis, embrace only its ontology)
+- Mentions mocking internal services (WE MOCK ONLY EXTERNAL services, test with real DB)
+
+MARKED FOR REWRITE - DO NOT FOLLOW THESE PATTERNS
+See: ARCHITECTURE.md Section 3.1, DESIGN-PATTERNS.md, IMPLEMENTATION.md
+==================================================
+
 # Architectural Divergences from Core Documentation
 
 This document tracks where our implementation diverges from the core documentation, with rationale for each decision.

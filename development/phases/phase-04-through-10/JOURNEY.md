@@ -1,3 +1,12 @@
+⚠️ **ARCHITECTURAL IMPERATIVE VIOLATION WARNING** ⚠️
+==================================================
+THIS DOCUMENT CONTAINS OUTDATED PATTERNS THAT VIOLATE CURRENT ARCHITECTURAL IMPERATIVES:
+- References mocking services (WE MOCK ONLY EXTERNAL services)
+
+MARKED FOR REWRITE - DO NOT FOLLOW THESE PATTERNS
+See: ARCHITECTURE.md Section 3.1, DESIGN-PATTERNS.md, IMPLEMENTATION.md
+==================================================
+
 # Phase 4-10: Implementation Sprint Journey (RETROACTIVE)
 
 **Written**: 2025-08-10 (retroactive documentation)

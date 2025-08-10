@@ -1,3 +1,15 @@
+⚠️ **ARCHITECTURAL IMPERATIVE VIOLATION WARNING** ⚠️
+==================================================
+THIS DOCUMENT CONTAINS OUTDATED PATTERNS THAT VIOLATE CURRENT ARCHITECTURAL IMPERATIVES:
+- Discusses DDD principles without clarifying we reject the praxis
+- References repository pattern as future work
+- May contain patterns we now reject
+
+HISTORICAL JOURNEY - Shows evolution of thinking
+Does not reflect current architectural stance
+See: ARCHITECTURE.md Section 3.1, DESIGN-PATTERNS.md, IMPLEMENTATION.md
+==================================================
+
 # Phase 02 Journey: Core Domain Models
 
 ## The Investigation Begins

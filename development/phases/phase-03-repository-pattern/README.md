@@ -1,3 +1,15 @@
+⚠️ **ARCHITECTURAL IMPERATIVE VIOLATION WARNING** ⚠️
+==================================================
+THIS DOCUMENT CONTAINS OUTDATED PATTERNS THAT VIOLATE CURRENT ARCHITECTURAL IMPERATIVES:
+- Investigates repository patterns (WE REJECT REPOSITORIES - DbContext IS the data layer)
+- References IRepository interfaces (NO REPOSITORY ABSTRACTIONS)
+- Discusses Unit of Work pattern (DbContext IS the Unit of Work)
+
+See EPILOGUE.md for why this investigation led to REJECTION of repository patterns
+MARKED FOR HISTORICAL REFERENCE ONLY - DO NOT IMPLEMENT
+See: ARCHITECTURE.md Section 3.1, DESIGN-PATTERNS.md, IMPLEMENTATION.md
+==================================================
+
 # Phase 03: Repository Pattern
 
 ## Status

@@ -1,3 +1,12 @@
+⚠️ **ARCHITECTURAL IMPERATIVE VIOLATION WARNING** ⚠️
+==================================================
+THIS DOCUMENT CONTAINS OUTDATED PATTERNS THAT VIOLATE CURRENT ARCHITECTURAL IMPERATIVES:
+- References repository pattern (WE REJECT REPOSITORIES - DbContext IS the data layer)
+
+MARKED FOR REWRITE - DO NOT FOLLOW THESE PATTERNS
+See: ARCHITECTURE.md Section 3.1, DESIGN-PATTERNS.md, IMPLEMENTATION.md
+==================================================
+
 # Context Recovery Checklist
 
 ## Quick Start After Context Switch

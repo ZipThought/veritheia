@@ -1,3 +1,14 @@
+⚠️ **ARCHITECTURAL IMPERATIVE VIOLATION WARNING** ⚠️
+==================================================
+THIS DOCUMENT CONTAINS OUTDATED PATTERNS THAT VIOLATE CURRENT ARCHITECTURAL IMPERATIVES:
+- References MockCognitiveAdapter (OK - this is EXTERNAL service mocking which is allowed)
+- BUT may have other patterns that need review
+
+PARTIALLY VALID - MockCognitiveAdapter is correct (external service)
+Review for other potential violations
+See: ARCHITECTURE.md Section 3.1, DESIGN-PATTERNS.md, IMPLEMENTATION.md
+==================================================
+
 # Phase 5: Process Engine Completion Journey
 
 **Date**: 2025-08-10

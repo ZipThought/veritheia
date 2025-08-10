@@ -1,3 +1,12 @@
+⚠️ **ARCHITECTURAL IMPERATIVE VIOLATION WARNING** ⚠️
+==================================================
+THIS DOCUMENT CONTAINS OUTDATED PATTERNS THAT VIOLATE CURRENT ARCHITECTURAL IMPERATIVES:
+- References repository pattern implementation in Phase 3
+
+MARKED FOR REWRITE - DO NOT FOLLOW THESE PATTERNS
+See: ARCHITECTURE.md Section 3.1, DESIGN-PATTERNS.md, IMPLEMENTATION.md
+==================================================
+
 # Phase 02: Core Domain Models
 
 ## Status

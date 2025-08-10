@@ -1,3 +1,15 @@
+⚠️ **ARCHITECTURAL IMPERATIVE VIOLATION WARNING** ⚠️
+==================================================
+THIS DOCUMENT CONTAINS OUTDATED PATTERNS THAT VIOLATE CURRENT ARCHITECTURAL IMPERATIVES:
+- References repository pattern as completed work
+- Mentions phases that investigated patterns we now reject
+- May overstate implementation completeness
+
+PARTIALLY OUTDATED - Contains mix of valid and invalid information
+Review critically against current imperatives
+See: ARCHITECTURE.md Section 3.1, DESIGN-PATTERNS.md, IMPLEMENTATION.md
+==================================================
+
 # Veritheia Implementation Progress Tracker
 
 This document tracks implementation progress using PDCA cycles. Each phase has clear checkpoints that survive context switches.

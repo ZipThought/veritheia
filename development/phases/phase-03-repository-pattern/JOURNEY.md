@@ -1,3 +1,16 @@
+⚠️ **ARCHITECTURAL IMPERATIVE VIOLATION WARNING** ⚠️
+==================================================
+THIS DOCUMENT CONTAINS OUTDATED PATTERNS THAT VIOLATE CURRENT ARCHITECTURAL IMPERATIVES:
+- Extensive repository pattern investigation (WE REJECT REPOSITORIES)
+- IJourneyScoped interfaces (USE QUERY EXTENSION METHODS INSTEAD)
+- Mock testing references (USE REAL DATABASE WITH RESPAWN)
+
+This is a HISTORICAL JOURNEY that led to REJECTION of these patterns
+See EPILOGUE.md for conclusion and current approach
+MARKED FOR HISTORICAL REFERENCE ONLY - DO NOT IMPLEMENT
+See: ARCHITECTURE.md Section 3.1, DESIGN-PATTERNS.md, IMPLEMENTATION.md
+==================================================
+
 # Phase 03 Journey: Repository Pattern
 
 ## The Investigation Begins
