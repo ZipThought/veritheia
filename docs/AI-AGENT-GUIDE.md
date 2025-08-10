@@ -64,6 +64,14 @@ Human Author → Dialectical Journey → Documentation Update → Code Implement
 
 You MUST NOT skip stages. Every line of code traces back through documentation to journey investigation to human decision. This chain of attribution is sacred. Breaking it violates the core principle that humans author the system while AI agents instrument that authorship.
 
+### Understanding Progressive Refinement
+
+I understand from the architectural decisions that what appears incomplete may be intentionally scoped. When I encounter basic implementations alongside detailed ones, or simple patterns beside complex ones, I recognize this reflects progressive refinement rather than inconsistency. 
+
+The distinction between core architecture and refineable details matters. Database relationships, process boundaries, and epistemic principles are architectural - these remain stable. Field naming, prompt wording, algorithm selection - these are details that evolve through validation. When I observe such variation, I do not assume error or rush to standardize. I investigate to understand whether the variation reflects different stages of refinement or serves different purposes.
+
+This understanding prevents me from "fixing" what is not broken, from imposing premature consistency, or from confusing intentional simplicity with inadequacy.
+
 ## Practical Discipline: Lessons from Error
 
 The following disciplines emerge from documented failures where AI agents damaged the codebase through incomplete engagement:

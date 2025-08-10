@@ -4,6 +4,17 @@
 
 This document specifies the technical implementation of Veritheia. The system operates as a local-first epistemic infrastructure with four primary components: PostgreSQL with pgvector for journey-specific projection spaces, ASP.NET Core for process orchestration, adapter-based LLM integration for journey-calibrated assessments, and Blazor Server for user interfaces. All components enforce user data sovereignty and ensure insights emerge from user engagement within their projection spaces.
 
+### Implementation Philosophy: Progressive Enhancement
+
+Development proceeds through progressive enhancement via iterative bottom-up passes. Each pass completes all architectural layers with increasing refinement:
+
+- **Pass 1 (Skeleton)**: Basic structure validates architecture - tables exist, CRUD works, processes execute, UI displays
+- **Pass 2 (Validation)**: Core patterns emerge - journey-aware queries, prompt templates, assessment logic  
+- **Pass 3 (Precision)**: Refinement through use - embedding tuning, prompt optimization, measurement accuracy
+- **Pass 4 (Production)**: Quality assurance - edge cases, performance optimization, error handling
+
+Details such as field names, prompt templates, and embedding models are refinements added progressively based on actual validation, not speculation. This approach enables rapid architectural validation while preserving epistemic integrity.
+
 
 ## 2. Technology Stack
 

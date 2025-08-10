@@ -4,6 +4,10 @@
 
 Formation represents the accumulated insights derived from user journeys through knowledge. In Veritheia, a journey consists of structured engagement with source materials guided by user-defined research questions and conceptual frameworks. Each journey generates insights—understanding that emerges from the intersection of user perspective and source content. These insights accumulate over time to constitute formation, which shapes subsequent knowledge encounters. Formation remains non-transferable because insights require the specific context of their generative journey.
 
+### Progressive Refinement of Understanding
+
+Formation does not emerge complete but crystallizes through iterative engagement. The system enables this through progressive enhancement—each pass through the knowledge space reveals patterns at different resolutions. Initial engagement establishes broad relevance. Subsequent passes refine segmentation, improve measurement precision, and deepen assessment criteria. This is not mere repetition but dialectical progression: thesis (initial framework) meets antithesis (document reality) to produce synthesis (refined understanding). The journey never truly completes; solid insights crystallize through actual validation, not imagined completion. What appears finished in one pass reveals new depths in the next. Formation is thus both accumulated (what has been understood) and anticipatory (what understanding enables next).
+
 ### The Projection Space
 
 When documents enter a journey, they are not stored generically but projected into that journey's intellectual space. A systematic review projects documents through methodology sections and research questions. An educational journey projects the same documents through learning objectives and rubrics. A cross-disciplinary investigation projects through multiple conceptual vocabularies simultaneously. The document itself remains unchanged in storage, but its segmentation, its embedding context, its relevance assessment—all these exist only within the projection space created by the journey's framework.
