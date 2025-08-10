@@ -96,3 +96,6 @@ app.MapDefaultEndpoints();
 app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
 
 app.Run();
+
+// Make Program class accessible for testing
+public partial class Program { }
