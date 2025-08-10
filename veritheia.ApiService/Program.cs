@@ -19,6 +19,7 @@ builder.AddNpgsqlDbContext<VeritheiaDbContext>("veritheiadb");
 // Register Services (Post-DDD: Direct service registration)
 builder.Services.AddScoped<JourneyService>();
 builder.Services.AddScoped<DocumentService>();
+builder.Services.AddScoped<ProcessEngine>();
 builder.Services.AddScoped<IDocumentStorageRepository>(sp =>
 {
     var environment = sp.GetRequiredService<IWebHostEnvironment>();
