@@ -8,10 +8,13 @@ This directory contains the research papers that inform Veritheia's architecture
 **File**: `2407.13993v3.pdf`  
 **Authors**: Christoforus Yoga Haryanto  
 **Year**: 2024  
-**Reference**: arXiv:2407.13993  
-**DOI**: https://doi.org/10.48550/arXiv.2407.13993
+**Reference**: arXiv:2407.13993v3 [cs.DL]  
+**DOI**: https://doi.org/10.48550/arXiv.2407.13993  
+**Note**: 10 pages, 3 figures, 1 table, presented at the 51st International Conference on Computers and Industrial Engineering (CIE51), 11 Dec 2024  
+**Subjects**: Digital Libraries (cs.DL); Artificial Intelligence (cs.AI)  
+**Latest version**: v3, 20 Dec 2024
 
-This paper introduces methodologies for systematic literature review automation that directly inform Veritheia's document screening and analysis processes. The systematic screening and constrained composition processes in Veritheia are derived from the patterns established in LLAssist.
+This paper introduces LLAssist, an open-source tool designed to streamline literature reviews by leveraging Large Language Models and NLP techniques. The methodologies for systematic screening and constrained composition in Veritheia are directly derived from the patterns established in LLAssist.
 
 ### 2. EdgePrompt: Engineering Guardrail Techniques for Offline LLMs in K-12 Educational Settings
 **File**: `3701716.3717810.pdf`  
