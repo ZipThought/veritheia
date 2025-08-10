@@ -31,6 +31,7 @@ Comprehensive project documentation is available in the [docs](docs/) directory:
 - [Architecture](docs/ARCHITECTURE.md) - System design and conceptual model
 - [MVP Specification](docs/MVP-SPECIFICATION.md) - Feature requirements and functionality
 - [Implementation](docs/IMPLEMENTATION.md) - Technical details and development guide
+- [Foundational Papers](papers/) - Research papers informing the architecture
 
 
 ### V. Quick Start
@@ -43,17 +44,37 @@ dotnet build
 dotnet run --project veritheia.AppHost
 ```
 
-### VI. Current Status
+### VI. Testing
+
+#### Running Tests
+
+```bash
+# Run all tests (excluding integration)
+dotnet test --filter "Category!=Integration&Category!=LLMIntegration"
+
+# Run LLM integration tests (requires local LLM server)
+dotnet test --filter "Category=LLMIntegration"
+
+# With custom LLM server URL
+LLM_URL=http://localhost:1234 dotnet test --filter "Category=LLMIntegration"
+```
+
+#### Test Categories
+- **Unit Tests**: Fast, isolated tests (run in CI)
+- **Integration**: Database tests using Testcontainers (local only)
+- **LLMIntegration**: Tests requiring LLM server (local only)
+
+### VII. Current Status
 
 See [Development Progress](development/PROGRESS.md) for detailed phase implementation status.
 
-### VII. Technical Requirements
+### VIII. Technical Requirements
 
 - .NET 9 SDK (for native UUIDv7 support)
 - Docker Desktop (for PostgreSQL container)
 - .NET Aspire workload
 
-### VIII. Provenance
+### IX. Provenance
 
 The architecture and its methodologies are derived from the following research.
 

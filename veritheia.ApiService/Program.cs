@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Veritheia.Core.Interfaces;
 using Veritheia.Data;
+using Veritheia.Data.Processes;
 using Veritheia.Data.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -33,6 +34,13 @@ builder.Services.AddScoped<EmbeddingService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<JournalService>();
 builder.Services.AddScoped<PersonaService>();
+
+// Cognitive Adapter (Phase 8) - Local LLM implementation
+builder.Services.AddHttpClient<LocalLLMAdapter>();
+builder.Services.AddSingleton<ICognitiveAdapter, LocalLLMAdapter>();
+
+// Analytical Processes (Phase 9-10) - SKELETON: Basic structure only
+// These would be discovered and registered by ProcessEngine in real implementation
 
 builder.Services.AddScoped<IDocumentStorageRepository>(sp =>
 {
