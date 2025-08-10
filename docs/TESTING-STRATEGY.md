@@ -88,15 +88,19 @@ Test individual components in isolation.
 #### Core Platform Unit Tests
 
 ```csharp
-// Example: Testing Journey creation with Persona
+// Example: Testing Journey creation with real database
 [Fact]
 public async Task CreateJourney_WithValidUserAndPersona_CreatesJourneyWithCorrectState()
 {
-    // Arrange
-    var user = new User { Id = Guid.NewGuid(), Email = "researcher@example.com" };
-    var persona = new Persona { Id = Guid.NewGuid(), UserId = user.Id, Domain = "Researcher" };
-    var repository = new Mock<IJourneyRepository>();
-    var service = new JourneyService(repository.Object);
+    // Arrange - using real database with Respawn
+    var user = new User { Id = Guid.CreateVersion7(), Email = "researcher@example.com" };
+    await _dbContext.Users.AddAsync(user);
+    
+    var persona = new Persona { Id = Guid.CreateVersion7(), UserId = user.Id, Domain = "Researcher" };
+    await _dbContext.Personas.AddAsync(persona);
+    await _dbContext.SaveChangesAsync();
+    
+    var service = new JourneyService(_dbContext);
     
     // Act
     var journey = await service.CreateJourneyAsync(new CreateJourneyRequest
@@ -114,13 +118,16 @@ public async Task CreateJourney_WithValidUserAndPersona_CreatesJourneyWithCorrec
     Assert.NotEmpty(journey.Purpose);
 }
 
-// Example: Testing Multiple Personas
+// Example: Testing Multiple Personas with real database
 [Fact]
 public async Task User_CanHaveMultiplePersonas()
 {
-    // Arrange
-    var user = new User { Id = Guid.NewGuid(), Email = "multi@example.com" };
-    var personaService = new PersonaService(repository.Object);
+    // Arrange - using real database
+    var user = new User { Id = Guid.CreateVersion7(), Email = "multi@example.com" };
+    await _dbContext.Users.AddAsync(user);
+    await _dbContext.SaveChangesAsync();
+    
+    var personaService = new PersonaService(_dbContext);
     
     // Act
     var studentPersona = await personaService.CreatePersonaAsync(user.Id, "Student");

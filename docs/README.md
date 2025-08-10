@@ -37,10 +37,10 @@ Start with the [VISION](./VISION.md) to understand how Veritheia ensures intelle
    - Systems that protect formation
 
 6. **[DESIGN-PATTERNS.md](./DESIGN-PATTERNS.md)** - Imperative implementation patterns
-   - Domain-Driven Design patterns
-   - Repository and Specification patterns
-   - CQRS and Unit of Work
-   - Code examples and checklists
+   - Rejection of DDD praxis while embracing its ontology
+   - Direct DbContext usage, no repository abstractions
+   - User partition and journey projection invariants
+   - Testing with real PostgreSQL, no internal mocking
 
 7. **[EXTENSION-GUIDE.md](./EXTENSION-GUIDE.md)** - Creating full-stack extensions
    - Process implementation patterns
@@ -64,7 +64,7 @@ Start with the [VISION](./VISION.md) to understand how Veritheia ensures intelle
     - Comprehensive Mermaid class diagram
     - Aggregate boundaries and design principles
     - Process-specific domain models
-    - Repository and service patterns
+    - Direct DbContext access patterns
 
 11. **[ENTITY-RELATIONSHIP.md](./ENTITY-RELATIONSHIP.md)** - Database schema and data model
     - PostgreSQL schema with pgvector extension

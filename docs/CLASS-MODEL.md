@@ -608,34 +608,62 @@ Example: GuidedCompositionProcess uses assignments, student_submissions, evaluat
 - Core platform classes always have tables
 - Extension entities may have tables (like Assignment)
 
-## Repository Patterns
+## Data Access Patterns
 
-> **Note on Domain Model vs Repository**: The entities, value objects, and enums defined above constitute the complete domain model following DDD tactical patterns. Repositories are a separate concern - they provide persistence abstraction but are not part of the domain model itself. The domain model can exist and be valid without repositories, using direct ORM access through Entity Framework's DbContext. When repositories are introduced, they serve as the boundary between the domain and infrastructure, ensuring aggregates are loaded consistently and domain rules are enforced during persistence operations.
+> **IMPERATIVE: No Repository Abstractions**: The entities defined above ARE the domain model. Entity Framework Core provides direct projection of database truth into runtime. We explicitly reject repository patterns - DbContext IS the unit of work, DbSet IS the repository. PostgreSQL constraints enforce domain rules, not C# abstractions.
 
-### Core Repositories (When Abstraction Added)
-- `IUserRepository`
-- `IPersonaRepository` 
-- `IJourneyRepository`
-- `IDocumentRepository`
-- `IKnowledgeScopeRepository`
-- `IProcessExecutionRepository`
-
-### Extension Repositories (Process-Specific)
-- `IAssignmentRepository` (GuidedComposition)
-- Future extensions add their own
-
-### Repository Access Patterns
+### Direct DbContext Access
 
 ```csharp
-// Accessing user with all personas
-var user = await userRepository.GetAsync(userId);
-var personas = await personaRepository.GetByUserIdAsync(userId);
+// Direct access through VeritheiaDbContext
+public class JourneyService
+{
+    private readonly VeritheiaDbContext _db;
+    
+    public async Task<Journey> CreateJourney(Guid userId, Guid personaId, string purpose)
+    {
+        var journey = new Journey
+        {
+            Id = Guid.CreateVersion7(),
+            UserId = userId,
+            PersonaId = personaId,
+            Purpose = purpose,
+            State = "Active"
+        };
+        
+        _db.Journeys.Add(journey);
+        await _db.SaveChangesAsync(); // PostgreSQL enforces all constraints
+        return journey;
+    }
+}
+```
 
-// Get specific persona by domain
-var studentPersona = await personaRepository.GetByUserAndDomainAsync(userId, "Student");
+### Query Extension Methods
+
+```csharp
+// Extension methods for common patterns
+public static class QueryExtensions
+{
+    public static IQueryable<Journey> ForUser(this IQueryable<Journey> journeys, Guid userId)
+    {
+        return journeys.Where(j => j.UserId == userId);
+    }
+    
+    public static IQueryable<Persona> Active(this IQueryable<Persona> personas)
+    {
+        return personas.Where(p => p.IsActive);
+    }
+}
+
+// Usage - composable queries
+var activeJourneys = await _db.Journeys
+    .ForUser(userId)
+    .Where(j => j.State == "Active")
+    .Include(j => j.Persona)
+    .ToListAsync();
 
 // Create journey with specific persona
-var journey = await journeyService.CreateJourneyAsync(new CreateJourneyRequest
+var journey = await journeyService.CreateJourney
 {
     UserId = userId,
     PersonaId = studentPersona.Id,

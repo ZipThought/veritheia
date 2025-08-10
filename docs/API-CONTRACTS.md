@@ -43,20 +43,31 @@ public interface ICognitiveAdapter
 }
 ```
 
-## 3. Repository Interfaces
+## 3. Data Access Services
 
-### 3.1 IKnowledgeRepository
+### 3.1 Direct DbContext Access
 
-Provides unified data access respecting scope boundaries:
+**IMPERATIVE**: No repository abstractions. Services use VeritheiaDbContext directly:
 
 ```csharp
-public interface IKnowledgeRepository
+public class DocumentService
 {
-    Task<IEnumerable<Document>> GetDocumentsInScopeAsync(Guid? scopeId);
-    Task<Document> GetDocumentAsync(Guid documentId);
-    Task<IEnumerable<ProcessedContent>> GetEmbeddingsAsync(Guid documentId);
-    Task<KnowledgeScope> GetScopeAsync(Guid scopeId);
-    Task SaveProcessResultAsync(ProcessResult result);
+    private readonly VeritheiaDbContext _db;
+    
+    public async Task<IEnumerable<Document>> GetDocumentsInScope(Guid userId, Guid? scopeId)
+    {
+        return await _db.Documents
+            .Where(d => d.UserId == userId) // Partition boundary
+            .Where(d => scopeId == null || d.ScopeId == scopeId)
+            .ToListAsync();
+    }
+    
+    public async Task<Document> GetDocument(Guid documentId)
+    {
+        return await _db.Documents
+            .Include(d => d.Metadata)
+            .FirstOrDefaultAsync(d => d.Id == documentId);
+    }
 }
 ```
 
