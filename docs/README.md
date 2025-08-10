@@ -84,6 +84,10 @@ Start with the [VISION](./VISION.md) to understand how Veritheia ensures intelle
     - Validation patterns preventing insight generation
     - Anti-patterns and required patterns
 
+### Research Papers
+
+- **[Papers Collection](./papers/)** - Academic references and research papers
+
 ### Planned Documents
 - **DEPLOYMENT-GUIDE.md** - Production deployment procedures
 - **SECURITY-POLICIES.md** - Security boundaries and threat model
