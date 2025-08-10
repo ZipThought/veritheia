@@ -20,6 +20,12 @@ builder.AddNpgsqlDbContext<VeritheiaDbContext>("veritheiadb");
 builder.Services.AddScoped<JourneyService>();
 builder.Services.AddScoped<DocumentService>();
 builder.Services.AddScoped<ProcessEngine>();
+
+// Platform Services
+builder.Services.AddScoped<DocumentIngestionService>();
+builder.Services.AddScoped<TextExtractionService>();
+builder.Services.AddScoped<EmbeddingService>();
+
 builder.Services.AddScoped<IDocumentStorageRepository>(sp =>
 {
     var environment = sp.GetRequiredService<IWebHostEnvironment>();
