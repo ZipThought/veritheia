@@ -84,7 +84,7 @@ The architecture and its methodologies are derived from the following research.
 
 - Haryanto, C. Y. (2024). LLAssist: Simple Tools for Automating Literature Review Using Large Language Models. *arXiv preprint arXiv:2407.13993v3 [cs.DL]*. Presented at CIE51, 11 Dec 2024. [https://doi.org/10.48550/arXiv.2407.13993](https://doi.org/10.48550/arXiv.2407.13993)
 
-- Haryanto, C. Y., Elvira, A. M., Nguyen, T. D., Vu, M. H., Hartanto, Y., Lomempow, E., & Arakala, A. (2024). Contextualized AI for Cyber Defense: An Automated Survey using LLMs. *arXiv preprint arXiv:2409.13524*. [https://doi.org/10.48550/arXiv.2409.13524](https://doi.org/10.48550/arXiv.2409.13524)
+- Haryanto, C. Y., Elvira, A. M., Nguyen, T. D., Vu, M. H., Hartanto, Y., Lomempow, E., & Arakala, A. (2024). Contextualized AI for Cyber Defense: An Automated Survey using LLMs. In *2024 17th International Conference on Security of Information and Networks (SIN)*, 02-04 December 2024. IEEE. DOI: [10.1109/SIN63213.2024.10871242](https://doi.org/10.1109/SIN63213.2024.10871242). Also available: *arXiv:2409.13524 [cs.CR]*. [https://doi.org/10.48550/arXiv.2409.13524](https://doi.org/10.48550/arXiv.2409.13524)
 
 - Haryanto, C. Y. (2024). Progress: A Post-AI Manifesto. *arXiv preprint arXiv:2408.13775*. [https://doi.org/10.48550/arXiv.2408.13775](https://doi.org/10.48550/arXiv.2408.13775)
 
