@@ -1,439 +1,155 @@
 # Veritheia Implementation
 
-## 1. Overview
+## I. Purpose and Alignment
 
-This document specifies the technical implementation of Veritheia. The system operates as a local-first epistemic infrastructure with four primary components: PostgreSQL with pgvector for journey-specific projection spaces, ASP.NET Core for process orchestration, adapter-based LLM integration for journey-calibrated assessments, and Blazor Server for user interfaces. All components enforce user data sovereignty and ensure insights emerge from user engagement within their projection spaces.
+The implementation of Veritheia exists to realize the commitments described in the Vision and Architecture. It does not merely stand up software; it enforces the principles of intellectual sovereignty, journey-specific meaning, and projection-space formation at the level of code and runtime. 
 
-### Implementation Philosophy: Progressive Enhancement
+The design ontology draws from Domain-Driven Design's philosophy—model precision, boundary clarity, and invariants as domain truths—but deliberately rejects its conventional patterns of repositories, aggregate wrappers, and mock-friendly indirection. Here, the schema is the domain model. The database constraints, type safety, and process orchestration are not hidden behind abstractions but are the very mechanisms that preserve epistemic integrity.
 
-Development proceeds through progressive enhancement via iterative bottom-up passes. Each pass completes all architectural layers with increasing refinement:
+This implementation is local-first by default, anti-surveillance by design, and partitioned so that each user's intellectual space remains sovereign. Every decision in this document exists to serve the telos defined in the Vision: formation through authorship, never extraction through automation.
 
-- **Pass 1 (Skeleton)**: Basic structure validates architecture - tables exist, CRUD works, processes execute, UI displays
-- **Pass 2 (Validation)**: Core patterns emerge - journey-aware queries, prompt templates, assessment logic  
-- **Pass 3 (Precision)**: Refinement through use - embedding tuning, prompt optimization, measurement accuracy
-- **Pass 4 (Production)**: Quality assurance - edge cases, performance optimization, error handling
+## II. Development Philosophy: Progressive Enhancement
 
-Details such as field names, prompt templates, and embedding models are refinements added progressively based on actual validation, not speculation. This approach enables rapid architectural validation while preserving epistemic integrity.
+The system is constructed through progressive passes, each completing the entire vertical slice of the architecture before refinement begins:
 
+**Skeleton Pass** – The structure stands: schema created, CRUD operations functional, projection spaces instantiated, UI displays live data. This is not a prototype but the first working system, crude in details but correct in architecture.
 
-## 2. Technology Stack
+**Validation Pass** – Journey-aware queries replace generic ones, projection logic enforces journey boundaries, assessment flows confirm that AI measures within the user's conceptual space. The system begins to embody its philosophy through actual use.
 
-### 2.1 Knowledge Database
+**Precision Pass** – Embedding generation tunes to user vocabularies rather than generic models. Prompts refine through observed assessment patterns. Measurements validate against actual research outcomes. The system learns its precision through deployment, not speculation.
 
-**PostgreSQL 17** with pgvector extension provides unified storage for documents, metadata, and embeddings, running in Docker containers orchestrated by .NET Aspire. The pgvector extension enables efficient similarity search over 1536-dimensional embedding vectors while maintaining ACID guarantees for relational data. The system uses PostgreSQL 17 (upgradeable to 18 when released) via the `pgvector/pgvector:17-pg17` Docker image, ensuring consistent environments across development and production.
+**Production Pass** – Edge cases surface and resolve. Performance bottlenecks identify and optimize. Operational resilience confirms through stress testing. The system hardens for sustained intellectual work.
 
-### 2.2 Process Engine
+Nothing speculative is implemented early. Field names, prompt formats, indexing strategies—these mature through observed use, not assumption. The architecture is fixed; the details evolve.
 
-**ASP.NET Core 9.0** (STS release) implements the Process Engine as a RESTful API service. We use .NET 9 specifically for native UUIDv7 support via `Guid.CreateVersion7()`, providing time-ordered primary keys without custom implementations. The architecture employs Domain-Driven Design with aggregate boundaries around User, Journey, and Document entities. Data access uses the Repository pattern with Entity Framework Core 9.0, while CQRS separates read and write operations for scalability.
+## III. Core Runtime Components
 
-**Note on .NET 9**: This is a Standard Term Support (STS) release, not Long Term Support (LTS). We accept this trade-off for the native UUIDv7 implementation which is critical for our temporal ordering requirements.
+### 3.1 Knowledge Database
 
-### 2.3 Presentation Tier
+PostgreSQL 17 with pgvector extension provides unified storage for documents, metadata, and embeddings. This is not a compromise for simplicity but a recognition that the database embodies the domain.
 
-Blazor Server provides the web interface, enabling real-time updates through SignalR connections. This architecture choice eliminates JavaScript complexity while maintaining responsive user experiences. Component design follows a strict separation between user-authored content display and system-provided structure.
+The schema models the domain directly. Foreign keys enforce intellectual context—no Journey exists without a Persona because every inquiry requires a perspective. Check constraints encode discovered lifecycle states—a Journey can be Active, Paused, Completed, or Abandoned, not because we decided but because these are the states users actually experience. Partition keys enforce sovereignty—every significant table begins with user_id, creating natural boundaries for both scaling and privacy.
 
-### 2.4 Cognitive System Integration
+All projection-space data—segmentation, embeddings, assessments—exists in relational and vector form within the same ACID boundary. When a document enters a journey, its segments, embeddings, and assessments commit atomically. There is no eventual consistency between document and vector stores because there is only one store. HNSW indexes on vector columns provide logarithmic retrieval complexity while maintaining transactional guarantees.
 
-The ICognitiveAdapter interface abstracts LLM implementation details, supporting multiple backends: LlamaCppAdapter for local inference, SemanticKernelAdapter for Microsoft Semantic Kernel, and OpenAIAdapter for cloud-based models. Each adapter performs journey-calibrated assessments using journey-specific prompts and criteria, ensuring assessments occur within the user's projection space rather than generic processing.
+Cross-partition foreign keys do not exist. When users share content, the system creates explicit bridge records that reference across partitions through application logic rather than database constraints. These bridges are auditable, revocable, and maintain clear ownership chains. The database structure enforces the ethical principle: intellectual work remains private by default, shareable by choice.
 
-## Data Architecture
-
-### Entity Model: Journey Projection Architecture
-
-The data layer (`veritheia.Data`) implements journey-specific projection spaces:
-
-**Core Entities**:
-- **User**: Core identity with evolving persona
-- **Journey**: User's engagement instance with a process
-- **JourneyFramework**: Defines how this journey projects documents
-
-**Projection Entities**:
-- **Document**: Raw corpus materials (unchanged originals)
-- **JourneyDocumentSegment**: Document projected into journey-specific segments
-- **SearchIndex**: Metadata for segment embeddings
-- **SearchVector_{dimension}**: Polymorphic vector storage by dimension
-- **JourneySegmentAssessment**: Journey-specific relevance/contribution scores
-- **JourneyFormation**: Accumulated insights from the journey
-
-**Supporting Entities**:
-- **KnowledgeScope**: Organizational boundaries for documents
-- **ProcessDefinition**: Available process types
-- **ProcessExecution**: Process run tracking
-- **ProcessResult**: Process outputs
-- **Journal**: Narrative record (Research, Method, Decision, Reflection)
-- **JournalEntry**: Individual narrative entries
-
-### Primary Key Strategy
-
-All entities use **UUIDv7 (RFC 9562)** as primary keys:
-
-- **Format**: Standard UUID format (36 characters with hyphens in string form, 16 bytes binary)
-- **Benefits**: 
-  - Time-ordered like ULID (48-bit Unix timestamp in milliseconds)
-  - Native PostgreSQL UUID type support (no conversion needed)
-  - Built-in .NET 8+ support via `Guid.CreateVersion7()`
-  - RFC standardization ensures long-term stability
-  - Forward compatible with PostgreSQL 18's native `uuidv7()` function
-- **Implementation**: Direct mapping between C# `Guid` and PostgreSQL `uuid` type
-- **Example**: `018e3d28-a729-7000-8000-000000000000`
-
-**Implementation Example**:
-```csharp
-public abstract class BaseEntity
-{
-    public Guid Id { get; set; } = Guid.CreateVersion7();
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? UpdatedAt { get; set; }
-}
-
-// Entity Framework configuration
-modelBuilder.Entity<MyEntity>()
-    .Property(e => e.Id)
-    .HasColumnType("uuid"); // Direct mapping, no converter needed
-```
-
-Previous specification (ULID) was reconsidered through dialectical investigation:
-- UUIDv7 provides same temporal ordering benefits with native type support
-- Eliminates string conversion overhead (16 bytes binary vs 26 bytes string)
-- RFC 9562 standardization ensures long-term stability
-
-### Database Design Patterns
-
-- **Repository Pattern**: Generic `IRepository<T>` with concrete implementations
-- **Unit of Work**: Transaction management across repositories
-- **Specification Pattern**: Complex queries via `ISpecification<T>`
-- **Value Converters**: UTC DateTime, JSONB for PostgreSQL
-- **Soft Deletes**: Logical deletion with `DeletedAt` timestamp
-- **Auditing**: CreatedAt, UpdatedAt, CreatedBy, UpdatedBy on all entities
-- **Query Optimization**: 
-  - Use `.AsNoTracking()` for ALL read operations
-  - Use change tracking only for domain aggregate updates
-  - Compile frequently-used queries for performance
-- **Vector Queries**: Use `FromSqlRaw()` for pgvector operations with `<->` operator
-- **Journey Scoping**: All queries filtered by journey context
-- **Formation Tracking**: Persist accumulated insights per journey
-
-### Vector Storage: Polymorphic Table Architecture
-
-**Design**: Separate tables per vector dimension with metadata in `search_indexes`.
-
-**Structure**:
-```csharp
-// Metadata tracks all embeddings
-public class SearchIndex : BaseEntity
-{
-    public Guid SegmentId { get; set; }
-    public string VectorModel { get; set; } // "openai-ada-002", "e5-large-v2"
-    public int VectorDimension { get; set; } // 1536, 768, 384
-    public DateTime IndexedAt { get; set; }
-    
-    public JourneyDocumentSegment Segment { get; set; }
-}
-
-// Dimension-specific storage
-public class SearchVector1536
-{
-    public Guid IndexId { get; set; }
-    public float[] Embedding { get; set; } // Maps to vector(1536)
-    
-    public SearchIndex Index { get; set; }
-}
-```
-
-**Index Strategy**: HNSW (Hierarchical Navigable Small World)
-- Better query performance than IVFFlat (O(log n) vs O(√n))
-- Can be created on empty tables (no data required)
-- Parameters: m=16 (bi-directional links), ef_construction=64 (build quality)
-
-**Query Pattern**:
-```csharp
-public async Task<IEnumerable<SearchResult>> SearchSimilar(
-    Guid journeyId, float[] queryVector, string model, int limit = 10)
-{
-    var dimension = queryVector.Length;
-    var vectorTable = $"search_vectors_{dimension}";
-    
-    var sql = $@"
-        SELECT s.id, s.segment_content, v.embedding <-> @query as distance
-        FROM journey_document_segments s
-        JOIN search_indexes si ON si.segment_id = s.id
-        JOIN {vectorTable} v ON v.index_id = si.id
-        WHERE s.journey_id = @journeyId 
-          AND si.vector_model = @model
-        ORDER BY distance
-        LIMIT @limit";
-    
-    return await _context.Database
-        .SqlQueryRaw<SearchResult>(sql, 
-            new NpgsqlParameter("@query", queryVector),
-            new NpgsqlParameter("@journeyId", journeyId),
-            new NpgsqlParameter("@model", model),
-            new NpgsqlParameter("@limit", limit))
-        .AsNoTracking()
-        .ToListAsync();
-}
-```
-
-### Database Migrations with pgvector
-
-**Workflow**:
-1. Define entity changes in `veritheia.Data`
-2. Generate migration: `dotnet ef migrations add MigrationName`
-3. Add raw SQL for PostgreSQL-specific features
-4. Apply: Auto in development, explicit in production
-
-**Initial Migration Example**:
-```csharp
-public partial class InitialProjectionSchema : Migration
-{
-    protected override void Up(MigrationBuilder migrationBuilder)
-    {
-        // Enable pgvector extension
-        migrationBuilder.Sql("CREATE EXTENSION IF NOT EXISTS vector;");
-        
-        // Create journey projection tables
-        migrationBuilder.CreateTable(
-            name: "journey_document_segments",
-            columns: table => new
-            {
-                id = table.Column<Guid>(type: "uuid", nullable: false),
-                journey_id = table.Column<Guid>(type: "uuid", nullable: false),
-                document_id = table.Column<Guid>(type: "uuid", nullable: false),
-                segment_content = table.Column<string>(type: "text", nullable: false),
-                // ... other columns
-            },
-            constraints: table =>
-            {
-                table.PrimaryKey("PK_journey_document_segments", x => x.id);
-                // ... foreign keys
-            });
-        
-        // Create vector tables and HNSW indexes
-        migrationBuilder.Sql(@"
-            CREATE TABLE search_vectors_1536 (
-                index_id UUID PRIMARY KEY REFERENCES search_indexes(id),
-                embedding vector(1536) NOT NULL
-            );
-            
-            CREATE INDEX idx_vectors_1536_hnsw 
-            ON search_vectors_1536 
-            USING hnsw (embedding vector_cosine_ops)
-            WITH (m = 16, ef_construction = 64);
-        ");
-    }
-}
-```
-
-## Service Architecture
-
-### Dependency Injection Structure
-
-The application uses ASP.NET Core's built-in dependency injection with these service lifetimes:
-
-- **Scoped Services**: Database contexts, repositories, process instances
-- **Singleton Services**: Configuration, cognitive adapters, caching
-- **Transient Services**: Validators, mappers, utilities
-
-### Platform Services
-
-The platform provides guaranteed services that all processes can depend on:
-
-- **Document Encounter Service**: Records HOW and WHY a document entered a journey
-- **Conceptual Embedding Service**: Creates embeddings that reflect the author's conceptual framework
-- **Personal Metadata Service**: Extracts metadata relevant to the author's inquiry
-- **Semantic Chunking Service**: Splits documents based on the author's conceptual boundaries
-- **Journey Repository**: All data access filtered through journey context
-
-### Process Registration
-
-Processes are registered through a convention-based pattern that ensures proper dependency injection and discovery. Each process is registered both as itself and as an `IAnalyticalProcess` implementation.
-
-## Process Architecture
-
-### Process Execution Flow
-
-1. **Input Collection**: Dynamic forms generated from process definition
-2. **Context Creation**: User journey and inputs packaged into ProcessContext
-3. **Process Execution**: Business logic runs with access to platform services
-4. **Result Storage**: Outputs saved with full provenance and versioning
-5. **Result Rendering**: Process-specific UI components display results
-
-### Reference Process Patterns
-
-#### Systematic Screening Process (Analytical Pattern)
-- Implements dual assessment: relevance and contribution
-- Uses cognitive system in two distinct modes (librarian vs peer reviewer)
-- Produces filterable results with detailed rationales
-- Demonstrates journey-specific analysis
-
-Journal Integration:
-- **Research Journal**: Records findings about relevant papers
-- **Decision Journal**: Documents inclusion/exclusion rationales
-- **Method Journal**: Captures evolving search strategies
-- **Reflection Journal**: Notes emerging patterns and insights
-
-#### Guided Composition Process (Compositional Pattern)
-- Generates constrained content based on source materials
-- Creates evaluation rubrics aligned with objectives
-- Implements real-time assessment with feedback
-- Shows teacher/student role differentiation
-
-Journal Integration:
-- **Method Journal**: Teaching approaches and constraint design
-- **Decision Journal**: Rubric adjustments and grading overrides
-- **Reflection Journal**: Student progress observations
-- **Research Journal**: Pedagogical insights from assignments
-
-### Process Context
-
-Every process execution receives a context that includes:
-- Current knowledge scope
-- User journey with assembled journal context
-- Process-specific inputs
-- Execution metadata
-- Platform service references
-
-Context Assembly:
-1. **Journal Selection**: Relevant journals for current task
-2. **Entry Extraction**: Recent significant entries
-3. **Narrative Compression**: Maintaining coherence within token limits
-4. **Persona Integration**: User's conceptual vocabulary and patterns
-
-This context ensures outputs remain personally relevant and meaningful within the specific inquiry.
-
-## Extension Architecture
-
-### Extension Points
-
-The system provides several extension points for adding new capabilities:
-
-1. **Process Extensions**: New analytical workflows via `IAnalyticalProcess`
-2. **Data Model Extensions**: Domain-specific entities related to process executions
-3. **UI Component Extensions**: Custom Blazor components for process interfaces
-4. **Result Renderer Extensions**: Specialized visualization for process outputs
-
-### Extension Integration
-
-Extensions integrate through:
-- Service registration in dependency injection container
-- Entity Framework migrations for data model changes
-- Blazor component registration for UI elements
-- Process registry for discovery and metadata
-
-For detailed extension development, see [EXTENSION-GUIDE.md](./EXTENSION-GUIDE.md).
-
-## Development Environment
-
-### Local Development Setup
-
-1. **Prerequisites**: .NET 8 SDK, Docker Desktop, PostgreSQL client tools
-2. **Configuration**: Local settings in `appsettings.Development.json`
-3. **Startup**: Run via .NET Aspire for orchestrated services
-4. **Access Points**:
-   - Web UI: https://localhost:5001
-   - API: https://localhost:5000
-   - Aspire Dashboard: https://localhost:15000
-
-### Testing Approach
-
-- **Unit Tests**: Domain logic and service methods
-- **Integration Tests**: API endpoints with test containers
-- **E2E Tests**: UI workflows with Playwright
-- **Performance Tests**: Vector search and embedding generation
-
-### Debugging Tools
-
-- Aspire Dashboard for distributed tracing
-- Structured logging with Serilog
-- PostgreSQL query analysis
-- Browser developer tools for Blazor
-
-## Security Patterns
-
-### Authentication & Authorization
-
-- ASP.NET Core Identity for user management
-- JWT tokens for API authentication
-- Process-based authorization (users see only their executions)
-- Scope-based data access control
-
-### Data Protection
-
-- Encryption at rest via PostgreSQL
-- TLS for all network communication
-- No sensitive data in logs
-- User journey isolation
-
-## Performance Optimization
-
-### Caching Strategy
-
-- Redis for frequently accessed metadata
-- In-memory cache for static data
-- Output caching for read-heavy endpoints
-- Embedding cache to avoid recomputation
-
-### Scaling Patterns
-
-- Horizontal scaling for API instances
-- Read replicas for database queries
-- Background workers for embedding generation
-- CDN for static assets
-
-## Deployment Considerations
-
-### Container Strategy
-
-- Multi-stage Docker builds for optimization
-- .NET Aspire for local orchestration
-- Kubernetes manifests for production
-- Health checks for all services
-
-### Configuration Management
-
-- Environment-specific settings
-- Secret management via platform
-- Feature flags for gradual rollout
-- Telemetry configuration
-
-### Monitoring & Observability
-
-- Application Insights or OpenTelemetry
-- Structured logging with correlation
-- Performance counters
-- Custom metrics for process execution
-
-## API Design Principles
-
-### RESTful Conventions
-
-- Resource-based URLs
-- Proper HTTP verbs
-- Consistent response formats
-- HATEOAS where appropriate
-
-### Response Patterns
-
-All API responses follow a consistent structure with success indicators, data payloads, and error information. Pagination is implemented for list endpoints.
-
-### Versioning Strategy
-
-- URL-based versioning (v1, v2)
-- Backward compatibility commitment
-- Deprecation notices in headers
-- Migration guides for breaking changes
-
-## Design Patterns
-
-All implementations MUST follow the imperative patterns documented in [DESIGN-PATTERNS.md](./DESIGN-PATTERNS.md).
-
-Key patterns include:
-- Domain-Driven Design with aggregate boundaries
-- Repository and Specification patterns  
-- Result pattern for operation outcomes
-- Process Context for execution state
-- Adapter pattern for Cognitive System
-- Unit of Work for transaction management
-- CQRS for command/query separation
-
-See [DESIGN-PATTERNS.md](./DESIGN-PATTERNS.md) for complete implementation details and code examples.
+### 3.2 Process Engine
+
+Implemented in ASP.NET Core 9.0, the Process Engine orchestrates analytical workflows as first-class runtime entities. Processes are not scripts or procedures but managed objects with lifecycle, state, and guarantees.
+
+UUIDv7 primary keys provide temporal ordering without external sequence management. Every entity's ID encodes its creation time, enabling natural pagination and forensic analysis. The system uses Guid.CreateVersion7() natively, avoiding custom implementations or string conversions.
+
+CQRS applies only as a conceptual separation between read and write flows. There is no Repository pattern hiding the database. Entity Framework Core maps directly to schema entities, allowing constraints to participate in execution. When a service attempts to create an invalid state, PostgreSQL rejects it immediately, not after layers of abstraction fail to validate.
+
+Processes operate entirely within the user's projection space. The ProcessContext assembles user journey, persona elements, and journal entries into a coherent narrative that guides execution. Platform services—document ingestion, embedding generation, assessment orchestration—are guaranteed available to all processes, providing consistent capabilities while respecting journey boundaries.
+
+### 3.3 Presentation Tier
+
+Blazor Server provides the primary interface for deep intellectual work. The SignalR connection maintains stateful communication, preserving journey context across hours or days of engagement. This is not a limitation but a recognition: serious intellectual work requires sustained context, not stateless transactions.
+
+The REST API serves a different purpose: headless automation, third-party integration, and eventual ecosystem participation. Each endpoint represents a bounded capability with explicit contracts. External systems can orchestrate Veritheia's capabilities without understanding its internal architecture.
+
+Both interfaces consume the same service layer, ensuring behavioral consistency. A document ingested through the API behaves identically to one uploaded through Blazor. A process executed headlessly produces the same results as one run interactively. The interfaces differ in interaction model, not capability.
+
+### 3.4 Cognitive System Integration
+
+The ICognitiveAdapter interface abstracts integration with language models while preserving journey-specific assessment. Adapters exist for local inference (LlamaCpp), on-premise orchestration (Semantic Kernel), and cloud services (OpenAI, Anthropic). Each adapter receives the same journey-calibrated prompts and returns measurements, not interpretations.
+
+The cognitive system never sees raw documents. It receives segments projected through the journey's conceptual framework, prompts containing the user's research questions, and rubrics derived from their assessment criteria. The AI measures within the projection space the user has defined. When it assesses relevance, it measures against the user's specific questions, not generic importance. When it evaluates contribution, it uses the user's definitions of value, not universal metrics.
+
+## IV. Data Model: Projection Space in Practice
+
+The entity model implements the three-layer architecture described in the Vision:
+
+**Raw Corpus** remains immutable. Documents preserve their original structure, metadata, and content. The system never modifies source materials, only creates projections from them.
+
+**Journey Projection Spaces** transform documents according to journey-specific rules. The same PDF might be segmented by section for systematic review, by paragraph for close reading, or by concept for thematic analysis. Each segmentation creates JourneyDocumentSegment records linked to the journey that defined them. Embeddings generate with the journey's vocabulary as context. Assessments measure against the journey's criteria.
+
+**Knowledge Layer** provides the queryable API constrained to projection boundaries. Semantic search operates within journey-scoped indexes. Queries naturally filter by user_id and journey_id, enforcing both privacy and relevance.
+
+Every table's primary key begins with user_id, creating natural clustering for partition-based scaling. Vector storage is polymorphic—separate tables for different embedding dimensions (search_vectors_1536, search_vectors_768, search_vectors_384) with metadata in search_indexes tracking which embeddings exist for which segments. HNSW indexes on each vector table provide efficient similarity search within the journey's projection space.
+
+## V. Service and Process Architecture
+
+Platform services guarantee core invariants for all processes:
+
+**Document Ingestion** preserves structure while extracting searchable content. PDFs maintain page boundaries. Academic papers preserve sections. Web content retains semantic HTML structure. The ingestion service never summarizes or interprets, only extracts and preserves.
+
+**Projection-Aware Embedding** generates vectors within journey context. The same text embedded for a technical review includes technical vocabulary in its context. Embedded for philosophical analysis, it includes conceptual frameworks. The embedding service ensures semantic search operates within the user's intellectual space.
+
+**Partition-Safe Search** respects user boundaries. Queries automatically scope to the authenticated user's partition. Cross-partition search requires explicit bridges with audit trails. The search service enforces sovereignty at the query level.
+
+**Context Assembly** constructs coherent narratives from journals, personas, and journey state. Recent entries receive priority. Significant entries (marked Critical or Milestone) always include. The assembly service ensures processes operate with full user context while respecting token limits.
+
+Processes follow a unified execution contract:
+
+1. **Input Collection** through strongly-typed forms (UI) or validated JSON (API)
+2. **Context Assembly** from journey state, relevant journals, and persona elements
+3. **Execution** with full access to platform services and database within journey scope
+4. **Result Persistence** with complete provenance and versioning
+5. **Rendering** through process-specific UI components or structured API responses
+
+The reference processes—Systematic Screening and Guided Composition—demonstrate analytical and compositional patterns while respecting user authorship. They show how processes can orchestrate complex workflows while ensuring insights emerge from user engagement, not system generation.
+
+## VI. Extension Model
+
+Extensions integrate at defined boundaries without modifying core architecture:
+
+**Process Extensions** implement IAnalyticalProcess, gaining access to all platform services and guarantees. A specialized literature review process, a domain-specific analysis workflow, or a custom composition assistant—all inherit the same journey context, projection space, and sovereignty guarantees.
+
+**Data Model Extensions** add entities through Entity Framework migrations that respect core constraints. Extension entities must link to appropriate aggregates (User, Journey, ProcessExecution) and honor partition boundaries. They cannot create cross-partition foreign keys or bypass journey scoping.
+
+**UI Component Extensions** provide process-specific interfaces in Blazor. They receive journey context, can access projection spaces, and render results. They cannot access other users' data or bypass authentication.
+
+All extensions inherit partition rules, context assembly, and projection-space scope. They extend capability while preserving sovereignty.
+
+## VII. Testing Philosophy
+
+Testing follows the architectural stance: the database is the domain, mocking it mocks reality.
+
+**No Internal Mocking** – PostgreSQL, Entity Framework, and platform services execute as they will in production. Tests run against real database instances with Respawn resetting state between runs. This is slower than mocking but validates actual behavior, not imagined contracts.
+
+**Unit Tests** are reserved for pure, deterministic functions. A method that parses markdown, calculates similarity scores, or transforms data structures warrants unit testing. These tests are fast, focused, and numerous.
+
+**Integration Tests** validate service-database behavior. They confirm that services respect constraints, transactions maintain consistency, and queries return expected results. These tests are slower but essential—they validate the domain model's enforcement.
+
+**End-to-End Tests** confirm full workflow coherence. From login through document upload, journey creation, process execution, and result retrieval—these tests validate that the system works as users experience it.
+
+**Performance Tests** target known bottlenecks: vector similarity search, embedding generation, and projection space creation. They establish baselines and prevent regression. They run against realistic data volumes within journey-scoped boundaries.
+
+## VIII. Security and Privacy
+
+Security and privacy are not features but architectural foundations:
+
+**TLS Everywhere** – All connections, even local development, use TLS. There is no "internal" network where encryption is optional.
+
+**Encryption at Rest** – PostgreSQL Transparent Data Encryption protects persistent storage. Backups encrypt separately with rotation keys.
+
+**No Analytics** – The system collects no usage analytics, generates no recommendations, and performs no cross-user analysis. Telemetry is limited to operational metrics: response times, error rates, resource utilization.
+
+**Consent-Based Sharing** – Cross-user operations require explicit, revocable consent with full audit trails. Sharing creates bridges, not copies, preserving ownership chains.
+
+**Local-First Default** – The system deploys locally by default. Cloud deployments must maintain full partition isolation, treating each user's partition as a separate security domain.
+
+## IX. Deployment
+
+The implementation deploys through progressive environments:
+
+**Development** runs via Docker Compose with .NET Aspire orchestration. Hot reload enables rapid iteration. Structured logging provides detailed debugging. The Aspire dashboard shows distributed traces and metrics.
+
+**Staging** deploys to Kubernetes with production-like configuration but relaxed resource limits. Integration tests run here. Performance baselines establish. Security scans execute.
+
+**Production** runs on Kubernetes with full resilience: horizontal pod autoscaling, database replication, automated backups, and disaster recovery. Health checks monitor all services. Alerts trigger on anomalies. Feature flags control rollout.
+
+Each environment maintains the same architectural guarantees: user sovereignty, projection-space isolation, and anti-surveillance design.
+
+## X. Closing Alignment
+
+This implementation is the mechanical embodiment of the philosophical commitments in the Vision and the architectural structures in the Architecture. It does not attempt to generalize for market trends or mimic industry patterns that undermine sovereignty.
+
+Every component is constructed to hold the line: between measurement and interpretation, between projection and corpus, between system capacity and human authorship. The code is not merely correct—it is aligned.
+
+The database constraints teach what intellectual sovereignty requires. The type system enforces semantic precision. The process orchestration maintains journey coherence. The partition strategy ensures privacy by design. The testing philosophy validates reality, not abstractions.
+
+This is implementation as philosophy made mechanical: every line of code, every schema constraint, every service boundary exists to preserve the human capacity to form understanding through engagement rather than consume it through extraction.
