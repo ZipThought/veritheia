@@ -15,10 +15,11 @@ This paper introduces methodologies for systematic literature review automation 
 
 ### 2. EdgePrompt: Engineering Guardrail Techniques for Offline LLMs in K-12 Educational Settings
 **File**: `3701716.3717810.pdf`  
-**Authors**: Rizky Aljayy Syah, Christoforus Yoga Haryanto, Edwin Lomempow, Kashif Malik, Ida Putra  
+**Authors**: Riza Alaudin Syah, Christoforus Yoga Haryanto, Emily Lomempow, Krishna Malik, Irvan Putra  
 **Year**: 2025  
-**Reference**: WWW '25 Companion Proceedings  
-**DOI**: https://doi.org/10.1145/3701716.3717810
+**Reference**: WWW '25 Companion Proceedings, Pages 1635-1638  
+**DOI**: https://doi.org/10.1145/3701716.3717810  
+**Published**: 23 May 2025
 
 This paper establishes the epistemic sovereignty principles and offline-first architecture that underpin Veritheia's design. The guardrail techniques and local processing requirements directly influence the system's use of local LLMs and rejection of cloud-first approaches.
 

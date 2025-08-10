@@ -78,7 +78,7 @@ See [Development Progress](development/PROGRESS.md) for detailed phase implement
 
 The architecture and its methodologies are derived from the following research.
 
-- Syah, R. A., Haryanto, C. Y., Lomempow, E., Malik, K., & Putra, I. (2025). EdgePrompt: Engineering Guardrail Techniques for Offline LLMs in K-12 Educational Settings. In *Companion Proceedings of the ACM on Web Conference 2025 (WWW '25)*. Association for Computing Machinery, New York, NY, USA, 1635–1638. [https://doi.org/10.1145/3701716.3717810](https://doi.org/10.1145/3701716.3717810)
+- Syah, R. A., Haryanto, C. Y., Lomempow, E., Malik, K., & Putra, I. (2025). EdgePrompt: Engineering Guardrail Techniques for Offline LLMs in K-12 Educational Settings. In *Companion Proceedings of the ACM on Web Conference 2025 (WWW '25 Companion)*. Association for Computing Machinery, New York, NY, USA, 1635–1638. Published: 23 May 2025. [https://doi.org/10.1145/3701716.3717810](https://doi.org/10.1145/3701716.3717810)
 
 - Haryanto, C. Y., & Lomempow, E. (2025). Cognitive Silicon: An Architectural Blueprint for Post-Industrial Computing Systems. *arXiv preprint arXiv:2504.16622*. [https://doi.org/10.48550/arXiv.2504.16622](https://doi.org/10.48550/arXiv.2504.16622)
 
