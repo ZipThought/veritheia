@@ -1109,6 +1109,51 @@ public class AuthoredResult<T>
 ```
 Implemented at service layer, not repository layer.
 
+## Final Architectural Pivot: Explicit Rejection of DDD
+
+**2025-08-11** - Human directive to explicitly reject DDD in favor of first principles engineering.
+
+### The Philosophical Clarity
+
+After extensive investigation and false starts, the human provided definitive guidance:
+
+> "Ok, it is now the time to explicitly REJECT DDD, and use first principle engineering instead."
+
+This isn't a preference—it's architectural honesty. Veritheia has no business domain. It has journey-specific projection spaces where meaning emerges. The attempt to force DDD patterns created impedance mismatch.
+
+### What We Discovered
+
+1. **PostgreSQL IS the domain model**: Foreign keys, constraints, and types enforce all rules
+2. **EF Core IS the repository**: DbContext/DbSet already provide these patterns
+3. **Documents have no inherent meaning**: Meaning emerges through journey projection
+4. **Intelligence lives in LLMs**: Not in domain objects with behavior
+
+### The First Principles Architecture
+
+```
+PostgreSQL (constraints enforce truth)
+    ↑
+EF Core (honest projection to C#)
+    ↑
+Services (business logic using DbContext directly)
+    ↑
+Controllers (HTTP concerns)
+
++ Only Two Abstractions:
+  - FileStorageService (filesystem/S3)
+  - ICognitiveAdapter (AI services)
+```
+
+### Documentation Updated
+
+DESIGN-PATTERNS.md has been completely rewritten to:
+- Explicitly reject DDD
+- Document first principles patterns
+- Show how patterns emerge from tech stack
+- Explain philosophical foundation
+
+The patterns now documented are not imposed but discovered—praxis arising from the ontology of our tools.
+
 ### Domain Services Using EF Core Directly
 
 Instead of repositories for PostgreSQL data, domain services use EF Core directly:

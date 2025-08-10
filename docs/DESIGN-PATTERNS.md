@@ -2,7 +2,7 @@
 
 ## 1. Overview
 
-This document specifies mandatory design patterns for Veritheia implementation. Each pattern enforces architectural principles preventing system-generated insights while maintaining extensibility. Patterns derive from Domain-Driven Design adapted for epistemic infrastructure requirements.
+This document specifies mandatory design patterns for Veritheia implementation. Each pattern emerges from first principles engineering—the natural consequences of our technology choices rather than imposed abstractions. We explicitly reject Domain-Driven Design (DDD) in favor of patterns that arise organically from the telos and ontology of our tech stack.
 
 ## 2. Core Principles
 
@@ -14,324 +14,343 @@ Documentation serves as the authoritative specification. Each requirement exists
 
 Patterns preserve user intellectual sovereignty through journey-aware data access and provenance tracking. Performance optimizations cannot compromise formation principles.
 
-## 3. Mandatory Design Patterns
+### 2.3 First Principles Over Abstractions
 
-### 3.1 Domain-Driven Design
+We reject ceremonial patterns that abstract what is already abstracted. PostgreSQL with its constraints IS our domain model enforcer. Entity Framework Core IS our repository and unit of work. The patterns documented here emerge from the natural grain of these technologies, not from architectural fashion.
 
-> **Important Distinction**: Domain-Driven Design encompasses multiple patterns that can be adopted independently. The tactical patterns (Entities, Value Objects, Aggregates) establish the domain model and can exist with direct persistence through an ORM like Entity Framework. The Repository pattern adds an abstraction layer over persistence but is not required for a valid DDD implementation. Entities with proper aggregate boundaries, value objects, and domain rules enforced through constraints constitute complete DDD tactical patterns even when accessed directly through a DbContext.
+## 3. Why We Reject DDD
 
-#### 3.1.1 Aggregate Boundaries
+### The Philosophical Mismatch
+
+Domain-Driven Design emerged from enterprise software where "business domains" have tangible meaning—orders, invoices, inventory. Veritheia has no business domain. It is epistemic infrastructure for journey-specific understanding formation. The attempt to force DDD patterns onto this reality creates impedance mismatch:
+
+1. **No Universal Domain**: Each journey creates its own projection space with unique meaning
+2. **Intelligence Lives Elsewhere**: LLMs hold the intelligence, not domain objects with behavior  
+3. **PostgreSQL IS the Model**: Foreign keys, constraints, and types already enforce all rules
+4. **EF Core IS the Repository**: DbContext and DbSet already implement these patterns
+
+### What DDD Gets Wrong Here
+
 ```csharp
-// User is an aggregate root with Journey as part of the aggregate
-public class User : BaseEntity
+// DDD ANTI-PATTERN: Aggregate root with behavior
+public class User : AggregateRoot
 {
-    public string Email { get; private set; }
-    public Persona Persona { get; private set; }
-    public IReadOnlyCollection<Journey> Journeys => _journeys.AsReadOnly();
-    
     private readonly List<Journey> _journeys = new();
     
-    // All journey creation goes through the aggregate root
     public Journey StartJourney(Process process, string purpose)
     {
+        // This pretends the C# object enforces rules
+        // But PostgreSQL foreign keys are the real enforcer
         var journey = new Journey(this, process, purpose);
         _journeys.Add(journey);
         return journey;
     }
 }
+
+// FIRST PRINCIPLES: Honest data structure
+public class User
+{
+    public Guid Id { get; set; }
+    public string Email { get; set; }
+    public List<Journey> Journeys { get; set; } // PostgreSQL enforces the relationship
+}
 ```
 
-#### Value Objects
+The DDD version adds ceremony without value. PostgreSQL's foreign key constraint `journeys.user_id REFERENCES users(id)` is the actual aggregate boundary. The C# class is merely an honest projection of database truth.
+
+## 4. First Principles Patterns
+
+### 4.1 Direct Data Access Through EF Core
+
+Entity Framework Core already provides repository and unit of work patterns. We use it directly:
+
 ```csharp
-// Immutable value object for embedding vectors
-public record EmbeddingVector
+public class JourneyService
 {
-    public float[] Values { get; }
-    public string Model { get; }
-    public int Dimensions => Values.Length;
+    private readonly VeritheiaDbContext _db;
     
-    public EmbeddingVector(float[] values, string model)
+    public async Task<Journey> CreateJourney(Guid userId, string purpose)
     {
-        Values = values ?? throw new ArgumentNullException(nameof(values));
-        Model = model ?? throw new ArgumentNullException(nameof(model));
+        // PostgreSQL enforces user exists via FK
+        var journey = new Journey 
+        { 
+            Id = Guid.CreateVersion7(),
+            UserId = userId,
+            Purpose = purpose,
+            State = "Active",
+            CreatedAt = DateTime.UtcNow
+        };
         
-        if (values.Length != 1536)
-            throw new ArgumentException("Embeddings must be 1536 dimensions");
-    }
-}
-```
-
-### 2. Repository Pattern
-
-> **Abstraction over Persistence**: The Repository pattern provides an abstraction layer between the domain model and data persistence. While DDD entities can be persisted directly through an ORM's DbContext, repositories offer benefits: hiding persistence mechanisms (allowing technology changes), ensuring aggregate consistency (loading complete aggregates), enforcing domain-specific access patterns (like journey-awareness), and enabling testability through interface mocking. The repository is not the domain model itself but rather the gateway through which the domain model is persisted and retrieved.
-
-#### Generic Repository Interface
-```csharp
-public interface IJourneyAwareRepository<T> where T : BaseEntity
-{
-    // All queries filtered through journey context
-    Task<T?> GetByIdForJourneyAsync(Guid id, Guid journeyId, CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<T>> ListForJourneyAsync(Guid journeyId, ISpecification<T> spec, CancellationToken cancellationToken = default);
-    Task<T> AddToJourneyAsync(T entity, Guid journeyId, string encounterContext, CancellationToken cancellationToken = default);
-    Task UpdateInJourneyContextAsync(T entity, Guid journeyId, CancellationToken cancellationToken = default);
-    Task<int> CountForJourneyAsync(Guid journeyId, ISpecification<T> spec, CancellationToken cancellationToken = default);
-}
-```
-
-#### Specification Pattern
-```csharp
-public interface ISpecification<T>
-{
-    Expression<Func<T, bool>> Criteria { get; }
-    List<Expression<Func<T, object>>> Includes { get; }
-    List<string> IncludeStrings { get; }
-    Expression<Func<T, object>>? OrderBy { get; }
-    Expression<Func<T, object>>? OrderByDescending { get; }
-    int Take { get; }
-    int Skip { get; }
-    bool IsPagingEnabled { get; }
-}
-
-// Example usage
-public class ActiveJourneysSpecification : BaseSpecification<Journey>
-{
-    public ActiveJourneysSpecification(Guid userId)
-    {
-        AddCriteria(j => j.UserId == userId && j.CompletedAt == null);
-        AddInclude(j => j.JournalEntries);
-        ApplyOrderByDescending(j => j.CreatedAt);
-    }
-}
-```
-
-### 3. Result Pattern
-
-#### Result Type for Operation Outcomes
-```csharp
-public class AuthoredResult<T>
-{
-    public bool IsSuccess { get; }
-    public T? Value { get; }
-    public string Error { get; }
-    public Guid JourneyId { get; } // Every result tied to journey
-    public DateTime AuthoredAt { get; } // When this understanding emerged
-    public JournalEntry[] GeneratedNarratives { get; } // New insights to record
-    
-    protected AuthoredResult(bool isSuccess, T? value, string error, Guid journeyId)
-    {
-        IsSuccess = isSuccess;
-        Value = value;
-        Error = error;
-        JourneyId = journeyId;
-        AuthoredAt = DateTime.UtcNow;
-        GeneratedNarratives = Array.Empty<JournalEntry>();
+        _db.Journeys.Add(journey);
+        await _db.SaveChangesAsync(); // This IS the unit of work
+        return journey;
     }
     
-    public static AuthoredResult<T> Success(T value, Guid journeyId, params JournalEntry[] narratives) 
-        => new(true, value, string.Empty, journeyId) { GeneratedNarratives = narratives };
-    public static AuthoredResult<T> Failure(string error, Guid journeyId) 
-        => new(false, default, error, journeyId);
+    public async Task<List<Journey>> GetActiveJourneys(Guid userId)
+    {
+        // Direct LINQ query - no abstraction needed
+        return await _db.Journeys
+            .Where(j => j.UserId == userId && j.State == "Active")
+            .Include(j => j.Persona)
+            .OrderByDescending(j => j.CreatedAt)
+            .ToListAsync();
+    }
+}
+```
+
+### 4.2 Journey-Scoped Queries as Extension Methods
+
+For common query patterns, use extension methods instead of repository abstractions:
+
+```csharp
+public static class JourneyQueries
+{
+    public static IQueryable<JourneyDocumentSegment> ForJourney(
+        this IQueryable<JourneyDocumentSegment> segments, 
+        Guid journeyId)
+    {
+        return segments.Where(s => s.JourneyId == journeyId);
+    }
+    
+    public static IQueryable<JourneyDocumentSegment> WithEmbeddings(
+        this IQueryable<JourneyDocumentSegment> segments)
+    {
+        return segments.Include(s => s.SearchIndexes)
+                      .ThenInclude(i => i.SearchVectors);
+    }
 }
 
-// Usage in services
-public async Task<Result<Document>> ProcessDocumentAsync(string path)
+// Usage
+var segments = await _db.JourneyDocumentSegments
+    .ForJourney(journeyId)
+    .WithEmbeddings()
+    .ToListAsync();
+```
+
+### 4.4 Simple Return Values
+
+Services return domain entities directly. Journey tracking happens at the process/controller level:
+
+```csharp
+public class DocumentService
 {
-    if (!File.Exists(path))
-        return Result<Document>.Failure("File not found");
+    private readonly VeritheiaDbContext _db;
+    private readonly FileStorageService _files;
+    
+    public async Task<Document> ProcessDocument(string path, Guid userId)
+    {
+        if (!File.Exists(path))
+            throw new FileNotFoundException($"File not found: {path}");
+            
+        // Store file
+        using var stream = File.OpenRead(path);
+        var storagePath = await _files.SaveDocument(stream, Path.GetFileName(path));
         
-    try
-    {
-        var document = await ExtractDocumentAsync(path);
-        return Result<Document>.Success(document);
-    }
-    catch (Exception ex)
-    {
-        return Result<Document>.Failure($"Processing failed: {ex.Message}");
+        // Create document record
+        var document = new Document
+        {
+            Id = Guid.CreateVersion7(),
+            UserId = userId,
+            FileName = Path.GetFileName(path),
+            FilePath = storagePath,
+            FileSize = new FileInfo(path).Length,
+            UploadedAt = DateTime.UtcNow
+        };
+        
+        _db.Documents.Add(document);
+        await _db.SaveChangesAsync();
+        
+        return document; // Simple return, no ceremony
     }
 }
 ```
 
-### 4. Process Context Pattern
+### 4.5 Process Context for Journey Awareness
 
-#### Context for Process Execution
+Process execution carries journey context naturally:
+
 ```csharp
 public class ProcessContext
 {
-    public User Author { get; } // Not "User" - they are authors
-    public Journey IntellectualJourney { get; } // Not just "Journey"
-    public IReadOnlyList<JournalEntry> FormativeNarratives { get; } // Not just "entries"
-    public ConceptualFramework AuthorsFramework { get; } // Not generic "scope"
-    public IReadOnlyDictionary<string, object> AuthoredInputs { get; } // User's specific framing
-    public CancellationToken CancellationToken { get; }
+    public Guid JourneyId { get; init; }
+    public Guid UserId { get; init; }
+    public Dictionary<string, object> Parameters { get; init; } = new();
+    public CancellationToken CancellationToken { get; init; }
+}
+
+// Process uses context with direct database access
+public class ScreeningProcess : IAnalyticalProcess
+{
+    private readonly VeritheiaDbContext _db;
+    private readonly ICognitiveAdapter _cognitive;
     
-    public ProcessContext(
-        User user,
-        Journey journey,
-        IEnumerable<JournalEntry> relevantEntries,
-        KnowledgeScope scope,
-        Dictionary<string, object> inputs,
-        CancellationToken cancellationToken = default)
+    public async Task<ProcessResult> ExecuteAsync(ProcessContext context)
     {
-        User = user ?? throw new ArgumentNullException(nameof(user));
-        Journey = journey ?? throw new ArgumentNullException(nameof(journey));
-        RelevantEntries = relevantEntries?.ToList() ?? new List<JournalEntry>();
-        Scope = scope ?? throw new ArgumentNullException(nameof(scope));
-        Inputs = new ReadOnlyDictionary<string, object>(inputs ?? new Dictionary<string, object>());
-        CancellationToken = cancellationToken;
+        // Get journey directly
+        var journey = await _db.Journeys
+            .Include(j => j.Persona)
+            .FirstOrDefaultAsync(j => j.Id == context.JourneyId);
+            
+        if (journey == null)
+            throw new InvalidOperationException($"Journey {context.JourneyId} not found");
+            
+        // Process documents in journey's projection space
+        var segments = await _db.JourneyDocumentSegments
+            .Where(s => s.JourneyId == context.JourneyId)
+            .ToListAsync();
+            
+        // ... processing logic
+        
+        return new ProcessResult { Success = true, Data = results };
     }
 }
 ```
 
-### 5. Adapter Pattern for Cognitive System
+### 4.8 Cognitive Adapter (The One True Abstraction)
 
-#### Cognitive System Interface
+The cognitive adapter is a necessary abstraction because it wraps external AI services:
+
 ```csharp
 public interface ICognitiveAdapter
 {
-    Task<EmbeddingVector> CreateEmbeddingsAsync(
-        string text,
-        CancellationToken cancellationToken = default);
-        
-    Task<FormationAssistance> PerformAssessmentAsync(
-        string prompt,
-        ProcessContext context,
-        AssistantRole role, // Librarian, PeerReviewer, etc.
-        CancellationToken cancellationToken = default);
-        
-    Task<bool> IsHealthyAsync(CancellationToken cancellationToken = default);
-    
+    Task<float[]> CreateEmbedding(string text);
+    Task<AssessmentResult> AssessAsync(string content, string criteria);
     int MaxContextTokens { get; }
-    string ModelIdentifier { get; }
 }
 
-public enum AssessmentRole
-{
-    Librarian,      // For relevance assessment
-    PeerReviewer,   // For contribution assessment
-    Instructor,     // For rubric-based evaluation
-    Evaluator       // For performance measurement
-}
+public record AssessmentResult(double Score, string Reasoning);
 
-public class AssessmentResult
-{
-    public string Content { get; set; }
-    public AssessmentRole Role { get; set; }
-    public Dictionary<string, object> Metadata { get; set; } // Scores, rationales, etc.
-    public Guid JourneyId { get; set; }
-    public DateTime AssessedAt { get; set; }
-}
-
-// Example implementation
+// Implementation wraps external service
 public class SemanticKernelAdapter : ICognitiveAdapter
 {
     private readonly Kernel _kernel;
-    private readonly ITextEmbeddingGenerationService _embeddingService;
     
-    public int MaxContextTokens => 128000; // Claude 3 context window
-    public string ModelIdentifier => "claude-3-opus-20240229";
+    public int MaxContextTokens => 128000;
     
-    public async Task<EmbeddingVector> CreateEmbeddingsAsync(
-        string text,
-        CancellationToken cancellationToken = default)
+    public async Task<float[]> CreateEmbedding(string text)
     {
-        var embeddings = await _embeddingService.GenerateEmbeddingAsync(
-            text,
-            cancellationToken: cancellationToken);
-            
-        return new EmbeddingVector(
-            embeddings.ToArray(),
-            "text-embedding-3-small");
+        // This abstracts OpenAI/Claude/local models
+        var result = await _kernel.InvokeAsync("embedding", text);
+        return result.ToArray();
     }
-}
-```
-
-### 6. Unit of Work Pattern
-
-#### Transaction Management
-```csharp
-public interface IUnitOfWork : IDisposable
-{
-    IRepository<User> Users { get; }
-    IRepository<Document> Documents { get; }
-    IRepository<Journey> Journeys { get; }
-    IRepository<ProcessExecution> ProcessExecutions { get; }
     
-    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
-    Task BeginTransactionAsync(CancellationToken cancellationToken = default);
-    Task CommitTransactionAsync(CancellationToken cancellationToken = default);
-    Task RollbackTransactionAsync(CancellationToken cancellationToken = default);
-}
-
-// Usage in services
-public async Task<Result<Journey>> CreateJourneyAsync(CreateJourneyCommand command)
-{
-    await _unitOfWork.BeginTransactionAsync();
-    
-    try
+    public async Task<AssessmentResult> AssessAsync(string content, string criteria)
     {
-        var user = await _unitOfWork.Users.GetByIdAsync(command.UserId);
-        if (user == null)
-            return Result<Journey>.Failure("User not found");
-            
-        var journey = user.StartJourney(command.Process, command.Purpose);
-        await _unitOfWork.SaveChangesAsync();
-        await _unitOfWork.CommitTransactionAsync();
+        // Measurement within journey's projection space
+        var prompt = $"Assess this content: {content}\nAgainst criteria: {criteria}";
+        var result = await _kernel.InvokeAsync("assessment", prompt);
         
-        return Result<Journey>.Success(journey);
-    }
-    catch
-    {
-        await _unitOfWork.RollbackTransactionAsync();
-        throw;
+        return new AssessmentResult(
+            Score: ParseScore(result),
+            Reasoning: ParseReasoning(result)
+        );
     }
 }
 ```
 
-### 7. CQRS Pattern
+This abstraction has value because:
+1. AI services are external resources (like files)
+2. Multiple providers exist (OpenAI, Anthropic, local)
+3. The interface is stable while implementations vary
+```
 
-#### Command/Query Separation
+### 4.3 File Storage Service
+
+The only true "repository" pattern we need - for resources outside PostgreSQL:
+
 ```csharp
-// Commands modify state
-public record CreateDocumentCommand(
-    string FilePath,
-    string Title,
-    Ulid ScopeId,
-    Ulid UserId);
-
-public interface ICommandHandler<TCommand>
+public class FileStorageService
 {
-    Task<Result> HandleAsync(TCommand command, CancellationToken cancellationToken = default);
+    private readonly string _rootPath;
+    
+    public async Task<string> SaveDocument(Stream content, string fileName)
+    {
+        var path = Path.Combine(_rootPath, "documents", fileName);
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        
+        using var fs = new FileStream(path, FileMode.Create);
+        await content.CopyToAsync(fs);
+        return path;
+    }
+    
+    public async Task<Stream> GetDocument(string path)
+    {
+        if (!File.Exists(path))
+            throw new FileNotFoundException($"Document not found: {path}");
+            
+        return new FileStream(path, FileMode.Open, FileAccess.Read);
+    }
+}
+```
+
+This is a repository pattern because it abstracts external storage (filesystem, S3, etc.) that PostgreSQL cannot handle.
+
+### 4.6 Command/Query Separation (When Complexity Warrants)
+
+CQRS only when operations become complex enough to benefit:
+
+```csharp
+// Simple operations - just use service methods
+public class JourneyService
+{
+    public async Task<Journey> GetJourney(Guid id) { ... }
+    public async Task<Journey> CreateJourney(string purpose) { ... }
 }
 
-// Queries read state
-public record GetDocumentsBySearchQuery(
-    string SearchTerm,
-    Ulid ScopeId,
+// Complex operations - CQRS helps organize
+public record ComplexSearchQuery(
+    string[] SearchTerms,
+    Guid[] JourneyIds,
+    DateTime? Since,
     int PageNumber = 1,
     int PageSize = 20);
 
-public interface IQueryHandler<TQuery, TResult>
+public class ComplexSearchHandler
 {
-    Task<TResult> HandleAsync(TQuery query, CancellationToken cancellationToken = default);
+    private readonly VeritheiaDbContext _db;
+    
+    public async Task<PagedResult> Handle(ComplexSearchQuery query)
+    {
+        // Complex query logic benefits from separation
+        var baseQuery = _db.JourneyDocumentSegments
+            .Where(s => query.JourneyIds.Contains(s.JourneyId));
+            
+        if (query.Since.HasValue)
+            baseQuery = baseQuery.Where(s => s.CreatedAt >= query.Since.Value);
+            
+        // ... more complex filtering
+        
+        return new PagedResult { ... };
+    }
 }
 
 // Implementation
 public class GetDocumentsBySearchQueryHandler : IQueryHandler<GetDocumentsBySearchQuery, PagedResult<DocumentDto>>
 {
-    private readonly IRepository<Document> _repository;
+    private readonly VeritheiaDbContext _db;
     
     public async Task<PagedResult<DocumentDto>> HandleAsync(
         GetDocumentsBySearchQuery query,
         CancellationToken cancellationToken = default)
     {
-        var spec = new DocumentSearchSpecification(query.SearchTerm, query.ScopeId)
-            .WithPaging(query.PageNumber, query.PageSize);
+        var baseQuery = _db.Documents
+            .Where(d => d.FileName.Contains(query.SearchTerm));
             
-        var documents = await _repository.ListAsync(spec, cancellationToken);
-        var count = await _repository.CountAsync(spec, cancellationToken);
+        var documents = await baseQuery
+            .Skip((query.PageNumber - 1) * query.PageSize)
+            .Take(query.PageSize)
+            .Select(d => new DocumentDto
+            {
+                Id = d.Id,
+                FileName = d.FileName,
+                FilePath = d.FilePath
+            })
+            .ToListAsync(cancellationToken);
+            
+        var count = await baseQuery.CountAsync(cancellationToken);
         
         return new PagedResult<DocumentDto>(
-            documents.Select(d => d.ToDto()),
+            documents,
             count,
             query.PageNumber,
             query.PageSize);
@@ -339,135 +358,110 @@ public class GetDocumentsBySearchQueryHandler : IQueryHandler<GetDocumentsBySear
 }
 ```
 
-### 8. Process Implementation Pattern
+### 4.9 Process Implementation
 
-#### Example: Systematic Screening Process
+Processes operate within journey projection spaces, using direct database access:
+
 ```csharp
-public class SystematicScreeningProcess : IFormationProcess
+public class SystematicScreeningProcess : IAnalyticalProcess
 {
-    private readonly ICognitiveAdapter _cognitiveAdapter;
-    private readonly IJourneyAwareRepository<Document> _documentRepo;
+    private readonly VeritheiaDbContext _db;
+    private readonly ICognitiveAdapter _cognitive;
     
-    public async Task<AuthoredResult<ScreeningResults>> ExecuteAsync(
-        ProcessContext context,
-        CancellationToken cancellationToken)
+    public async Task<ProcessResult> ExecuteAsync(ProcessContext context)
     {
-        var results = new List<DocumentAssessment>();
-        var documents = await _documentRepo.ListForJourneyAsync(
-            context.IntellectualJourney.Id, 
-            new AllDocumentsSpec());
+        // Get journey-projected segments directly
+        var segments = await _db.JourneyDocumentSegments
+            .Where(s => s.JourneyId == context.JourneyId)
+            .Include(s => s.Document)
+            .ToListAsync();
         
-        foreach (var doc in documents)
+        var assessments = new List<object>();
+        
+        foreach (var segment in segments)
         {
-            // AI assists as librarian for relevance
-            var relevanceAssessment = await _cognitiveAdapter.PerformAssessmentAsync(
-                BuildRelevancePrompt(doc, context.AuthoredInputs["ResearchQuestions"]),
-                context,
-                AssistantRole.Librarian,
-                cancellationToken);
-            
-            // AI assists as peer reviewer for contribution
-            var contributionAssessment = await _cognitiveAdapter.PerformAssessmentAsync(
-                BuildContributionPrompt(doc, context.AuthoredInputs["ResearchQuestions"]),
-                context,
-                AssistantRole.PeerReviewer,
-                cancellationToken);
-            
-            results.Add(new DocumentAssessment
+            // AI measures within journey's projection space
+            var assessment = await _cognitive.AssessAsync(
+                segment.SegmentContent,
+                context.Parameters["ResearchQuestions"] as string);
+                
+            assessments.Add(new
             {
-                Document = doc,
-                RelevanceScore = (double)relevanceAssessment.Metadata["score"],
-                RelevanceRationale = relevanceAssessment.Content,
-                ContributionScore = (double)contributionAssessment.Metadata["score"],
-                ContributionRationale = contributionAssessment.Content
+                SegmentId = segment.Id,
+                Relevance = assessment.Score,
+                Rationale = assessment.Reasoning
             });
         }
         
-        // User will triage these results to form their understanding
-        var journalEntry = new JournalEntry
+        // Return simple result - journey tracking at controller level
+        return new ProcessResult
         {
-            Type = JournalType.Method,
-            Narrative = $"Screened {documents.Count} documents. AI assessments measured patterns in relevance vs contribution..."
+            Success = true,
+            Data = new Dictionary<string, object>
+            {
+                ["assessments"] = assessments,
+                ["segmentCount"] = segments.Count
+            }
         };
-        
-        return AuthoredResult<ScreeningResults>.Success(
-            new ScreeningResults(results),
-            context.IntellectualJourney.Id,
-            journalEntry);
     }
 }
 ```
 
-### 9. Builder Pattern for Complex Objects
+### 4.7 PostgreSQL as Domain Enforcer
 
-#### Process Definition Builder
+The database schema IS the domain model. Constraints enforce all business rules:
+
+```sql
+-- PostgreSQL enforces aggregate boundaries
+CREATE TABLE journeys (
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id),
+    persona_id UUID NOT NULL REFERENCES personas(id),
+    purpose TEXT NOT NULL,
+    state VARCHAR(50) NOT NULL CHECK (state IN ('Active', 'Paused', 'Completed')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- PostgreSQL enforces value object invariants
+CREATE TABLE search_vectors_1536 (
+    id UUID PRIMARY KEY,
+    embedding vector(1536) NOT NULL,  -- pgvector enforces dimensions
+    CHECK (vector_dims(embedding) = 1536)
+);
+
+-- PostgreSQL enforces journey projection boundaries
+CREATE TABLE journey_document_segments (
+    id UUID PRIMARY KEY,
+    journey_id UUID NOT NULL REFERENCES journeys(id) ON DELETE CASCADE,
+    document_id UUID NOT NULL REFERENCES documents(id),
+    -- Segment only exists within journey context
+    UNIQUE(journey_id, document_id, sequence_index)
+);
+```
+
+The C# entities are honest projections of this truth:
+
 ```csharp
-public class ProcessDefinitionBuilder
+public class Journey
 {
-    private string _name = string.Empty;
-    private string _description = string.Empty;
-    private readonly List<ProcessInput> _inputs = new();
-    private readonly List<ProcessOutput> _outputs = new();
-    private ProcessCategory _category = ProcessCategory.Analytical;
+    public Guid Id { get; set; }
+    public Guid UserId { get; set; }
+    public Guid PersonaId { get; set; }
+    public string Purpose { get; set; }
+    public string State { get; set; }
+    public DateTime CreatedAt { get; set; }
     
-    public ProcessDefinitionBuilder WithName(string name)
-    {
-        _name = name;
-        return this;
-    }
-    
-    public ProcessDefinitionBuilder WithDescription(string description)
-    {
-        _description = description;
-        return this;
-    }
-    
-    public ProcessDefinitionBuilder WithInput(string name, Type type, bool required = true)
-    {
-        _inputs.Add(new ProcessInput(name, type, required));
-        return this;
-    }
-    
-    public ProcessDefinitionBuilder WithOutput(string name, Type type)
-    {
-        _outputs.Add(new ProcessOutput(name, type));
-        return this;
-    }
-    
-    public ProcessDefinitionBuilder InCategory(ProcessCategory category)
-    {
-        _category = category;
-        return this;
-    }
-    
-    public ProcessDefinition Build()
-    {
-        if (string.IsNullOrWhiteSpace(_name))
-            throw new InvalidOperationException("Process name is required");
-            
-        return new ProcessDefinition(
-            _name,
-            _description,
-            _inputs,
-            _outputs,
-            _category);
-    }
+    // Navigation properties let EF Core follow the relationships
+    public User User { get; set; }
+    public Persona Persona { get; set; }
+    public List<JourneyDocumentSegment> Segments { get; set; }
 }
-
-// Usage
-var definition = new ProcessDefinitionBuilder()
-    .WithName("Systematic Screening")
-    .WithDescription("Dual assessment of document relevance and contribution")
-    .WithInput("researchQuestions", typeof(string[]))
-    .WithInput("definitions", typeof(Dictionary<string, string>), required: false)
-    .WithOutput("assessments", typeof(IEnumerable<DocumentAssessment>))
-    .InCategory(ProcessCategory.Analytical)
-    .Build();
+```
 ```
 
-## Cross-Cutting Patterns
+## 5. Cross-Cutting Patterns That Remain Useful
 
-### Logging Pattern
+### 5.1 Logging Pattern
 ```csharp
 public class DocumentService
 {
@@ -498,7 +492,7 @@ public class DocumentService
 }
 ```
 
-### Validation Pattern
+### 5.2 Validation (When Truly Complex)
 ```csharp
 public class CreateJourneyCommandValidator : AbstractValidator<CreateJourneyCommand>
 {
@@ -529,7 +523,7 @@ public class CreateJourneyCommandValidator : AbstractValidator<CreateJourneyComm
 }
 ```
 
-### Error Handling Pattern
+### 5.3 Error Handling
 ```csharp
 public class GlobalExceptionMiddleware
 {
@@ -579,21 +573,57 @@ public class GlobalExceptionMiddleware
 }
 ```
 
+## 6. The Philosophical Foundation
+
+### Why First Principles Over DDD
+
+The rejection of DDD is not arbitrary—it's recognition of fundamental conflict. DDD patterns require translation layers that fight against the natural patterns of PostgreSQL, EF Core, and C#. This creates impedance mismatch:
+
+1. **DDD wants aggregate roots with behavior** → PostgreSQL already enforces aggregates through foreign keys
+2. **DDD wants repositories abstracting persistence** → EF Core DbContext/DbSet already ARE repositories
+3. **DDD wants domain objects with logic** → Intelligence lives in LLMs, not C# methods
+4. **DDD assumes stable business domain** → Veritheia has journey-specific projection spaces
+
+Rather than build translation layers between incompatible paradigms, we reject DDD and embrace what our stack naturally provides.
+
+### The Stack as Philosophy
+
+Our technology choices embody our philosophy:
+
+- **PostgreSQL**: The immutable ground truth, enforcing relational integrity
+- **pgvector**: Semantic space where meaning can be measured but not generated
+- **EF Core**: Honest projection of database truth into runtime objects
+- **C# records**: Immutable value carriers, not behavior containers
+- **Journey projections**: User-authored frameworks that give documents meaning
+
+Each technology was chosen for what it IS, not what it could be abstracted to become.
+
+### Praxis from Ontology
+
+The patterns in this document are not imposed but discovered—they emerge from working WITH the grain of our stack:
+
+- Direct database access because EF Core already provides the abstraction
+- Extension methods for queries because LINQ naturally supports composition
+- File storage service because filesystem/S3 are external to PostgreSQL
+- Cognitive adapter because AI services are external and varied
+
+This is praxis arising from ontology—practical patterns emerging from the essential nature of our tools.
+
 ## Implementation Checklist
 
 When implementing any feature, verify:
 
-- [ ] Aggregate boundaries are respected
-- [ ] All entities inherit from BaseEntity with UUIDv7 (Guid) primary keys
-- [ ] Repositories use the generic interface
-- [ ] Complex queries use specifications
-- [ ] Operations return Result<T> types
-- [ ] Process execution uses ProcessContext
+- [ ] PostgreSQL constraints enforce data integrity (not C# code)
+- [ ] All entities use Guid.CreateVersion7() for primary keys
+- [ ] Services use VeritheiaDbContext directly (no repository abstraction)
+- [ ] Complex queries use LINQ with appropriate Includes
+- [ ] Operations return simple types or domain entities
+- [ ] Process execution uses ProcessContext for journey awareness
 - [ ] Cognitive operations go through ICognitiveAdapter
-- [ ] Transactions managed by Unit of Work
-- [ ] Commands and queries are separated
-- [ ] Complex object creation uses builders
-- [ ] Cross-cutting concerns follow established patterns
-- [ ] All patterns align with documented architecture
+- [ ] Transactions use DbContext's built-in transaction support
+- [ ] Commands and queries are separated only when complexity warrants
+- [ ] File operations use FileStorageService
+- [ ] Patterns emerge from tech stack, not architectural fashion
+- [ ] Every abstraction has clear value beyond what the stack provides
 
-Remember: These patterns are not suggestions—they are requirements. Deviations must be explicitly documented and justified in ARCHITECTURE.md.
+Remember: First principles engineering means understanding what each technology provides and using it for that purpose. DDD patterns are in fundamental conflict with the design patterns inherent in PostgreSQL, EF Core, and C#. Rather than force translation layers between incompatible paradigms, we reject DDD outright and work directly with the natural patterns our stack provides. Additional abstractions must earn their complexity by providing clear value beyond what these tools naturally offer.

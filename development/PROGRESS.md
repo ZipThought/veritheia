@@ -259,45 +259,42 @@ Following [DEVELOPMENT-WORKFLOW.md](./DEVELOPMENT-WORKFLOW.md), each phase embod
 
 ---
 
-### Phase 3: Repository Pattern
-**Status**: Completed ✅
+### Phase 3: First Principles Data Access (Formerly Repository Pattern)
+**Status**: Architecturally Pivoted ✅
 **Started**: 2025-08-09
-**Completed**: 2025-08-10
+**Pivoted**: 2025-08-11 - Explicit rejection of DDD
 **Journey**: [Phase 3 Journey Investigation](./phases/phase-03-repository-pattern/JOURNEY.md)
-**Architectural Decision**: [Progressive Enhancement Decision](./phases/phase-03-repository-pattern/ARCHITECTURAL-DECISION.md)
-**Progressive Enhancement**: [Dialectical Journey](./phases/phase-03-repository-pattern/PROGRESSIVE-ENHANCEMENT-JOURNEY.md)
-**Epistemic Test**: [Adversarial Review with Human Authorship](./phases/phase-03-repository-pattern/EPISTEMIC-TEST-JOURNEY.md)
-**Docs**: [DESIGN-PATTERNS.md#2-repository-pattern](../docs/DESIGN-PATTERNS.md#2-repository-pattern)
+**Docs**: [DESIGN-PATTERNS.md](../docs/DESIGN-PATTERNS.md) - Completely rewritten
 
-#### PLAN
-- [x] Create IRepository<T> generic interface ([DESIGN-PATTERNS.md - Repository Pattern](../docs/DESIGN-PATTERNS.md#generic-repository-interface))
-- [x] Create ISpecification<T> interface ([DESIGN-PATTERNS.md - Specification Pattern](../docs/DESIGN-PATTERNS.md#specification-pattern))
-- [x] Implement BaseRepository<T> with common operations
-- [x] Create specific repository interfaces per aggregate roots in [CLASS-MODEL.md](../docs/CLASS-MODEL.md)
-- [x] Implement specific repositories with custom queries
-- [ ] Create IUnitOfWork interface (deferred - using DbContext directly as UoW per journey investigation)
+#### ARCHITECTURAL PIVOT
+- **Discovery**: DDD patterns conflict with PostgreSQL/EF Core natural patterns
+- **Decision**: Explicitly reject DDD in favor of first principles engineering
+- **Rationale**: DDD requires translation layers between incompatible paradigms
 
-#### DO (Implementation Notes)
-- **Architecture**: Three-tier repository pattern: System-level, User-scoped, Journey-scoped
-- **Decision**: DbContext serves as implicit Unit of Work (no wrapper needed for MVP)
-- **Change**: Added document ownership tracking (UserId) to Document entity
-- **Implementation**: Created 4 repository interfaces, 4 implementations, 1 base class
-- **Key Discovery**: Not all entities are journey-scoped (some are system or user-scoped)
-- **RESTRICT behavior**: Working correctly - prevents user deletion with documents
+#### WHAT WAS REJECTED
+- ~~IRepository<T> generic interface~~ → Use EF Core DbContext directly
+- ~~ISpecification<T> pattern~~ → Use LINQ expressions directly
+- ~~Repository implementations~~ → Services use DbContext directly
+- ~~IUnitOfWork wrapper~~ → DbContext already IS Unit of Work
+- ~~Aggregate roots with behavior~~ → PostgreSQL FKs enforce aggregates
+- ~~Domain objects with logic~~ → Intelligence lives in LLMs
 
-#### CHECK (Verification)
-- [x] Can perform CRUD operations on all entities (4 tests passing)
-- [x] Include() statements work for loading relationships
-- [x] User-scoping enforced (users can only access their journeys)
-- [x] Journey-scoping enforced (segments only accessible within their journey)
-- [x] Document ownership tracked with RESTRICT delete
+#### WHAT REMAINS
+- **FileStorageService**: For filesystem/S3 (external to PostgreSQL)
+- **ICognitiveAdapter**: For AI services (external, varied providers)
+- **Direct EF Core usage**: Services use DbContext without abstraction
+- **PostgreSQL constraints**: Database enforces all domain rules
+- **Simple entities**: Honest projections of database truth
 
-#### ACT (Next Steps)
-- **Learning**: Three-tier repository architecture matches entity scoping requirements
-- **Learning**: RESTRICT delete behavior enforced at EF Core application level
-- **Learning**: Repository pattern optional abstraction - entities already have DDD structure
-- **Improvement**: Could add specification pattern usage in future phases
-- **Dependency**: Phase 4 (Knowledge Database APIs) can now use repositories for data access
+#### DOCUMENTATION UPDATES
+- **DESIGN-PATTERNS.md**: Completely rewritten with first principles patterns
+- **Philosophical foundation**: Explains why DDD conflicts with our stack
+- **Clear examples**: Shows direct EF Core usage vs repository abstractions
+
+#### NEXT STEPS
+- Phase 4 can use services with direct DbContext access
+- No repository abstractions to maintain
+- Simpler, more direct code throughout
 
 ---
 
