@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Veritheia.Core.Interfaces;
-using Veritheia.Core.Services;
 using Veritheia.Data;
 using Veritheia.Data.Services;
 
@@ -14,7 +13,11 @@ builder.AddServiceDefaults();
 builder.Services.AddProblemDetails();
 
 // Register Database
-builder.AddNpgsqlDbContext<VeritheiaDbContext>("veritheiadb");
+builder.Services.AddDbContext<VeritheiaDbContext>(options =>
+{
+    var connectionString = builder.Configuration.GetConnectionString("veritheiadb");
+    options.UseNpgsql(connectionString);
+});
 
 // Register Services (Post-DDD: Direct service registration)
 builder.Services.AddScoped<JourneyService>();

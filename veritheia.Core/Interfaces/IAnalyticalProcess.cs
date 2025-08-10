@@ -1,8 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Veritheia.Core.ValueObjects;
-using Veritheia.Data.Entities;
 
 namespace Veritheia.Core.Interfaces;
 
@@ -45,12 +45,22 @@ public interface IAnalyticalProcess
     /// <summary>
     /// Execute the process within a journey's projection space
     /// </summary>
-    Task<ProcessResult> ExecuteAsync(
+    Task<AnalyticalProcessResult> ExecuteAsync(
         ProcessContext context,
         CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Get process capabilities for registration
     /// </summary>
-    ProcessCapability GetCapabilities();
+    Dictionary<string, object> GetCapabilities();
+}
+
+/// <summary>
+/// Result from process execution
+/// </summary>
+public class AnalyticalProcessResult
+{
+    public bool Success { get; set; }
+    public Dictionary<string, object> Data { get; set; } = new();
+    public string? ErrorMessage { get; set; }
 }

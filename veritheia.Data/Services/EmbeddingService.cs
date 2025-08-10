@@ -7,7 +7,7 @@ using Veritheia.Core.Interfaces;
 using Veritheia.Data;
 using Veritheia.Data.Entities;
 
-namespace Veritheia.Core.Services;
+namespace Veritheia.Data.Services;
 
 /// <summary>
 /// Platform Service: Embedding Generation
@@ -64,7 +64,8 @@ public class EmbeddingService
             {
                 Id = Guid.CreateVersion7(),
                 SegmentId = segmentId,
-                IndexType = "embedding",
+                VectorModel = _cognitive.GetType().Name,
+                VectorDimension = dimension,
                 IndexedAt = DateTime.UtcNow
             };
             
@@ -76,11 +77,8 @@ public class EmbeddingService
                 case 1536:
                     var vector1536 = new SearchVector1536
                     {
-                        Id = Guid.CreateVersion7(),
                         IndexId = searchIndex.Id,
-                        Embedding = embedding,
-                        Model = "text-embedding-3-small",
-                        CreatedAt = DateTime.UtcNow
+                        Embedding = new Pgvector.Vector(embedding)
                     };
                     _db.SearchVectors1536.Add(vector1536);
                     break;
@@ -88,11 +86,8 @@ public class EmbeddingService
                 case 768:
                     var vector768 = new SearchVector768
                     {
-                        Id = Guid.CreateVersion7(),
                         IndexId = searchIndex.Id,
-                        Embedding = embedding,
-                        Model = "text-embedding-768",
-                        CreatedAt = DateTime.UtcNow
+                        Embedding = new Pgvector.Vector(embedding)
                     };
                     _db.SearchVectors768.Add(vector768);
                     break;
@@ -100,11 +95,8 @@ public class EmbeddingService
                 case 384:
                     var vector384 = new SearchVector384
                     {
-                        Id = Guid.CreateVersion7(),
                         IndexId = searchIndex.Id,
-                        Embedding = embedding,
-                        Model = "text-embedding-384",
-                        CreatedAt = DateTime.UtcNow
+                        Embedding = new Pgvector.Vector(embedding)
                     };
                     _db.SearchVectors384.Add(vector384);
                     break;

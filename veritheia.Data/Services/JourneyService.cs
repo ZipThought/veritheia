@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Veritheia.Data;
 using Veritheia.Data.Entities;
 
-namespace Veritheia.Core.Services;
+namespace Veritheia.Data.Services;
 
 /// <summary>
 /// Journey management service using EF Core directly
@@ -67,9 +67,10 @@ public class JourneyService
         return await _db.Journeys
             .Include(j => j.Persona)
             .Include(j => j.User)
-            .Include(j => j.JourneySegments)
+            .Include(j => j.DocumentSegments)
                 .ThenInclude(s => s.Document)
-            .Include(j => j.JournalEntries)
+            .Include(j => j.Journals)
+                .ThenInclude(j => j.Entries)
             .FirstOrDefaultAsync(j => j.Id == journeyId);
     }
     
@@ -85,8 +86,7 @@ public class JourneyService
         journey.State = newState;
         journey.UpdatedAt = DateTime.UtcNow;
         
-        if (newState == "Completed")
-            journey.CompletedAt = DateTime.UtcNow;
+        // Journey doesn't have CompletedAt, state tracking is sufficient
         
         await _db.SaveChangesAsync();
     }

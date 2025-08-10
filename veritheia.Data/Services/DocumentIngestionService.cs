@@ -10,7 +10,7 @@ using Veritheia.Core.Interfaces;
 using Veritheia.Data;
 using Veritheia.Data.Entities;
 
-namespace Veritheia.Core.Services;
+namespace Veritheia.Data.Services;
 
 /// <summary>
 /// Platform Service: Document Ingestion Pipeline
@@ -82,11 +82,14 @@ public class DocumentIngestionService
             Id = Guid.CreateVersion7(),
             DocumentId = document.Id,
             Title = metadata.Title,
-            Author = metadata.Author,
+            Authors = new List<string> { metadata.Author },
             PublicationDate = metadata.PublicationDate,
-            Abstract = metadata.Abstract,
-            Keywords = metadata.Keywords,
-            ExtractedAt = DateTime.UtcNow
+            ExtendedMetadata = new Dictionary<string, object> 
+            { 
+                ["abstract"] = metadata.Abstract,
+                ["keywords"] = metadata.Keywords
+            },
+            CreatedAt = DateTime.UtcNow
         };
         
         _db.DocumentMetadata.Add(documentMetadata);

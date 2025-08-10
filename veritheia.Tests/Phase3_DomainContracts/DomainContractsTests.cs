@@ -4,7 +4,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Veritheia.Core.Interfaces;
-using Veritheia.Core.Models;
+// Core.Models removed - post-DDD
 using Veritheia.Data;
 using Veritheia.Data.Entities;
 using veritheia.Tests.TestBase;
@@ -22,26 +22,13 @@ public class DomainContractsTests : DatabaseTestBase
     public DomainContractsTests(DatabaseFixture fixture) : base(fixture) { }
     
     protected VeritheiaDbContext CreateDbContext() => Fixture.CreateContext();
-    [Fact]
-    public async Task AuthoredResult_TracksJourneyAttribution()
-    {
-        // Arrange
-        var journeyId = Guid.CreateVersion7();
-        var testValue = "Test Result";
-        
-        // Act
-        var result = AuthoredResult<string>.Success(
-            testValue, 
-            journeyId,
-            new FormationNote("TestNote", "This is a test formation"));
-        
-        // Assert
-        Assert.True(result.IsSuccess);
-        Assert.Equal(testValue, result.Value);
-        Assert.Equal(journeyId, result.JourneyId);
-        Assert.Single(result.FormationNotes);
-        Assert.Equal("TestNote", result.FormationNotes[0].Type);
-    }
+    // [Fact]
+    // AuthoredResult removed in post-DDD refactoring
+    // public async Task AuthoredResult_TracksJourneyAttribution()
+    // {
+    //     // AuthoredResult and FormationNote were removed as over-ceremonial
+    //     // Direct entity returns are used instead
+    // }
     
     [Fact]
     public async Task DirectEFCore_NoRepositoryWrapper_Works()

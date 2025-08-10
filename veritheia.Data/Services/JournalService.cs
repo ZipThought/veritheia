@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using Veritheia.Data;
 using Veritheia.Data.Entities;
 
-namespace Veritheia.Core.Services;
+namespace Veritheia.Data.Services;
 
 /// <summary>
 /// Journal management service - MVP 4.3

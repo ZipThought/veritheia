@@ -32,7 +32,7 @@ public class ScopesController : ControllerBase
         var scope = new KnowledgeScope
         {
             Id = Guid.CreateVersion7(),
-            UserId = request.UserId,
+            // UserId removed - scopes are global in MVP
             Name = request.Name,
             Description = request.Description,
             Type = request.Type ?? "General",
@@ -58,7 +58,6 @@ public class ScopesController : ControllerBase
     public async Task<IActionResult> GetScopes([FromQuery] Guid userId)
     {
         var scopes = await _db.KnowledgeScopes
-            .Where(s => s.UserId == userId)
             .OrderBy(s => s.Name)
             .Select(s => new
             {
@@ -84,7 +83,7 @@ public class ScopesController : ControllerBase
         [FromQuery] Guid userId)
     {
         var scope = await _db.KnowledgeScopes
-            .FirstOrDefaultAsync(s => s.Id == scopeId && s.UserId == userId);
+            .FirstOrDefaultAsync(s => s.Id == scopeId );
         
         if (scope == null)
             return NotFound();
@@ -107,7 +106,7 @@ public class ScopesController : ControllerBase
     public async Task<IActionResult> DeleteScope(Guid scopeId, [FromQuery] Guid userId)
     {
         var scope = await _db.KnowledgeScopes
-            .FirstOrDefaultAsync(s => s.Id == scopeId && s.UserId == userId);
+            .FirstOrDefaultAsync(s => s.Id == scopeId );
         
         if (scope == null)
             return NotFound();
@@ -129,13 +128,13 @@ public class ScopesController : ControllerBase
         [FromQuery] Guid userId)
     {
         var scope = await _db.KnowledgeScopes
-            .FirstOrDefaultAsync(s => s.Id == scopeId && s.UserId == userId);
+            .FirstOrDefaultAsync(s => s.Id == scopeId );
         
         if (scope == null)
             return NotFound();
         
         var documents = await _db.Documents
-            .Where(d => request.DocumentIds.Contains(d.Id) && d.UserId == userId)
+            .Where(d => request.DocumentIds.Contains(d.Id) )
             .ToListAsync();
         
         foreach (var doc in documents)

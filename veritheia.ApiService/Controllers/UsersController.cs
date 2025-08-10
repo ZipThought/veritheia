@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Veritheia.Core.Services;
+using Veritheia.Data.Services;
 
 namespace Veritheia.ApiService.Controllers;
 

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Veritheia.Core.Services;
+using Veritheia.Data.Services;
 
 namespace Veritheia.ApiService.Controllers;
 
@@ -66,12 +66,12 @@ public class ProcessesController : ControllerBase
         return Ok(executions.Select(e => new
         {
             e.Id,
-            e.ProcessDefinitionId,
+            e.ProcessType,
             e.StartedAt,
             e.CompletedAt,
-            e.Status,
+            e.State,
             e.ErrorMessage,
-            ResultCount = e.Results.Count
+            HasResult = e.Result != null
         }));
     }
     

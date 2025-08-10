@@ -4,7 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace Veritheia.Core.Services;
+namespace Veritheia.Data.Services;
 
 /// <summary>
 /// Platform Service: Text Extraction

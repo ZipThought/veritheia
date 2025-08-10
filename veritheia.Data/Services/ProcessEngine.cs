@@ -11,7 +11,7 @@ using Veritheia.Core.ValueObjects;
 using Veritheia.Data;
 using Veritheia.Data.Entities;
 
-namespace Veritheia.Core.Services;
+namespace Veritheia.Data.Services;
 
 /// <summary>
 /// Process Engine - Orchestrates analytical workflow execution
@@ -102,9 +102,9 @@ public class ProcessEngine
         {
             Id = Guid.CreateVersion7(),
             JourneyId = journeyId,
-            ProcessDefinitionId = Guid.CreateVersion7(), // Would link to definition
+            ProcessType = processId,
             StartedAt = DateTime.UtcNow,
-            Status = "Running"
+            State = "Running"
         };
         
         _db.ProcessExecutions.Add(execution);
@@ -136,16 +136,16 @@ public class ProcessEngine
             
             // Update execution record
             execution.CompletedAt = DateTime.UtcNow;
-            execution.Status = result.Success ? "Completed" : "Failed";
+            execution.State = result.Success ? "Completed" : "Failed";
             
             // Store result
             var processResult = new ProcessResult
             {
                 Id = Guid.CreateVersion7(),
                 ExecutionId = execution.Id,
-                Success = result.Success,
+                ProcessType = processId,
                 Data = result.Data,
-                ErrorMessage = result.ErrorMessage,
+                ExecutedAt = DateTime.UtcNow,
                 CreatedAt = DateTime.UtcNow
             };
             
@@ -153,7 +153,7 @@ public class ProcessEngine
             await _db.SaveChangesAsync(cancellationToken);
             
             _logger.LogInformation("Process {ProcessId} completed with status: {Status}", 
-                processId, execution.Status);
+                processId, execution.State);
             
             return new ProcessExecutionResult
             {
@@ -170,7 +170,7 @@ public class ProcessEngine
             
             // Update execution record
             execution.CompletedAt = DateTime.UtcNow;
-            execution.Status = "Failed";
+            execution.State = "Failed";
             execution.ErrorMessage = ex.Message;
             await _db.SaveChangesAsync(cancellationToken);
             
@@ -185,7 +185,7 @@ public class ProcessEngine
     {
         return await _db.ProcessExecutions
             .Where(e => e.JourneyId == journeyId)
-            .Include(e => e.Results)
+            .Include(e => e.Result)
             .OrderByDescending(e => e.StartedAt)
             .ToListAsync();
     }

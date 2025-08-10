@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Veritheia.Core.Services;
+using Veritheia.Data.Services;
 
 namespace Veritheia.ApiService.Controllers;
 
@@ -73,22 +73,15 @@ public class PersonasController : ControllerBase
     }
     
     /// <summary>
-    /// Record method preference
+    /// Identify patterns in persona
     /// </summary>
-    [HttpPost("{personaId}/preferences")]
-    public async Task<IActionResult> RecordMethodPreference(
-        Guid personaId,
-        [FromBody] MethodPreferenceRequest request)
+    [HttpPost("{personaId}/patterns/identify")]
+    public async Task<IActionResult> IdentifyPatterns(Guid personaId)
     {
         try
         {
-            await _personaService.RecordMethodPreferenceAsync(
-                personaId,
-                request.MethodName,
-                request.Context,
-                request.Effectiveness);
-            
-            return NoContent();
+            var patterns = await _personaService.IdentifyPatternsAsync(personaId);
+            return Ok(patterns);
         }
         catch (InvalidOperationException ex)
         {
@@ -97,46 +90,15 @@ public class PersonasController : ControllerBase
     }
     
     /// <summary>
-    /// Add pattern observation
+    /// Get personalized context
     /// </summary>
-    [HttpPost("{personaId}/patterns")]
-    public async Task<IActionResult> AddPattern(
-        Guid personaId,
-        [FromBody] PatternRequest request)
+    [HttpGet("{personaId}/context")]
+    public async Task<IActionResult> GetPersonalizedContext(Guid personaId)
     {
         try
         {
-            await _personaService.AddPatternObservationAsync(
-                personaId,
-                request.PatternType,
-                request.Description,
-                request.Evidence);
-            
-            return NoContent();
-        }
-        catch (InvalidOperationException ex)
-        {
-            return NotFound(new { error = ex.Message });
-        }
-    }
-    
-    /// <summary>
-    /// Add intellectual marker
-    /// </summary>
-    [HttpPost("{personaId}/markers")]
-    public async Task<IActionResult> AddMarker(
-        Guid personaId,
-        [FromBody] MarkerRequest request)
-    {
-        try
-        {
-            await _personaService.AddIntellectualMarkerAsync(
-                personaId,
-                request.MarkerType,
-                request.Value,
-                request.Confidence);
-            
-            return NoContent();
+            var context = await _personaService.GetPersonalizedContextAsync(personaId);
+            return Ok(context);
         }
         catch (InvalidOperationException ex)
         {
@@ -161,44 +123,6 @@ public class PersonasController : ControllerBase
         }
     }
     
-    /// <summary>
-    /// Clone persona for new domain
-    /// </summary>
-    [HttpPost("{personaId}/clone")]
-    public async Task<IActionResult> ClonePersona(
-        Guid personaId,
-        [FromBody] ClonePersonaRequest request)
-    {
-        try
-        {
-            var clone = await _personaService.ClonePersonaForDomainAsync(
-                personaId,
-                request.NewDomain);
-            
-            return CreatedAtAction(nameof(GetPersona), new { personaId = clone.Id }, clone);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return NotFound(new { error = ex.Message });
-        }
-    }
-    
-    /// <summary>
-    /// Deactivate persona
-    /// </summary>
-    [HttpPost("{personaId}/deactivate")]
-    public async Task<IActionResult> DeactivatePersona(Guid personaId)
-    {
-        try
-        {
-            await _personaService.DeactivatePersonaAsync(personaId);
-            return NoContent();
-        }
-        catch (InvalidOperationException ex)
-        {
-            return NotFound(new { error = ex.Message });
-        }
-    }
     
     public class CreatePersonaRequest
     {
@@ -206,29 +130,4 @@ public class PersonasController : ControllerBase
         public string Domain { get; set; } = string.Empty;
     }
     
-    public class MethodPreferenceRequest
-    {
-        public string MethodName { get; set; } = string.Empty;
-        public string Context { get; set; } = string.Empty;
-        public double Effectiveness { get; set; }
-    }
-    
-    public class PatternRequest
-    {
-        public string PatternType { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public Dictionary<string, object>? Evidence { get; set; }
-    }
-    
-    public class MarkerRequest
-    {
-        public string MarkerType { get; set; } = string.Empty;
-        public string Value { get; set; } = string.Empty;
-        public double Confidence { get; set; }
-    }
-    
-    public class ClonePersonaRequest
-    {
-        public string NewDomain { get; set; } = string.Empty;
-    }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Veritheia.Core.Services;
+using Veritheia.Data.Services;
 using Veritheia.Data;
 using Veritheia.Data.Entities;
 

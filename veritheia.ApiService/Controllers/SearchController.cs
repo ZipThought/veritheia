@@ -66,7 +66,7 @@ public class SearchController : ControllerBase
                 Metadata = d.Metadata != null ? new
                 {
                     d.Metadata.Title,
-                    d.Metadata.Author,
+                    d.Metadata.Authors,
                     d.Metadata.PublicationDate
                 } : null
             })

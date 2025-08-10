@@ -7,7 +7,7 @@ using Veritheia.Core.Interfaces;
 using Veritheia.Data;
 using Veritheia.Data.Entities;
 
-namespace Veritheia.Core.Services;
+namespace Veritheia.Data.Services;
 
 /// <summary>
 /// Document management service

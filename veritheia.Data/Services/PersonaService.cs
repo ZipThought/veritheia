@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using Veritheia.Data;
 using Veritheia.Data.Entities;
 
-namespace Veritheia.Core.Services;
+namespace Veritheia.Data.Services;
 
 /// <summary>
 /// Persona development service - MVP 4.4
@@ -107,96 +107,76 @@ public class PersonaService
     }
     
     /// <summary>
-    /// Record methodological preference
+    /// Identify user's inquiry patterns from journey activity
+    /// MVP 4.4.2: Pattern Recognition
     /// </summary>
-    public async Task RecordMethodPreferenceAsync(
-        Guid personaId,
-        string methodName,
-        string context,
-        double effectiveness)
+    public async Task<List<object>> IdentifyPatternsAsync(Guid personaId)
     {
-        var persona = await _db.Personas.FindAsync(personaId);
+        var persona = await _db.Personas
+            .Include(p => p.Journeys)
+                .ThenInclude(j => j.Journals)
+                    .ThenInclude(j => j.Entries)
+            .FirstOrDefaultAsync(p => p.Id == personaId);
+        
         if (persona == null)
             throw new InvalidOperationException($"Persona {personaId} not found");
         
-        var preference = new
+        // Basic pattern recognition from journal entries
+        var patterns = new List<object>();
+        
+        // Analyze journal entries for patterns
+        var entries = persona.Journeys
+            .SelectMany(j => j.Journals)
+            .SelectMany(j => j.Entries)
+            .OrderBy(e => e.CreatedAt)
+            .ToList();
+        
+        if (entries.Any())
         {
-            Method = methodName,
-            Context = context,
-            Effectiveness = effectiveness,
-            RecordedAt = DateTime.UtcNow
-        };
+            // Identify common tags
+            var commonTags = entries
+                .SelectMany(e => e.Tags)
+                .GroupBy(t => t)
+                .Where(g => g.Count() > 2)
+                .Select(g => new { Tag = g.Key, Count = g.Count() });
+            
+            foreach (var tag in commonTags)
+            {
+                patterns.Add(new
+                {
+                    Type = "recurring_topic",
+                    Value = tag.Tag,
+                    Frequency = tag.Count,
+                    IdentifiedAt = DateTime.UtcNow
+                });
+            }
+        }
         
-        persona.MethodologicalPreferences.Add(preference);
+        // Update persona patterns
+        persona.Patterns = patterns;
         persona.LastEvolved = DateTime.UtcNow;
-        persona.UpdatedAt = DateTime.UtcNow;
-        
         await _db.SaveChangesAsync();
         
-        _logger.LogInformation("Recorded {Method} preference for persona {PersonaId}", 
-            methodName, personaId);
+        return patterns;
     }
     
     /// <summary>
-    /// Add pattern observation
+    /// Adapt process context to user's style
+    /// MVP 4.4.3: Context Personalization
     /// </summary>
-    public async Task AddPatternObservationAsync(
-        Guid personaId,
-        string patternType,
-        string description,
-        Dictionary<string, object>? evidence = null)
+    public async Task<Dictionary<string, object>> GetPersonalizedContextAsync(Guid personaId)
     {
         var persona = await _db.Personas.FindAsync(personaId);
         if (persona == null)
             throw new InvalidOperationException($"Persona {personaId} not found");
         
-        var pattern = new
+        // Return personalized context based on vocabulary and patterns
+        return new Dictionary<string, object>
         {
-            Type = patternType,
-            Description = description,
-            Evidence = evidence ?? new Dictionary<string, object>(),
-            ObservedAt = DateTime.UtcNow
+            ["vocabulary"] = persona.ConceptualVocabulary.Take(100),
+            ["patterns"] = persona.Patterns,
+            ["domain"] = persona.Domain
         };
-        
-        persona.Patterns.Add(pattern);
-        persona.LastEvolved = DateTime.UtcNow;
-        persona.UpdatedAt = DateTime.UtcNow;
-        
-        await _db.SaveChangesAsync();
-        
-        _logger.LogInformation("Added {PatternType} pattern to persona {PersonaId}", 
-            patternType, personaId);
-    }
-    
-    /// <summary>
-    /// Add intellectual marker
-    /// </summary>
-    public async Task AddIntellectualMarkerAsync(
-        Guid personaId,
-        string markerType,
-        string value,
-        double confidence)
-    {
-        var persona = await _db.Personas.FindAsync(personaId);
-        if (persona == null)
-            throw new InvalidOperationException($"Persona {personaId} not found");
-        
-        var marker = new
-        {
-            Type = markerType,
-            Value = value,
-            Confidence = confidence,
-            IdentifiedAt = DateTime.UtcNow
-        };
-        
-        persona.Markers.Add(marker);
-        persona.LastEvolved = DateTime.UtcNow;
-        persona.UpdatedAt = DateTime.UtcNow;
-        
-        await _db.SaveChangesAsync();
-        
-        _logger.LogInformation("Added {MarkerType} marker to persona {PersonaId}", 
-            markerType, personaId);
     }
     
     /// <summary>
@@ -225,56 +205,6 @@ public class PersonaService
         };
     }
     
-    /// <summary>
-    /// Clone persona for new domain exploration
-    /// </summary>
-    public async Task<Persona> ClonePersonaForDomainAsync(
-        Guid sourcePersonaId,
-        string newDomain)
-    {
-        var source = await _db.Personas.FindAsync(sourcePersonaId);
-        if (source == null)
-            throw new InvalidOperationException($"Source persona {sourcePersonaId} not found");
-        
-        var clone = new Persona
-        {
-            Id = Guid.CreateVersion7(),
-            UserId = source.UserId,
-            Domain = newDomain,
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow,
-            // Clone intellectual patterns but reset domain-specific elements
-            ConceptualVocabulary = new Dictionary<string, object>(),
-            Patterns = new List<object>(source.Patterns),
-            MethodologicalPreferences = new List<object>(source.MethodologicalPreferences),
-            Markers = new List<object>()
-        };
-        
-        _db.Personas.Add(clone);
-        await _db.SaveChangesAsync();
-        
-        _logger.LogInformation("Cloned persona {SourceId} to new domain {Domain}", 
-            sourcePersonaId, newDomain);
-        
-        return clone;
-    }
-    
-    /// <summary>
-    /// Deactivate persona
-    /// </summary>
-    public async Task DeactivatePersonaAsync(Guid personaId)
-    {
-        var persona = await _db.Personas.FindAsync(personaId);
-        if (persona == null)
-            throw new InvalidOperationException($"Persona {personaId} not found");
-        
-        persona.IsActive = false;
-        persona.UpdatedAt = DateTime.UtcNow;
-        
-        await _db.SaveChangesAsync();
-        
-        _logger.LogInformation("Deactivated persona {PersonaId}", personaId);
-    }
 }
 
 public class PersonaEvolution

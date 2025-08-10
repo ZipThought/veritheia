@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using Veritheia.Data;
 using Veritheia.Data.Entities;
 
-namespace Veritheia.Core.Services;
+namespace Veritheia.Data.Services;
 
 /// <summary>
 /// User management service - MVP 4.1
@@ -40,7 +40,7 @@ public class UserService
         var user = new User
         {
             Id = Guid.CreateVersion7(),
-            Name = name,
+            DisplayName = name,
             Email = email,
             CreatedAt = DateTime.UtcNow
         };
@@ -115,7 +115,7 @@ public class UserService
         if (user == null)
             throw new InvalidOperationException($"User {userId} not found");
         
-        user.Name = name;
+        user.DisplayName = name;
         user.Email = email;
         user.UpdatedAt = DateTime.UtcNow;
         
