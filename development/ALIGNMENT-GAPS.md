@@ -4,21 +4,40 @@
 
 This document inventories gaps and divergences between development documentation and the current architectural imperatives established in ARCHITECTURE.md, IMPLEMENTATION.md, and DESIGN-PATTERNS.md.
 
-## EPISTEMIC SCAN FINDINGS (2025-08-10)
+## CRITICAL ARCHITECTURAL VIOLATIONS IN IMPLEMENTATION
+
+### DATABASE SCHEMA VIOLATES PARTITION IMPERATIVES - CRITICAL
+
+**Finding**: The database schema fundamentally violates the user partition architecture.
+
+**Critical Violations Found**:
+1. **PRIMARY KEYS ARE WRONG**: All entities use single `Guid Id` instead of composite `(UserId, Id)`
+2. **NO PARTITION ENFORCEMENT**: DbContext uses `entity.HasKey(e => e.Id)` instead of `entity.HasKey(e => new { e.UserId, e.Id })`
+3. **CROSS-PARTITION FOREIGN KEYS**: Journey→Persona and Document→Scope can cross user boundaries
+4. **MISSING PARTITION INFRASTRUCTURE**: No IUserOwned interface, no query extensions for `.ForUser(userId)`
+5. **INDEXES NOT PARTITIONED**: Should be `(user_id, ...)` for all user-owned entities
+
+**Impact**: The entire horizontal scaling strategy is broken. The system cannot partition by user.
+
+### TEST INFRASTRUCTURE VIOLATES NO-MOCKING IMPERATIVES
+
+**Violations Found**:
+1. **UseInMemoryDatabase**: Tests use in-memory database instead of real PostgreSQL
+2. **Moq for Internal Services**: Tests mock internal services (only external allowed)
+3. **No Respawn Setup**: Tests don't use Respawn for state reset
+4. **Tests Don't Compile**: Missing EF InMemory package, wrong references
 
 ### Documentation Overstates Implementation Completeness
 
-**Finding**: Development documentation significantly overstates completion. The "~85% MVP functionality complete" claim is false.
-
 **Actual Assessment**:
-- **Database**: ✅ 100% functional - schema correctly implements architectural vision
-- **APIs**: ⚠️ 70% functional - basic CRUD works, advanced features limited
-- **Process Engine**: ⚠️ 40% functional - framework exists, limited journey-aware capabilities  
-- **Cognitive Integration**: ⚠️ 30% functional - basic LLM works, no journey projection awareness
-- **Testing**: ❌ 0% functional - test discovery broken, `dotnet test --list-tests` returns 0 tests
-- **UI**: ❌ 5% functional - only "Hello, Veritheia!" skeleton page exists
+- **Database**: ❌ 20% functional - schema exists but VIOLATES partition imperatives
+- **APIs**: ⚠️ 40% functional - basic CRUD works but no partition enforcement
+- **Process Engine**: ⚠️ 30% functional - framework exists, no journey awareness  
+- **Cognitive Integration**: ⚠️ 30% functional - basic LLM works, no journey projection
+- **Testing**: ❌ 0% functional - tests don't compile, violate imperatives
+- **UI**: ❌ 5% functional - only "Hello, Veritheia!" skeleton page
 
-**Honest Total**: ~40-50% of actual MVP functionality works, not claimed 85%.
+**Honest Total**: ~20-30% of actual MVP functionality works correctly per imperatives.
 
 ### Specific Implementation Gaps vs Documentation Claims
 
@@ -42,27 +61,62 @@ This document inventories gaps and divergences between development documentation
 - **Reality**: Test discovery broken, cannot verify claims, infrastructure exists but non-functional
 
 ### Root Cause Analysis
-Development followed **breadth-first skeleton creation** rather than documented **progressive enhancement**, creating complete architectural foundations but missing integration between components.
 
-## Critical Implementation Integrity Issues
+1. **Misunderstood Imperatives**: AI agent created standard EF Core patterns instead of partition-first design
+2. **Skipped Journey Investigation**: Phases 4-10 rushed without understanding requirements
+3. **Copy-Paste Testing**: Tests copied patterns that violate imperatives (InMemory, Moq)
+4. **No Verification**: Claims made without running tests or checking against imperatives
+5. **Fundamental Misalignment**: Database schema doesn't implement the core partition strategy
 
-### URGENT: Fix Test Infrastructure
+## CRITICAL CODE FIXES REQUIRED
+
+### CRITICAL: Fix Database Schema Partition Keys
+**Location**: `/veritheia.Data/VeritheiaDbContext.cs` and all entity configurations
+**Violations**:
+- Primary keys must be composite: `(UserId, Id)` for all user-owned entities
+- Indexes must start with UserId for partition locality
+- Foreign keys must not cross partition boundaries
+**Required Changes**:
+```csharp
+// WRONG - Current
+entity.HasKey(e => e.Id);
+
+// CORRECT - Required
+entity.HasKey(e => new { e.UserId, e.Id });
+entity.HasIndex(e => new { e.UserId, e.CreatedAt });
+```
+
+### CRITICAL: Remove All Test Mocking Violations
 **Location**: `/veritheia.Tests/`
-**Issue**: Test discovery completely broken - `dotnet test --list-tests` returns 0 tests
-**Impact**: Cannot verify any functionality claims, development quality unknown
-**Priority**: CRITICAL - Fix before any release claims
+**Violations**:
+- Remove all `UseInMemoryDatabase` - use real PostgreSQL
+- Remove all Moq usage for internal services
+- Add Respawn for database state reset
+**Required Changes**:
+```csharp
+// WRONG - Current
+.UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+var mockServiceProvider = new Mock<IServiceProvider>();
 
-### URGENT: Correct Implementation Status Claims  
-**Location**: `/development/PROGRESS.md`
-**Issue**: Claims "~85% complete", "Tested ✅", "42+ tests passing" are demonstrably false
-**Impact**: Misleads stakeholders about actual system readiness  
-**Priority**: CRITICAL - Update with honest assessment
+// CORRECT - Required
+.UseNpgsql(connectionString)
+await _respawner.ResetAsync(connectionString);
+```
 
-### URGENT: Document Missing Journey-Aware Processing
-**Location**: Multiple service implementations
-**Issue**: Core architectural claim of "journey projection spaces" not implemented
-**Impact**: System functions as basic CRUD app, not epistemic infrastructure
-**Priority**: HIGH - Either implement or document as future work
+### CRITICAL: Implement Query Partition Extensions
+**Location**: Create `/veritheia.Data/Extensions/QueryExtensions.cs`
+**Missing**:
+```csharp
+public static IQueryable<T> ForUser<T>(this IQueryable<T> query, Guid userId) 
+    where T : IUserOwned
+{
+    return query.Where(e => e.UserId == userId);
+}
+```
+
+### HIGH: Implement Journey Projection Logic
+**Location**: Services that handle documents
+**Missing**: Journey-specific segmentation, embeddings with context, assessment within boundaries
 
 ## Legacy Documentation Alignment Gaps
 
@@ -163,22 +217,94 @@ Development followed **breadth-first skeleton creation** rather than documented 
 
 **Required Clarification**: Direct usage is not "lacking abstraction" but deliberate simplicity
 
-## Recommended Resolution Approach
+## PDCA Action Plan for Documentation Coherency
 
-### Phase 1: Critical Updates (Immediate)
-1. Add EPILOGUE.md to Phase 3 explaining rejection
-2. Rewrite ARCHITECTURAL-DIVERGENCES.md completely
-3. Update PROGRESS.md phase descriptions
+### PLAN - Identify and Prioritize Alignment Work
 
-### Phase 2: Journey Updates (Next)
-1. Add clarification notes to affected journey files
-2. Update test references throughout
-3. Clarify DDD stance in domain model discussions
+**Critical Documentation Fixes**:
+- [ ] Inventory all files with architectural violation warnings
+- [ ] Identify which represent historical investigation vs actual violations
+- [ ] Determine which files need rewrite vs clarification notes
+- [ ] Prioritize based on confusion potential for new contributors
 
-### Phase 3: Consolidation (Final)
-1. Create ARCHITECTURAL-PRINCIPLES.md summarizing imperatives
-2. Update README.md in development folder
-3. Add cross-references to main documentation
+**Implementation Integrity Verification**:
+- [ ] Verify actual test count and coverage
+- [ ] Assess real completion percentage vs claims
+- [ ] Document gaps between specification and implementation
+- [ ] Identify missing journey projection implementations
+
+### DO - Execute Documentation Updates
+
+**Rewrite Core Divergence Documentation**:
+- [ ] Transform ARCHITECTURAL-DIVERGENCES.md into ARCHITECTURAL-IMPERATIVES.md
+- [ ] Document current imperatives as authoritative guidance
+- [ ] Include concrete code examples of correct patterns
+- [ ] Add anti-pattern examples with explanations
+
+**Update Historical Journey Files**:
+- [ ] Add clarification headers to Phase 2 journey about DDD ontology vs praxis
+- [ ] Update Phase 3 README to show investigation led to rejection
+- [ ] Fix Phase 4-10 journey to clarify skeleton vs mock implementations
+- [ ] Add notes to Phase 5 that MockCognitiveAdapter is correct (external service)
+
+**Fix PROGRESS.md References**:
+- [ ] Remove all references to repository implementations
+- [ ] Update phase descriptions to reflect direct DbContext usage
+- [ ] Correct test strategy descriptions (real DB with Respawn)
+- [ ] Update completion percentages with honest assessment
+- [ ] Add link to this ALIGNMENT-GAPS.md document
+
+**Create Clarification Documents**:
+- [ ] Write Phase 3 EPILOGUE.md explaining repository rejection rationale
+- [ ] Create ARCHITECTURAL-PRINCIPLES.md as single source of truth
+- [ ] Document why anemic domain model is correct for Veritheia
+- [ ] Explain PostgreSQL as domain model participation
+
+### CHECK - Verify Coherency Achievement
+
+**Documentation Consistency Checks**:
+- [ ] Verify no contradictions between VISION, ARCHITECTURE, IMPLEMENTATION, DESIGN-PATTERNS
+- [ ] Ensure all journey files have appropriate historical context notes
+- [ ] Confirm PROGRESS.md accurately reflects actual state
+- [ ] Check that new contributors won't be misled
+
+**Implementation Alignment Verification**:
+- [ ] FIX: Database schema to use composite primary keys (UserId, Id)
+- [ ] FIX: All indexes to start with UserId for partition locality  
+- [ ] FIX: Foreign keys to respect partition boundaries
+- [ ] CREATE: IUserOwned interface and query extensions
+- [ ] REMOVE: All UseInMemoryDatabase from tests
+- [ ] REMOVE: All Moq usage except for external services
+- [ ] ADD: Respawn configuration for test cleanup
+- [ ] IMPLEMENT: Journey projection space logic
+- [ ] VERIFY: Services use DbContext directly (no repositories)
+- [ ] VERIFY: Tests compile and run with real PostgreSQL
+
+**Cross-Reference Validation**:
+- [ ] All warning headers point to correct authoritative documents
+- [ ] PROGRESS.md links to ALIGNMENT-GAPS.md
+- [ ] Journey files reference appropriate architectural documents
+- [ ] No orphaned or contradictory guidance remains
+
+### ACT - Institutionalize Learning
+
+**Establish Documentation Standards**:
+- [ ] Create template for future journey investigations
+- [ ] Document when historical preservation vs rewrite is appropriate
+- [ ] Define process for architectural clarification documentation
+- [ ] Establish review checklist for new documentation
+
+**Prevent Future Divergence**:
+- [ ] Add pre-implementation checklist referencing imperatives
+- [ ] Create decision log template for architectural choices
+- [ ] Document anti-patterns prominently
+- [ ] Establish regular coherency review process
+
+**Knowledge Transfer Preparation**:
+- [ ] Create onboarding guide highlighting architectural imperatives
+- [ ] Document common misconceptions and corrections
+- [ ] Prepare FAQ addressing DDD confusion
+- [ ] Build glossary of terms with Veritheia-specific meanings
 
 ## Implementation Notes
 
@@ -189,9 +315,28 @@ These gaps exist because the development occurred iteratively with evolving unde
 3. Create clear summary of current imperatives
 4. Ensure all new documentation follows imperatives
 
+## Severity Assessment
+
+### Why This is CRITICAL
+
+1. **Partition Strategy Broken**: Without composite keys, cannot scale horizontally
+2. **No User Isolation**: Queries can accidentally cross user boundaries  
+3. **Foreign Keys Unsafe**: Can reference data from other users' partitions
+4. **Tests Useless**: Mocked tests don't catch real constraint violations
+5. **Architecture Compromised**: Core imperatives not implemented in code
+
+### Impact if Not Fixed
+
+- System cannot scale beyond single database
+- User data not properly isolated
+- Tests provide false confidence
+- Future migration to fix keys will be extremely difficult
+- Violates fundamental architectural promises
+
 ## Status
 
 - **Created**: 2025-08-10
-- **Priority**: High - causes confusion for new contributors
+- **Updated**: 2025-08-11 - Added critical schema violations
+- **Priority**: CRITICAL - System architecture fundamentally broken
 - **Owner**: Development team
-- **Deadline**: Before Phase 11 UI implementation
+- **Deadline**: IMMEDIATE - Before any further development

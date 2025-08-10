@@ -16,10 +16,13 @@ This folder contains all development-specific tools, scripts, and tracking docum
 ### Progress Tracking
 - **PROGRESS.md** - Main implementation tracker with PDCA cycles for all 12 phases
 - **PDCA-WORKFLOW.md** - Detailed workflow guide for Plan-Do-Check-Act methodology
+- **ALIGNMENT-GAPS.md** - CRITICAL architectural violations and fixes needed
 
-### Context Management
-- **CONTEXT-RECOVERY.md** - Quick start checklist after context switches
+### Implementation Planning
 - **IMPLEMENTATION-SUMMARY.md** - One-page summary of implementation plan
+
+### Archives
+- **archives/** - Historical documents with outdated patterns (DO NOT FOLLOW)
 
 ### Scripts
 - **check-progress.sh** - Automated progress checker script

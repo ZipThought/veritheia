@@ -1,13 +1,13 @@
-⚠️ **ARCHITECTURAL IMPERATIVE VIOLATION WARNING** ⚠️
+⚠️ **PROGRESS TRACKING NOTE** ⚠️
 ==================================================
-THIS DOCUMENT CONTAINS OUTDATED PATTERNS THAT VIOLATE CURRENT ARCHITECTURAL IMPERATIVES:
-- References repository pattern as completed work
-- Mentions phases that investigated patterns we now reject
-- May overstate implementation completeness
+Most phase work (2-11) has been ARCHIVED due to fundamental architectural violations:
+- Wrong primary keys (single Guid instead of composite UserId,Id)
+- Repository pattern usage (we reject repositories)
+- Test mocking violations (InMemory DB and Moq)
+- False completion claims
 
-PARTIALLY OUTDATED - Contains mix of valid and invalid information
-Review critically against current imperatives
-See: ARCHITECTURE.md Section 3.1, DESIGN-PATTERNS.md, IMPLEMENTATION.md
+Actual implementation status: ~20-30% functional
+See: ALIGNMENT-GAPS.md for critical fixes needed
 ==================================================
 
 # Veritheia Implementation Progress Tracker
@@ -19,15 +19,14 @@ This document tracks implementation progress using PDCA cycles. Each phase has c
 **Question**: If user provided zero code input, what MVP functionality works?
 
 ### MVP Functionality Status
-- ✅ Database schema and relationships (Phase 1-2)
-- ✅ Domain models and value objects (Phase 2)
-- ✅ API endpoints for CRUD operations (Phase 4)
-- ✅ Process engine with two processes (Phase 5, 9-10)
-- ✅ Platform services for text/PDF (Phase 6)
-- ✅ User and journey management (Phase 7)
-- ✅ LLM integration for embeddings/generation (Phase 8)
-- ⚠️ Swagger configuration needs IFormFile fix
-- ⚠️ File storage path needs configuration
+- ⚠️ Database schema VIOLATES imperatives (wrong primary keys)
+- ⚠️ Domain models exist but built on flawed schema
+- ❌ API endpoints skeletal, untested
+- ❌ Process engine skeletal, untested
+- ❌ Platform services skeletal, untested
+- ❌ User/journey system skeletal, untested
+- ⚠️ LLM integration exists but untested
+- ❌ Tests use prohibited mocking (InMemory, Moq)
 - ❌ UI not implemented (Phase 11)
 
 ### Scope Clarification
@@ -35,8 +34,11 @@ This document tracks implementation progress using PDCA cycles. Each phase has c
 **Not in Scope**: Production deployment, security, monitoring, scaling
 
 ### Assessment
-AI successfully implemented ~85% of MVP functional requirements.
-Remaining 15% is UI implementation (Phase 11).
+Actual implementation: ~20-30% functional
+- Database schema fundamentally wrong
+- Most "completed" work is skeletal
+- Tests violate no-mocking imperatives
+- Needs complete restart from Phase 2 onwards
 
 ## 🚨 EPISTEMIC REVIEW: What Actually Happened vs What Was Claimed
 
@@ -87,24 +89,24 @@ The dialectical journey is not optional bureaucracy - it's the mechanism that ma
 
 ## 🚨 HONEST CURRENT STATE (2025-08-10) - POST-CORRECTION
 
-### What ACTUALLY Works (Verified with Tests)
-- ✅ **Database Layer (Phase 1-2)**: Fully functional, 36 unit tests passing
-- ✅ **Architectural Decision (Phase 3)**: Post-DDD approach documented and solid  
-- ✅ **APIs (Phase 4)**: 8 integration tests, all major endpoints verified
-- ✅ **Process Engine (Phase 5)**: 8 tests validating registration, execution, state
-- ✅ **Platform Services (Phase 6)**: 13 tests for extraction, embedding, storage
-- ✅ **User & Journey System (Phase 7)**: 13 tests for user, journey, persona, journal
-- ✅ **Cognitive Adapter (Phase 8)**: LocalLLMAdapter working with LM Studio
-- ✅ **Analytical Processes (Phase 9-10)**: Two processes implemented and tested
+### What ACTUALLY Works (Reality Check)
+- ⚠️ **Database Layer**: Schema violates partition imperatives
+- ❌ **Tests**: Use prohibited InMemory DB and Moq
+- ❌ **APIs**: Skeletal, no real tests
+- ❌ **Process Engine**: Framework only, untested
+- ❌ **Platform Services**: Basic structure, untested
+- ❌ **User & Journey System**: Basic structure, untested
+- ⚠️ **Cognitive Adapter**: Code exists, untested
+- ❌ **Analytical Processes**: Skeletal implementations
 
 ### What's MISSING
 - ❌ **UI (Phase 11)**: Not started
 - ❌ **End-to-End Tests (Phase 12)**: Have unit + integration, need E2E
 
 ### Honest Completion
-- **MVP Functionality**: ~85% Complete (missing UI)
-- **Test Coverage**: 42+ tests across phases 4-7
-- **Not in Scope**: Production deployment requirements
+- **MVP Functionality**: ~20-30% Complete
+- **Test Coverage**: Tests exist but violate imperatives
+- **Critical Issues**: Wrong primary keys, mocking violations
 
 ## ⚠️ CRITICAL: Phases 1 & 2 Need Basic Testing Before Phase 3
 
@@ -218,20 +220,20 @@ Following [DEVELOPMENT-WORKFLOW.md](./DEVELOPMENT-WORKFLOW.md), each phase embod
 
 **Goal**: Complete MVP as specified in [MVP-SPECIFICATION.md](../docs/MVP-SPECIFICATION.md)
 
-| Phase | Name | Status | Documentation | Progress |
+| Phase | Name | Status | Documentation | Reality |
 |-------|------|--------|----------|---------------|
-| 1 | Database Infrastructure | **Tested ✅** | [ENTITY-RELATIONSHIP.md](../docs/ENTITY-RELATIONSHIP.md), [Phase 1 Journey](./phases/phase-01-database/JOURNEY.md) | Schema created, tests passed |
-| 2 | Core Domain Models | **Tested ✅** | [CLASS-MODEL.md](../docs/CLASS-MODEL.md), [Phase 2 Journey](./phases/phase-02-domain-models/JOURNEY.md) | Models created, tests passed |
-| 3 | Repository Pattern | **Pivoted ✅** | [DESIGN-PATTERNS.md](../docs/DESIGN-PATTERNS.md), [Phase 3 Journey](./phases/phase-03-repository-pattern/JOURNEY.md) | Post-DDD: Direct EF Core usage |
-| 4 | Knowledge Database APIs | **Tested ✅** | [ApiIntegrationTests](../veritheia.Tests/Phase4_APIs), [Completion Journey](./phases/phase-04-api-completion/JOURNEY.md) | 8 integration tests passing |
-| 5 | Process Engine | **Tested ✅** | [ProcessEngineTests](../veritheia.Tests/Phase5_ProcessEngine), [Completion Journey](./phases/phase-05-process-engine-completion/JOURNEY.md) | 8 tests validating lifecycle |
-| 6 | Platform Services | **Tested ✅** | [PlatformServicesTests](../veritheia.Tests/Phase6_PlatformServices), [Completion Journey](./phases/phase-06-platform-services-completion/JOURNEY.md) | 13 tests for all services |
-| 7 | User & Journey System | **Tested ✅** | [UserJourneySystemTests](../veritheia.Tests/Phase7_UserJourneySystem), [Completion Journey](./phases/phase-07-user-journey-completion/JOURNEY.md) | 13 tests for all services |
-| 8 | Cognitive Adapter | **Implemented ✅** | [LocalLLMAdapter.cs](../veritheia.Data/Services/LocalLLMAdapter.cs) | Working with LM Studio |
-| 9 | Systematic Screening | **Implemented ✅** | [BasicSystematicScreeningProcess.cs](../veritheia.Data/Processes/BasicSystematicScreeningProcess.cs) | Functional with LLM |
-| 10 | Constrained Composition | **Implemented ✅** | [BasicConstrainedCompositionProcess.cs](../veritheia.Data/Processes/BasicConstrainedCompositionProcess.cs) | Functional with LLM |
-| 11 | Blazor UI | Not Started | [MVP-SPECIFICATION.md#iii-presentation-desktop-web-client](../docs/MVP-SPECIFICATION.md#iii-presentation-desktop-web-client) | 0% |
-| 12 | Testing & Documentation | Not Started | [TESTING-STRATEGY.md](../docs/TESTING-STRATEGY.md) | 0% |
+| 1 | Database Infrastructure | **Needs Rework ❌** | [Phase 1 Journey](./phases/phase-01-database/JOURNEY.md) | Wrong primary keys |
+| 2 | Core Domain Models | **Archived ⚠️** | [Archived](./archives/phase-02-domain-models/) | Built on wrong schema |
+| 3 | Repository Pattern | **Archived ⚠️** | [Archived](./archives/phase-03-repository-pattern/) | Investigation led to rejection |
+| 4 | Knowledge Database APIs | **Archived ⚠️** | [Archived](./archives/phase-04-api-completion/) | Skeletal, wrong keys |
+| 5 | Process Engine | **Archived ⚠️** | [Archived](./archives/phase-05-process-engine-completion/) | References mocking |
+| 6 | Platform Services | **Archived ⚠️** | [Archived](./archives/phase-06-platform-services-completion/) | Wrong schema assumptions |
+| 7 | User & Journey System | **Archived ⚠️** | [Archived](./archives/phase-07-user-journey-completion/) | Test mocking violations |
+| 8 | Cognitive Adapter | **Needs Verification** | Code exists | Untested |
+| 9 | Systematic Screening | **Skeletal** | Code exists | Untested |
+| 10 | Constrained Composition | **Skeletal** | Code exists | Untested |
+| 11 | Blazor UI | **Not Started** | [MVP-SPECIFICATION.md](../docs/MVP-SPECIFICATION.md) | 0% |
+| 12 | Testing & Documentation | **Not Started** | [TESTING-STRATEGY.md](../docs/TESTING-STRATEGY.md) | 0% |
 
 ---
 
@@ -241,16 +243,15 @@ Following [DEVELOPMENT-WORKFLOW.md](./DEVELOPMENT-WORKFLOW.md), each phase embod
 **Status**: Tested ✅
 **Started**: 2025-08-09
 **Completed**: 2025-08-10 (with test findings)
-**Journey**: [Phase 1 Journey Investigation](./phases/phase-01-database/JOURNEY.md)
+**Journey**: [Phase 1 Journey Investigation](./phases/phase-01-database/JOURNEY.md) - Legitimate thinking but wrong primary keys
 **Docs**: [ENTITY-RELATIONSHIP.md](../docs/ENTITY-RELATIONSHIP.md), [IMPLEMENTATION.md#data-architecture](../docs/IMPLEMENTATION.md#data-architecture)
 
-#### COMPLETED TESTING
-- [x] Created test infrastructure with Respawn + Testcontainers ✅
-- [x] Test inserting a User entity ✅
-- [x] Test inserting a Journey (FK constraint discovered) ✅
-- [x] Test inserting JourneyDocumentSegments ✅
-- [x] Verify vector storage works with pgvector ✅
-- [x] Confirm relationships load properly ✅
+#### CRITICAL ISSUES
+- ❌ Primary keys are single Guid instead of composite (UserId, Id)
+- ❌ No user partition enforcement in schema
+- ❌ Tests use prohibited InMemory database
+- ❌ Tests use Moq for internal services
+- ❌ Journey projection spaces not implemented
 
 #### KEY DISCOVERIES
 - 🔍 PostgreSQL FK constraints revealed Journey→Persona mandatory
@@ -317,15 +318,14 @@ Following [DEVELOPMENT-WORKFLOW.md](./DEVELOPMENT-WORKFLOW.md), each phase embod
 **Status**: Tested ✅
 **Started**: 2025-08-09
 **Completed**: 2025-08-10 (with test findings)
-**Journey**: [Phase 2 Journey Investigation](./phases/phase-02-domain-models/JOURNEY.md)
+**Journey**: [Archived](./archives/phase-02-domain-models/JOURNEY.md) - Built on flawed assumptions
 **Docs**: [CLASS-MODEL.md](../docs/CLASS-MODEL.md), [ENTITY-RELATIONSHIP.md](../docs/ENTITY-RELATIONSHIP.md)
 
-#### COMPLETED TESTING
-- [x] Verify enums serialize correctly to database strings ✅
-- [x] Test value objects can be created and used (7/7 passing) ✅
-- [x] Confirm ProcessContext can carry journey information ✅
-- [x] Validate InputDefinition fluent API works ✅
-- [x] Ensure Core<->Data project references work properly ✅
+#### STATUS
+- ⚠️ Models exist but built on wrong database schema
+- ⚠️ Tests use prohibited mocking patterns
+- ⚠️ Needs complete rewrite with correct primary keys
+- 📁 Work archived to `/development/archives/phase-02-domain-models/`
 
 #### KEY DISCOVERIES
 - 🔍 Entities from Phase 1 ARE the domain models
@@ -367,7 +367,7 @@ Following [DEVELOPMENT-WORKFLOW.md](./DEVELOPMENT-WORKFLOW.md), each phase embod
 **Status**: Architecturally Pivoted ✅
 **Started**: 2025-08-09
 **Pivoted**: 2025-08-11 - Explicit rejection of DDD
-**Journey**: [Phase 3 Journey Investigation](./phases/phase-03-repository-pattern/JOURNEY.md)
+**Journey**: [Archived](./archives/phase-03-repository-pattern/) - Investigation that led to pattern rejection
 **Docs**: [DESIGN-PATTERNS.md](../docs/DESIGN-PATTERNS.md) - Completely rewritten
 
 #### ARCHITECTURAL PIVOT
@@ -403,9 +403,9 @@ Following [DEVELOPMENT-WORKFLOW.md](./DEVELOPMENT-WORKFLOW.md), each phase embod
 ---
 
 ### Phase 4: Knowledge Database APIs
-**Status**: Incomplete ⚠️
+**Status**: Archived ❌
 **Started**: 2025-08-10
-**Journey**: [Retroactive Journey - Phases 4-10](./phases/phase-04-through-10/JOURNEY.md)
+**Journey**: [Archived](./archives/phase-04-api-completion/) - Wrong primary keys
 **Docs**: [MVP-SPECIFICATION.md#13-knowledge-layer-api](../docs/MVP-SPECIFICATION.md#13-knowledge-layer-api)
 
 #### WHAT EXISTS (HONEST)
@@ -436,9 +436,9 @@ Following [DEVELOPMENT-WORKFLOW.md](./DEVELOPMENT-WORKFLOW.md), each phase embod
 ---
 
 ### Phase 5: Process Engine Infrastructure
-**Status**: Functional ⚠️
+**Status**: Archived ❌
 **Started**: 2025-08-10
-**Reality**: Framework works with two real processes implemented
+**Journey**: [Archived](./archives/phase-05-process-engine-completion/) - Mocking violations
 **Docs**: [ARCHITECTURE.md#22-process-engine](../docs/ARCHITECTURE.md#22-process-engine)
 
 #### PLAN (Documentation Review)
@@ -472,9 +472,9 @@ Following [DEVELOPMENT-WORKFLOW.md](./DEVELOPMENT-WORKFLOW.md), each phase embod
 ---
 
 ### Phase 6: Platform Services
-**Status**: Partially Functional ⚠️
+**Status**: Archived ❌
 **Started**: 2025-08-10
-**Reality**: PDF extraction real (PdfPig), embeddings work with LLM
+**Journey**: [Archived](./archives/phase-06-platform-services-completion/) - Wrong schema
 **Docs**: [MVP-SPECIFICATION.md#22-platform-services](../docs/MVP-SPECIFICATION.md#22-platform-services)
 
 #### WHAT EXISTS (HONEST)
@@ -504,18 +504,16 @@ Following [DEVELOPMENT-WORKFLOW.md](./DEVELOPMENT-WORKFLOW.md), each phase embod
 ---
 
 ### Phase 7: User & Journey System
-**Status**: Tested ✅
+**Status**: Archived ❌
 **Started**: 2025-08-10
-**Completed**: 2025-08-10
-**Journey**: [Completion Journey](./phases/phase-07-user-journey-completion/JOURNEY.md)
+**Journey**: [Archived](./archives/phase-07-user-journey-completion/) - Test violations
 **Docs**: [USER-MODEL.md](../docs/USER-MODEL.md), [MVP-SPECIFICATION.md#iv-user--journey-model](../docs/MVP-SPECIFICATION.md#iv-user--journey-model)
 
-#### COMPLETED WITH TESTS
-- [x] UserService - Singleton default user pattern tested
-- [x] JourneyService - State machine transitions verified
-- [x] JournalService - Chronological narrative preservation tested
-- [x] PersonaService - Evolution tracking validated
-- [x] All services have comprehensive test coverage (13 tests)
+#### STATUS
+- ❌ Tests use prohibited InMemory database
+- ❌ Tests mock internal services with Moq
+- ❌ Services built on wrong schema assumptions
+- 📁 Work archived to `/development/archives/phase-07-user-journey-completion/`
 
 #### DO (Implementation Notes)
 - Note: 
@@ -536,17 +534,14 @@ Following [DEVELOPMENT-WORKFLOW.md](./DEVELOPMENT-WORKFLOW.md), each phase embod
 ---
 
 ### Phase 8: Cognitive Adapter
-**Status**: Implemented ✅
+**Status**: Needs Verification ⚠️
 **Started**: 2025-08-10
-**Completed**: 2025-08-10
 **Docs**: [DESIGN-PATTERNS.md#5-adapter-pattern-for-cognitive-system](../docs/DESIGN-PATTERNS.md#5-adapter-pattern-for-cognitive-system)
 
-#### COMPLETED
-- [x] ICognitiveAdapter interface defined
-- [x] LocalLLMAdapter implemented for LM Studio
-- [x] OpenAI-compatible API integration
-- [x] Embeddings and text generation working
-- [x] Configuration via appsettings.json
+#### STATUS
+- ⚠️ Code exists but untested
+- ❌ No verification of functionality
+- ❓ May work but needs validation
 
 #### DO (Implementation Notes)
 - Note: 
@@ -567,18 +562,15 @@ Following [DEVELOPMENT-WORKFLOW.md](./DEVELOPMENT-WORKFLOW.md), each phase embod
 ---
 
 ### Phase 9: Systematic Screening Process
-**Status**: Implemented ✅
+**Status**: Skeletal ⚠️
 **Started**: 2025-08-10
-**Completed**: 2025-08-10
 **Docs**: [MVP-SPECIFICATION.md#231-systematic-screening-process](../docs/MVP-SPECIFICATION.md#231-systematic-screening-process)
 
-#### COMPLETED
-- [x] BasicSystematicScreeningProcess implements IAnalyticalProcess
-- [x] Research question-based screening with LLM
-- [x] Relevance scoring (0-1 scale, 0.7 threshold)
-- [x] Decision rationale generation
-- [x] Results stored in journey context
-- [ ] ⚠️ UI pending (Phase 11)
+#### STATUS
+- ⚠️ Skeletal implementation exists
+- ❌ No tests
+- ❌ Built on wrong schema assumptions
+- ❌ Needs complete rewrite
 
 #### DO (Implementation Notes)
 - Note: 
@@ -599,18 +591,15 @@ Following [DEVELOPMENT-WORKFLOW.md](./DEVELOPMENT-WORKFLOW.md), each phase embod
 ---
 
 ### Phase 10: Constrained Composition Process
-**Status**: Implemented ✅
+**Status**: Skeletal ⚠️
 **Started**: 2025-08-10
-**Completed**: 2025-08-10
 **Docs**: [MVP-SPECIFICATION.md#232-constrained-composition-process](../docs/MVP-SPECIFICATION.md#232-constrained-composition-process)
 
-#### COMPLETED
-- [x] BasicConstrainedCompositionProcess implements IAnalyticalProcess
-- [x] Document generation with constraints
-- [x] Iterative refinement when constraints violated
-- [x] Validation against specified requirements
-- [x] New documents created in journey context
-- [ ] ⚠️ UI pending (Phase 11)
+#### STATUS
+- ⚠️ Skeletal implementation exists
+- ❌ No tests
+- ❌ Built on wrong schema assumptions
+- ❌ Needs complete rewrite
 
 #### DO (Implementation Notes)
 - Note: 
@@ -768,10 +757,16 @@ Major decisions that affect multiple phases:
 |------|----------|-----------|---------|
 | - | Use JSONB for ProcessResult.Data | Flexibility for extensions | Affects process implementations |
 | - | pgvector for embeddings | Native PostgreSQL solution | Affects search implementation |
+| 2025-08-11 | Reject repository patterns | DbContext already provides this | Direct service usage |
+| 2025-08-11 | Embrace DDD ontology, reject praxis | PostgreSQL IS the domain model | Schema enforces rules |
+| 2025-08-11 | Archive phases 2-11 | Built on wrong primary keys | Complete restart needed |
+| 2025-08-11 | Composite primary keys required | User partition enforcement | Fundamental schema change |
 
-**For architectural divergences from core documentation**, see [ARCHITECTURAL-DIVERGENCES.md](./ARCHITECTURAL-DIVERGENCES.md)
+**For architectural imperatives and documentation coherency**:
+- [ALIGNMENT-GAPS.md](./ALIGNMENT-GAPS.md) - CRITICAL architectural violations and PDCA action plan
+- [archives/](./archives/) - Historical investigations with outdated patterns (DO NOT FOLLOW)
 
-This maintains Single Source of Truth (SSOT) - all divergences are documented in one place.
+This maintains Single Source of Truth (SSOT) - all architectural decisions are traceable.
 
 ---
 
