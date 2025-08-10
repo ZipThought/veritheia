@@ -26,6 +26,11 @@ builder.Services.AddScoped<DocumentIngestionService>();
 builder.Services.AddScoped<TextExtractionService>();
 builder.Services.AddScoped<EmbeddingService>();
 
+// User & Journey System (Phase 7)
+builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<JournalService>();
+builder.Services.AddScoped<PersonaService>();
+
 builder.Services.AddScoped<IDocumentStorageRepository>(sp =>
 {
     var environment = sp.GetRequiredService<IWebHostEnvironment>();

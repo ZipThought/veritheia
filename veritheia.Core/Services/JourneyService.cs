@@ -90,4 +90,30 @@ public class JourneyService
         
         await _db.SaveChangesAsync();
     }
+    
+    /// <summary>
+    /// Resume a journey - updates state and last accessed time
+    /// </summary>
+    public async Task<Journey?> ResumeJourneyAsync(Guid journeyId)
+    {
+        var journey = await _db.Journeys
+            .Include(j => j.Persona)
+            .FirstOrDefaultAsync(j => j.Id == journeyId);
+        
+        if (journey == null)
+            return null;
+        
+        journey.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+        
+        return journey;
+    }
+    
+    /// <summary>
+    /// Archive a journey
+    /// </summary>
+    public async Task ArchiveJourneyAsync(Guid journeyId)
+    {
+        await UpdateJourneyStateAsync(journeyId, "Archived");
+    }
 }
