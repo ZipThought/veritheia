@@ -4,6 +4,8 @@
 
 This document specifies the testing methodology for Veritheia. Tests verify technical implementation, architectural boundaries, and adherence to formation principles. The strategy implements four test levels with specific coverage targets and verification patterns.
 
+> **Formation Note:** Testing preserves intellectual sovereignty even in test environments. Every test creates proper user partitions with UserId keys, ensuring tests validate the same sovereignty boundaries that protect formation in production. When tests create journeys, they use real user contexts. When they process documents, they respect partition isolation. This isn't just good testing—it's validation that the system mechanically enforces authorship boundaries at every level.
+
 ## Test Infrastructure (Phase 3 Decision)
 
 ### Database Testing Approach: PostgreSQL with Respawn
@@ -190,11 +192,10 @@ Test component interactions within bounded contexts.
 [Fact]
 public async Task SaveJourney_WithJournals_PersistsFullAggregate()
 {
-    // Uses test database
+    // Uses test database - Direct DbContext, no repository abstraction
     await using var context = new TestDbContext();
-    var repository = new JourneyRepository(context);
     
-    // Arrange
+    // Arrange - Entity Framework IS our repository
     var journey = new Journey 
     { 
         UserId = TestUsers.Researcher.Id,
@@ -206,8 +207,11 @@ public async Task SaveJourney_WithJournals_PersistsFullAggregate()
     journey.CreateJournal(JournalType.Method);
     
     // Act
-    await repository.SaveAsync(journey);
-    var loaded = await repository.GetWithJournalsAsync(journey.Id);
+    context.Journeys.Add(journey);
+    await context.SaveChangesAsync();
+    var loaded = await context.Journeys
+        .Include(j => j.Journals)
+        .FirstOrDefaultAsync(j => j.Id == journey.Id);
     
     // Assert
     Assert.Equal(2, loaded.Journals.Count);
@@ -439,7 +443,8 @@ public async Task Extensions_CannotAccessOtherExtensionData()
         ProcessType = "SystematicScreening",
         Data = new { Results = new[] { new ScreeningResult() } }
     };
-    await repository.SaveAsync(screeningResult);
+    context.ScreeningResults.Add(screeningResult);
+    await context.SaveChangesAsync();
     
     // Act & Assert
     await Assert.ThrowsAsync<UnauthorizedAccessException>(async () =>
@@ -455,7 +460,8 @@ public async Task Extensions_CannotQueryOtherExtensionTables()
 {
     // Arrange
     var assignment = new Assignment { TeacherId = TestUsers.Teacher.Id };
-    await assignmentRepository.SaveAsync(assignment);
+    context.Assignments.Add(assignment);
+    await context.SaveChangesAsync();
     
     // Act & Assert
     // Screening process should not be able to query assignments
@@ -479,9 +485,9 @@ public async Task ScreeningResults_StoreCorrectlyInProcessResult()
         Data = new ScreeningProcessResult { Results = results }
     };
     
-    // Act
-    await repository.SaveProcessResultAsync(processResult);
-    var loaded = await repository.GetProcessResultAsync(processResult.ExecutionId);
+    // Act - Direct DbContext usage through service
+    await processService.SaveResultAsync(processResult);
+    var loaded = await processService.GetResultAsync(processResult.ExecutionId);
     
     // Assert
     var data = loaded.GetData<ScreeningProcessResult>();
@@ -503,7 +509,8 @@ public async Task Assignment_MaintainsReferentialIntegrity()
     await Assert.ThrowsAsync<ForeignKeyException>(async () =>
     {
         assignment.TeacherId = Guid.NewGuid(); // Non-existent user
-        await repository.SaveAsync(assignment);
+        context.Assignments.Add(assignment);
+        await context.SaveChangesAsync();
     });
 }
 ```
@@ -929,7 +936,7 @@ public async Task SemanticSearch_ReturnsResultsQuickly()
     var query = "adversarial attacks on neural networks";
     
     var stopwatch = Stopwatch.StartNew();
-    var results = await repository.SemanticSearchAsync(query, limit: 20);
+    var results = await searchService.SemanticSearchAsync(query, limit: 20);
     stopwatch.Stop();
     
     Assert.True(stopwatch.ElapsedMilliseconds < 200,

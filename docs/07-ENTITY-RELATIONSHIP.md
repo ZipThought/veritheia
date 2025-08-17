@@ -4,6 +4,8 @@ This document defines the database schema that enables Veritheia's neurosymbolic
 
 ## Architectural Foundation: User Partition Sovereignty
 
+> **Formation Note:** The composite primary keys (UserId, Id) aren't just partitioning—they're sovereignty boundaries ensuring your intellectual work remains yours. When PostgreSQL rejects a Journey without a Persona, it's protecting a truth we've discovered: every inquiry requires a perspective.
+
 Veritheia's database schema implements the core principle that **users own their intellectual work through partition boundaries enforced at the database level**. This manifests through:
 
 1. **Composite Primary Keys**: All user-owned entities use `(UserId, Id)` as primary key, ensuring natural partitioning
@@ -47,7 +49,7 @@ The database schema enables neurosymbolic transcended architecture through journ
 **The Neurosymbolic Process:**
 1. **User-Authored Symbolic Framework**: User expresses their intellectual framework in natural language (research questions, theoretical orientation, assessment criteria) stored as JSONB
 2. **Neural Semantic Understanding**: LLM comprehends the user's natural language framework and applies semantic understanding to each document
-3. **Mechanical Systematic Application**: Process Engine ensures EVERY document receives identical treatment through the user's framework without exception
+3. **Mechanical Systematic Application**: Process Engine applies identical treatment to EVERY document through the user's framework without exception
 4. **Journey-Specific Projection**: Same document transformed differently per journey based on user's authored symbolic system
 5. **Formation Accumulation**: User develops understanding through engagement with systematically processed documents
 
@@ -58,6 +60,9 @@ This transcends traditional neurosymbolic approaches because:
 - **Formation Outcome**: User authorship through engagement (not AI-generated insights)
 
 ### Core Platform ERD
+
+**Implementation Priority: P0-Foundation**  
+The core platform schema must be created first. All tables with user partition keys must exist before any journey can begin. This includes users, personas, journeys, and documents tables which form the foundational structure.
 
 ```mermaid
 erDiagram
@@ -314,6 +319,9 @@ erDiagram
 
 #### User Domain Tables
 
+**Implementation Priority: P0-Foundation**  
+User tables must exist before any other user-owned entities. They establish the partition boundaries that ensure sovereignty.
+
 ##### users
 Primary table for user accounts:
 ```sql
@@ -373,6 +381,9 @@ CREATE INDEX idx_capabilities_user ON process_capabilities(user_id);
 ```
 
 #### Journey Domain Tables
+
+**Implementation Priority: P1-Core**  
+Journey tables depend on user tables but must exist before any processing can occur. They enable the projection spaces that make formation possible.
 
 ##### journeys
 Represents user engagement with processes:
@@ -470,6 +481,9 @@ CREATE INDEX idx_entries_created ON journal_entries(created_at DESC);
 ```
 
 #### Knowledge Domain Tables
+
+**Implementation Priority: P1-Core**  
+Document tables enable corpus storage and must exist before documents can be projected into journeys. They maintain the raw corpus that gets transformed through user frameworks.
 
 ##### documents
 Source materials in the knowledge base:
@@ -674,6 +688,9 @@ CREATE INDEX idx_scopes_type ON knowledge_scopes(type);
 ```
 
 #### Process Infrastructure Tables
+
+**Implementation Priority: P2-MVP**  
+Process tables enable the execution tracking and result storage necessary for the MVP demonstration. They depend on journey infrastructure being in place.
 
 ##### process_definitions
 Metadata for available processes:

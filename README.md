@@ -2,39 +2,53 @@
 
 *From Veritas (Latin: truth) and alētheia (Greek: truth as "uncoveredness")*
 
-### I. What It Is
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Veritheia is epistemic infrastructure—a place to think, reflect, remember, and author knowledge.
+## The Problem
 
-You bring your own source material—books, PDFs, journal entries, recordings—and through Veritheia you compose your own synthesis, develop your own insights, and build structured knowledge that is yours in substance and form.
+You have thousands of documents to understand—research papers, reports, course materials. AI tools promise to help by generating summaries and answers, but this creates a deeper problem: when AI reads for you, the understanding isn't yours. You become dependent on AI interpretation rather than developing your own comprehension.
 
-It is public infrastructure for those engaged in real intellectual work: educators designing curricula, students seeking insight rather than answers, researchers mapping complex domains, and civic leaders cultivating understanding across communities.
+## What Veritheia Does
 
-### II. Architectural Imperatives
+Veritheia helps you engage with large document collections while ensuring every insight remains yours. Instead of generating summaries, it measures documents against YOUR questions, using YOUR definitions, within YOUR framework. You build understanding through engagement, not consumption.
 
-The environment is defined by its architecture.
+**Veritheia is open source (MIT licensed)**, enabling institutions and individuals to run their own instances while maintaining complete control over their intellectual work.
 
-Its perimeter is sovereign. Its reasoning is grounded. Its structure is open.
+## Who It's For
 
-### III. The Purpose
+- **Researchers** conducting systematic literature reviews
+- **Educators** designing curricula and assessments
+- **Students** building genuine understanding, not just answers
+- **Professionals** analyzing domain-specific documents
+- **Anyone** who needs to understand large document sets while maintaining intellectual ownership
 
-The purpose of this architecture is to ensure that your intellectual work remains yours.
+## How It's Different
 
-Through disciplined inquiry, you develop your own understanding. Through structured engagement, you author your own insights. Through formative practice, you become more capable—not more dependent.
+**Traditional AI**: Reads documents → Generates summaries → You consume
 
-### IV. Documentation
+**Veritheia**: You define framework → AI measures documents → You author understanding
 
-Comprehensive project documentation is available in the [docs](docs/) directory:
+The key innovation: You write rules in plain English ("Papers are relevant if they provide empirical evidence"), and these become the system's operating instructions. No programming required—your words literally control how documents are processed.
+
+## Development Philosophy: Specification-First
+
+**Veritheia follows strict specification-first development.** Complete specifications are written in `/docs` before any implementation. The implementation must follow the spec exactly—it cannot exceed or diverge from what is specified. This ensures architectural coherence and prevents feature creep.
+
+## Documentation
+
+Comprehensive specifications (written before implementation) are available in the [docs](docs/) directory:
 
 - [Documentation Index](docs/README.md) - Complete guide to all documentation
-- [AI Agent Guide](docs/AI-AGENT-GUIDE.md) - Epistemic collaboration principles for AI agents
-- [Architecture](docs/ARCHITECTURE.md) - System design and conceptual model
-- [MVP Specification](docs/MVP-SPECIFICATION.md) - Feature requirements and functionality
-- [Implementation](docs/IMPLEMENTATION.md) - Technical details and development guide
+- [Vision](docs/01-VISION.md) - Why Veritheia exists and what it enables
+- [User Guide](docs/02-USER-GUIDE.md) - What you can do with Veritheia
+- [Architecture](docs/03-ARCHITECTURE.md) - System design and conceptual model
+- [Implementation](docs/04-IMPLEMENTATION.md) - Technical details and development guide
+- [MVP Specification](docs/05-MVP-SPECIFICATION.md) - Feature requirements and functionality
+- [AI Agent Guide](docs/14-AI-AGENT-GUIDE.md) - Epistemic collaboration principles for AI agents
 - [Foundational Papers](docs/papers/) - Research papers informing the architecture
 
 
-### V. Quick Start
+## Quick Start
 
 ```bash
 # Build the solution
@@ -44,9 +58,9 @@ dotnet build
 dotnet run --project veritheia.AppHost
 ```
 
-### VI. Testing
+## Testing
 
-#### Running Tests
+### Running Tests
 
 ```bash
 # Run all tests (excluding integration)
@@ -59,22 +73,22 @@ dotnet test --filter "Category=LLMIntegration"
 LLM_URL=http://localhost:1234 dotnet test --filter "Category=LLMIntegration"
 ```
 
-#### Test Categories
+### Test Categories
 - **Unit Tests**: Fast, isolated tests (run in CI)
 - **Integration**: Database tests using Testcontainers (local only)
 - **LLMIntegration**: Tests requiring LLM server (local only)
 
-### VII. Current Status
+## Current Status
 
 See [Development Progress](development/PROGRESS.md) for detailed phase implementation status.
 
-### VIII. Technical Requirements
+## Technical Requirements
 
 - .NET 9 SDK (for native UUIDv7 support)
 - Docker Desktop (for PostgreSQL container)
 - .NET Aspire workload
 
-### IX. Provenance
+## Research Foundation
 
 The architecture and its methodologies are derived from the following research.
 

@@ -4,6 +4,7 @@
 
 This document specifies the user model for Veritheia, defining relationships between users, journeys, journals, and personas. The model implements journey-based knowledge work where insights accumulate into formation through structured engagement with source materials.
 
+> **Formation Note:** The User-Journey-Persona model ensures formation remains personal and non-transferable. Each journey exists at the intersection of WHO you are (User), HOW you approach the domain (Persona), and WHAT you're investigating (Purpose). This isn't data organization—it's the architectural enforcement that your insights emerge from YOUR specific path through knowledge. No one else can recreate your formation because they haven't walked your journey.
 
 ## Core Concepts
 

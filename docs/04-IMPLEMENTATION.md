@@ -2,11 +2,13 @@
 
 ## I. Purpose and Alignment
 
-The implementation of Veritheia exists to realize the commitments described in the Vision and Architecture. It does not merely stand up software; it enforces the principles of intellectual sovereignty, journey-specific meaning, and projection-space formation at the level of code and runtime. 
+The implementation of Veritheia exists to realize the commitments described in the Vision and Architecture. It does not merely stand up software; it implements the principles of intellectual sovereignty, journey-specific meaning, and projection-space formation at the level of code and runtime. 
 
-The design ontology draws from Domain-Driven Design's philosophy—model precision, boundary clarity, and invariants as domain truths—but deliberately rejects its conventional patterns of repositories, aggregate wrappers, and mock-friendly indirection. Here, the schema is the domain model. The database constraints, type safety, and process orchestration are not hidden behind abstractions but are the very mechanisms that preserve epistemic integrity.
+The design philosophy draws from Domain-Driven Design's core insight—that software should model the problem domain with precision—but deliberately rejects its conventional patterns of repositories, aggregate wrappers, and mock-friendly indirection. Here, the schema is the domain model. The database constraints, type safety, and process orchestration are not hidden behind abstractions but are the very mechanisms that preserve the integrity of user-authored understanding.
 
-This implementation is local-first by default, anti-surveillance by design, and partitioned so that each user's intellectual space remains sovereign. Every decision in this document exists to serve the telos defined in the Vision: formation through authorship, never extraction through automation.
+This implementation is local-first by default, anti-surveillance by design, and partitioned so that each user's intellectual space remains sovereign. Every decision in this document exists to serve the ultimate purpose defined in the Vision: formation through authorship, never extraction through automation.
+
+> **Formation Note:** The implementation philosophy directly enables formation through authorship. PostgreSQL isn't hidden behind abstractions because the schema itself implements intellectual sovereignty—composite keys create partition boundaries, foreign keys maintain journey context, constraints preserve integrity. When you author your framework in natural language, these database structures make it govern all processing without system override. The code doesn't just implement features; it mechanically applies your authorship.
 
 ## II. Development Philosophy: Progressive Enhancement
 
@@ -14,7 +16,7 @@ The system is constructed through progressive passes, each completing the entire
 
 **Skeleton Pass** – The structure stands: schema created, CRUD operations functional, projection spaces instantiated, UI displays live data. This is not a prototype but the first working system, crude in details but correct in architecture.
 
-**Validation Pass** – Journey-aware queries replace generic ones, projection logic enforces journey boundaries, assessment flows confirm that AI measures within the user's conceptual space. The system begins to embody its philosophy through actual use.
+**Validation Pass** – Journey-aware queries replace generic ones, projection logic respects journey boundaries, assessment flows confirm that AI measures within the user's conceptual space. The system begins to embody its philosophy through actual use.
 
 **Precision Pass** – Embedding generation tunes to user vocabularies rather than generic models. Prompts refine through observed assessment patterns. Measurements validate against actual research outcomes. The system learns its precision through deployment, not speculation.
 
@@ -28,11 +30,11 @@ Nothing speculative is implemented early. Field names, prompt formats, indexing 
 
 PostgreSQL 17 with pgvector extension provides unified storage for documents, metadata, and embeddings. This is not a compromise for simplicity but a recognition that the database embodies the domain.
 
-The schema models the domain directly. Foreign keys enforce intellectual context—no Journey exists without a Persona because every inquiry requires a perspective. Check constraints encode discovered lifecycle states—a Journey can be Active, Paused, Completed, or Abandoned, not because we decided but because these are the states users actually experience. Partition keys enforce sovereignty—every significant table begins with user_id, creating natural boundaries for both scaling and privacy.
+The schema models the domain directly. Foreign keys maintain intellectual context—PostgreSQL prevents a Journey from existing without a Persona because every inquiry requires a perspective. Check constraints implement discovered lifecycle states—a Journey can be Active, Paused, Completed, or Abandoned, not because we decided but because these are the states users actually experience. Partition keys create sovereignty boundaries—every significant table begins with user_id, establishing natural boundaries for both scaling and privacy.
 
 All projection-space data—segmentation, embeddings, assessments—exists in relational and vector form within the same ACID boundary. When a document enters a journey, its segments, embeddings, and assessments commit atomically. There is no eventual consistency between document and vector stores because there is only one store. HNSW indexes on vector columns provide logarithmic retrieval complexity while maintaining transactional guarantees.
 
-Cross-partition foreign keys do not exist. When users share content, the system creates explicit bridge records that reference across partitions through application logic rather than database constraints. These bridges are auditable, revocable, and maintain clear ownership chains. The database structure enforces the ethical principle: intellectual work remains private by default, shareable by choice.
+Cross-partition foreign keys do not exist. When users share content, the system creates explicit bridge records that reference across partitions through application logic rather than database constraints. These bridges are auditable, revocable, and maintain clear ownership chains. The database structure implements the ethical principle: intellectual work remains private by default, shareable by choice.
 
 ### 3.2 Process Engine
 
@@ -72,15 +74,15 @@ Every table's primary key begins with user_id, creating natural clustering for p
 
 ## V. Service and Process Architecture
 
-Platform services guarantee core invariants for all processes:
+Platform services maintain core invariants for all processes:
 
 **Document Ingestion** preserves structure while extracting searchable content. PDFs maintain page boundaries. Academic papers preserve sections. Web content retains semantic HTML structure. The ingestion service never summarizes or interprets, only extracts and preserves.
 
-**Projection-Aware Embedding** generates vectors within journey context. The same text embedded for a technical review includes technical vocabulary in its context. Embedded for philosophical analysis, it includes conceptual frameworks. The embedding service ensures semantic search operates within the user's intellectual space.
+**Projection-Aware Embedding** generates vectors within journey context. The same text embedded for a technical review includes technical vocabulary in its context. Embedded for philosophical analysis, it includes conceptual frameworks. The embedding service enables semantic search to operate within the user's intellectual space.
 
-**Partition-Safe Search** respects user boundaries. Queries automatically scope to the authenticated user's partition. Cross-partition search requires explicit bridges with audit trails. The search service enforces sovereignty at the query level.
+**Partition-Safe Search** respects user boundaries. Queries automatically scope to the authenticated user's partition. Cross-partition search requires explicit bridges with audit trails. The search service implements sovereignty at the query level.
 
-**Context Assembly** constructs coherent narratives from journals, personas, and journey state. Recent entries receive priority. Significant entries (marked Critical or Milestone) always include. The assembly service ensures processes operate with full user context while respecting token limits.
+**Context Assembly** constructs coherent narratives from journals, personas, and journey state. Recent entries receive priority. Significant entries (marked Critical or Milestone) always include. The assembly service provides processes with full user context while respecting token limits.
 
 Processes follow a unified execution contract:
 

@@ -9,9 +9,11 @@ This document defines the domain classes that enable Veritheia's neurosymbolic t
 **Journey Projection Spaces**: Documents are never processed generically. Instead, each user's journey creates a unique projection space where the same documents are transformed according to their authored intellectual framework. This enables the neurosymbolic transcendence where:
 - **User's Natural Language Framework**: Becomes their personal symbolic system stored as JSONB
 - **Neural Semantic Understanding**: LLM comprehends the user's framework and applies it systematically
-- **Mechanical Orchestration**: Process Engine ensures ALL documents receive identical treatment
+- **Mechanical Orchestration**: Process Engine applies identical treatment to ALL documents
 
-**Entities as Domain Truth**: The entity classes in `veritheia.Data/Entities` ARE the domain models. Intelligence lives in LLMs and Process Engine, not in domain objects. PostgreSQL constraints enforce all domain rules. We explicitly reject DDD praxis while embracing its ontology of precise domain modeling.
+**Entities as Domain Truth**: The entity classes in `veritheia.Data/Entities` ARE the domain models. Intelligence lives in LLMs and Process Engine, not in domain objects. PostgreSQL constraints enforce all domain rules. We explicitly reject DDD's implementation patterns while embracing its principle of precise domain modeling.
+
+> **Formation Note:** These classes don't just store data—they embody the neurosymbolic transcendence. The Journey class holds YOUR natural language framework as its symbolic system. The ProcessExecution class implements mechanical orchestration of YOUR rules across all documents. The composite keys establish YOUR intellectual sovereignty through database constraints. Every class participates in making your statement "relevant papers must provide empirical evidence" the unchangeable law governing your journey's processing.
 
 ## Overview Diagram
 
@@ -638,7 +640,7 @@ Example: GuidedCompositionProcess uses assignments, student_submissions, evaluat
 
 ## Data Access Patterns
 
-> **IMPERATIVE: Composite Keys with User Partition Boundaries**: All user-owned entities use composite primary keys `(UserId, Id)` to enforce intellectual sovereignty. Direct DbContext access with partition-aware query extensions ensures users can only access their own data. We explicitly reject repository abstractions - PostgreSQL constraints and composite keys ARE the domain rules.
+> **IMPERATIVE: Composite Keys with User Partition Boundaries**: All user-owned entities use composite primary keys `(UserId, Id)` to implement intellectual sovereignty. Direct DbContext access with partition-aware query extensions restricts users to accessing only their own data. We explicitly reject repository abstractions - PostgreSQL constraints and composite keys ARE the domain rules.
 
 ### Direct DbContext Access
 
@@ -736,4 +738,4 @@ var documents = await knowledgeRepository.GetDocumentsInScopeAsync(scopeId);
 - Scopes provide logical isolation
 - Extensions respect boundaries
 
-The class model ensures that technical structure serves the core principle: users author their own understanding through structured engagement with knowledge, while enabling rich extensions for different analytical patterns.
+The class model implements technical structure that serves the core principle: users author their own understanding through structured engagement with knowledge, while enabling rich extensions for different analytical patterns.

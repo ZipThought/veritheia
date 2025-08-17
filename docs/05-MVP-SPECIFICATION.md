@@ -4,6 +4,8 @@
 
 Veritheia is formative technology - epistemic infrastructure that makes formation scalable in the midst of information overload. The MVP provides journey projection spaces where documents are transformed according to user-defined intellectual frameworks, enabling formation through authorship. Users develop intellectual capacity through engagement with projected documents, not through consumption of AI-generated outputs.
 
+> **Formation Note: The Neurosymbolic Transcendence** - The MVP demonstrates the revolutionary capability where users author their own symbolic systems through natural language. When a researcher writes "Papers are relevant if they provide empirical evidence," or a teacher writes "Good essays use sensory details," these natural language statements become the symbolic rules governing document processing. No programming required—the user's words ARE the symbolic system.
+
 ## 2. Illustrative MVP Journeys
 
 **Note**: These are illustrative MVP journeys - the same infrastructure supports any formative journey that meets the architecture's authorship constraints.
@@ -17,16 +19,16 @@ The MVP infrastructure supports formative journeys - intellectual development th
 **CONCRETE USER STORY**: Dr. Sarah has 3,247 papers but can manually engage with only ~200. Through Veritheia, she develops the intellectual capacity to synthesize insights from the full corpus through her own authorship.
 
 **PRECISE PROCESS**:
-1. **Framework Definition** - User defines:
+1. **Framework Definition** - User authors their symbolic system in natural language:
    - Research Questions: "How are LLMs being utilized for threat detection?"
    - Term Definitions: "Contextualized AI means AI systems utilizing proprietary, domain-specific knowledge"
    - Assessment Criteria: Relevance threshold 0.7, contribution scoring rubric
    - Theoretical Orientation: Post-industrial computing perspective
 
-2. **Document Projection** - System transforms each of 3,247 papers:
-   - **Segmentation**: Split according to user's research focus (methodology sections for RQ1, results sections for RQ2)
-   - **Embedding**: Generate vectors with user's definitions as context, NOT generic embeddings
-   - **Assessment**: AI measures each segment against user's RQs with transparent reasoning
+2. **Document Projection** - System mechanically applies user's symbolic framework:
+   - **Segmentation**: Split according to semantic boundaries relevant to user's questions
+   - **Embedding**: Generate vectors with user's vocabulary as context (transcended: user's words shape the vector space)
+   - **Assessment**: Neural component interprets user's natural language rules to measure each segment
 
 3. **Formation Through Authorship** - User develops scholarly capacity through:
    - Authoring inclusion/exclusion decisions (not accepting AI selections)
@@ -166,7 +168,7 @@ CREATE TABLE journey_frameworks (
 
 ### 4.3 Neurosymbolic Process Engine Implementation
 
-The Process Engine implements neurosymbolic architecture, transcended, through mechanical orchestration of user-authored symbolic frameworks applied via neural semantic understanding. This ensures systematic processing where all documents receive identical treatment regardless of corpus size.
+The Process Engine implements neurosymbolic architecture, transcended—the critical differentiator from all legacy systems. Traditional symbolic AI requires programmers to encode rules in formal languages. Veritheia transcends this: users author symbolic systems in natural language ("Papers must provide empirical evidence"), and neural components interpret these natural language rules. The mechanical orchestration ensures these user-authored rules apply to ALL documents identically, regardless of corpus size.
 
 **Execution Context** (Neurosymbolic-aware):
 ```csharp

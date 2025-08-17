@@ -4,6 +4,8 @@
 
 This document specifies the application programming interfaces for Veritheia. All interfaces enforce journey-based data access and assessment-only AI operations. The contracts ensure extensibility while preventing system-generated insights.
 
+> **Formation Note:** These interfaces are contracts of constraint, not capability. IAnalyticalProcess doesn't allow processes to generate insights—it forces them to operate within user-authored frameworks. ICognitiveAdapter doesn't enable AI freedom—it constrains AI to measurement within user-defined symbolic systems. Every interface participates in ensuring that formation emerges from user authorship, never system generation.
+
 ## 2. Core Process Interfaces
 
 ### 2.1 IAnalyticalProcess

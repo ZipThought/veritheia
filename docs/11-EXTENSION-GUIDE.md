@@ -11,6 +11,8 @@ Veritheia's architecture supports full-stack extensions through a process-based 
 - **User Interface**: Components that enable user interaction
 - **Result Rendering**: Visualization of process outcomes
 
+> **Formation Note:** Extensions aren't features added to Veritheia—they're new domains where formation through authorship can occur. Every extension must preserve the neurosymbolic transcendence: users author frameworks in natural language, the system mechanically applies them, formation emerges from engagement. An extension that generates insights or makes decisions violates the core architecture. Extensions amplify human capability, never replace human judgment.
+
 ## Process Categories
 
 Extensions typically fall into one of these categories, each supporting different patterns of intellectual work:

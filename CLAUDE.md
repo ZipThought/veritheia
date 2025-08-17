@@ -71,9 +71,12 @@ Assumptions here are treated as bugs. Every extrapolation beyond what was asked 
 > * End with what is incomplete and requires verification.
 > * List assumptions you resisted making.
 
-Your work here must align with the project’s sacred sequence, documented in `development/DEVELOPMENT-WORKFLOW.md`:
+Your work here must align with the project's sacred sequence, documented in `development/DEVELOPMENT-WORKFLOW.md`:
 `Human Author → Dialectical Journey → Documentation Update → Code Implementation`.
 Breaking this sequence introduces both technical debt and philosophical incoherence.
+
+**CRITICAL: Specification-First Development**
+Veritheia follows strict specification-first development. Complete specifications exist in `/docs` BEFORE implementation. The implementation must follow the spec exactly—it cannot exceed or diverge from what is specified. When you implement features, you are translating specifications into code, not designing new capabilities.
 
 > **SOP: Reading Sequence Before Work**
 >

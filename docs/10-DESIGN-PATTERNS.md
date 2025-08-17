@@ -4,9 +4,11 @@
 
 This document specifies the design patterns that emerge from Veritheia's architectural commitments. These are not patterns imposed from industry fashion but natural consequences of our technology choices and philosophical stance.
 
-We embrace Domain-Driven Design's ontology—that software should model the problem domain with precision—and its telos—maintaining model integrity through explicit boundaries. However, we reject DDD's praxis entirely. No repositories hiding the database. No aggregate roots pretending to enforce rules that PostgreSQL already enforces. No value objects when C# records suffice. The schema IS the domain model. The constraints ARE the business rules. Entity Framework Core provides direct projection of database truth into runtime, nothing more.
+We embrace Domain-Driven Design's core principle—that software should model the problem domain with precision—and its goal of maintaining model integrity through explicit boundaries. However, we reject DDD's implementation practices entirely. No repositories hiding the database. No aggregate roots pretending to enforce rules that PostgreSQL already enforces. No value objects when C# records suffice. The schema IS the domain model. The constraints ARE the business rules. Entity Framework Core provides direct projection of database truth into runtime, nothing more.
 
-Every pattern documented here serves the architectural principles established in ARCHITECTURE.md: user sovereignty through partition boundaries, intellectual formation through projection spaces, anti-surveillance through structural design, and testing through real execution rather than mocked abstractions.
+Every pattern documented here serves the architectural principles established in 03-ARCHITECTURE.md: user sovereignty through partition boundaries, intellectual formation through projection spaces, anti-surveillance through structural design, and testing through real execution rather than mocked abstractions.
+
+> **Formation Note:** These patterns emerge from the recognition that PostgreSQL with pgvector IS our domain model. We don't abstract what is already abstracted. We partition by user, project by journey, and measure within conceptual spaces because these patterns preserve the possibility of genuine human understanding.
 
 ## II. Core Invariants
 
@@ -574,6 +576,8 @@ When implementing any feature:
 
 ## X. Closing Principle
 
-These patterns emerge from the recognition that PostgreSQL with pgvector IS our domain model, Entity Framework Core IS our data access layer, and the schema IS the source of truth. We do not abstract what is already abstracted. We do not mock what must be real. We partition by user, project by journey, and measure within conceptual spaces. 
+These patterns emerge from the recognition that PostgreSQL with pgvector IS our domain model, Entity Framework Core IS our data access layer, and the schema IS the source of truth. We do not abstract what is already abstracted. We do not mock what must be real. We partition by user, project by journey, and measure within conceptual spaces.
+
+> **Formation Note:** Every pattern documented here exists to ensure that when users engage with Veritheia, they are authoring their own understanding, not consuming system-generated intelligence. The architectural patterns are the mechanical enforcement of this philosophical commitment.
 
 Every pattern serves the architectural commitment: intellectual sovereignty through structural design, not policy decoration.

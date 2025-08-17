@@ -4,6 +4,8 @@
 
 This document specifies prompt engineering patterns that constrain AI models to assessment-only operations within Veritheia. The patterns prevent insight generation while maintaining consistent evaluation quality across different LLM implementations.
 
+> **Formation Note:** Prompt engineering in Veritheia is defensive architecture against AI's tendency to generate rather than measure. Every prompt pattern exists to prevent the LLM from authoring insights that should emerge from user engagement. When the prompt says "You MUST NOT generate insights," it's protecting the user's intellectual sovereignty. These aren't just prompts—they're guardrails ensuring that formation happens through YOUR engagement with documents, not through AI's pattern matching.
+
 ## 2. LLM Bias Analysis
 
 ### 2.1 Inherent Model Biases

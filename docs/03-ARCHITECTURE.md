@@ -26,15 +26,25 @@ Veritheia is an epistemic infrastructure that enables users to author understand
 +-----------------------------------------------------+
 ```
 
+> **Formation Note:** This architecture ensures that every technical component serves a single purpose: enabling users to author their own understanding. The four-tier design isn't arbitrary—each tier maintains a boundary that preserves user sovereignty. The Knowledge Database stores documents without interpretation. The Process Engine orchestrates without deciding. The Cognitive System measures without concluding. The Presentation tier displays without generating.
+
 ## II. System Components
 
 ### 2.1 Knowledge Database
+
+**Implementation Priority: P0-Foundation**  
+The Knowledge Database must exist before any other component can function. It forms the foundational storage layer for all user documents and journey projections.
 
 The Knowledge Database provides persistent storage for source documents and derived representations. It maintains three data layers: Raw Corpus (original documents), Processed Representation (embeddings, metadata, relationships), and Knowledge Layer (semantic query API). The database preserves provenance and versioning for all transformations.
 
 ### 2.2 Process Engine: Neurosymbolic Orchestration
 
-The Process Engine implements **neurosymbolic architecture, transcended** by mechanically orchestrating the systematic application of user-authored symbolic frameworks through neural semantic understanding.
+**Implementation Priority: P1-Core**  
+The Process Engine depends on the Knowledge Database and enables all journey-based processing. Without it, documents cannot be projected through user frameworks.
+
+The Process Engine implements **neurosymbolic architecture, transcended**—the critical innovation that differentiates Veritheia from all legacy systems. Unlike traditional neurosymbolic systems where symbolic rules are coded in formal languages (Prolog, LISP, Python), Veritheia transcends this limitation by enabling users to author their symbolic systems in natural language. The user's research questions, definitions, and criteria ARE the symbolic framework, interpreted and applied through neural semantic understanding. This transcendence means every user becomes a knowledge engineer without knowing programming—they author the symbolic system that governs document processing simply by expressing their intellectual framework in their own words.
+
+> **Formation Note: The Transcendent Innovation** - This neurosymbolic transcended architecture is what makes formation through authorship possible. Traditional systems require programmers to encode rules; Veritheia enables users to author their own symbolic systems through natural language. When you write "relevant papers must provide empirical evidence," that natural language statement becomes the symbolic rule governing assessment. You are not using the system—you are authoring the symbolic framework that defines how the system operates within your journey.
 
 **As Demonstrated in Foundational Research:**
 - **[LLAssist](./papers/2407.13993v3.pdf)** processed datasets of 17, 37, 115, and 2,576 articles with identical methodology - demonstrating mechanical orchestration that scales without bias
@@ -65,6 +75,9 @@ This projection mechanism enables scale—thousands of documents become tractabl
 
 ### 2.3 Presentation Tier
 
+**Implementation Priority: P2-MVP**  
+The Presentation tier requires both Knowledge Database and Process Engine to function. It provides the interface through which users engage with their projected documents.
+
 The Presentation tier implements user interfaces for journey management, journal composition, and process execution. It maintains strict separation between user-authored content and system-provided structure. All displays reflect the user's developing understanding without imposing system-generated interpretations.
 
 ## III. Architectural Patterns
@@ -74,6 +87,8 @@ The Presentation tier implements user interfaces for journey management, journal
 The system employs PostgreSQL as an Object-Relational Database Management System (ORDBMS), leveraging its full capabilities rather than treating it as a simple data store. PostgreSQL's pgvector extension provides semantic search through high-dimensional vector operations, indexed using Hierarchical Navigable Small World (HNSW) graphs for logarithmic query complexity even at scale. The JSONB data type stores semi-structured data with full indexing support, enabling flexible schema evolution within rigorous relational boundaries. Array types capture multi-valued attributes without junction tables, while range types represent intervals with proper algebraic operations. This unified approach eliminates the synchronization complexity that would arise from separating relational, document, and vector stores into distinct systems.
 
 The database embodies the core domain rather than serving as infrastructure. This architectural principle recognizes that in knowledge management systems, the schema defines not just data storage but the fundamental relationships that constitute understanding. When PostgreSQL enforces that every Journey must reference a valid Persona, this constraint expresses a domain truth: intellectual work requires context. When foreign keys prevent DocumentSegments from existing without their source Documents, they preserve the provenance chain essential to epistemic integrity. When check constraints limit JourneyState to specific values, they encode the discovered lifecycle of intellectual engagement.
+
+> **Formation Note:** These database constraints aren't arbitrary technical decisions—they encode discovered truths about intellectual work. A Journey without a Persona would be inquiry without perspective, which we've learned is impossible. A DocumentSegment without its source Document would be insight without provenance, breaking the chain of understanding. The schema enforces what formation requires.
 
 This domain-centric database architecture has profound implications for testing strategy. Since the database enforces business invariants through its schema, attempts to mock it would bypass the very rules that define system correctness. A mock that allows a Journey without a User would permit states the domain considers impossible. Therefore, all tests execute against real PostgreSQL instances, using Respawn to restore clean state between test runs. This approach validates not just application logic but the full stack of domain rules from constraint to code. Only truly external services—language models, file storage systems, third-party APIs—warrant mocking, as they exist outside the domain boundary.
 
@@ -320,7 +335,7 @@ public class ProcessSpecificData : BaseEntity
 }
 ```
 
-The platform handles migrations and ensures data consistency across extensions. See [EXTENSION-GUIDE.md](./EXTENSION-GUIDE.md) for implementation details.
+The platform handles migrations and ensures data consistency across extensions. See [11-EXTENSION-GUIDE.md](./11-EXTENSION-GUIDE.md) for implementation details.
 
 ### VIII. User and Journey Architecture
 
@@ -360,4 +375,4 @@ The system assembles context from:
 
 Context is managed to fit within cognitive system limits while maintaining narrative coherence and the user's voice.
 
-See [USER-MODEL.md](./USER-MODEL.md) for detailed specifications.
+See [06-USER-MODEL.md](./06-USER-MODEL.md) for detailed specifications.
