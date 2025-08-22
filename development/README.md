@@ -4,24 +4,35 @@ This folder contains all development-specific tools, scripts, and tracking docum
 
 ## 🚨 CRITICAL: READ FIRST 🚨
 
-### Documentation Alignment Complete (2025-08-17)
+### Foundation Layer Complete (2025-08-20)
 
-The `/docs` folder has undergone comprehensive alignment to emphasize **formation through authorship** and the **neurosymbolic transcended architecture** as our key differentiator. All documents now coherently explain how users author symbolic systems in natural language that govern document processing.
+The **Foundation Layer (Milestone 0-2)** has been successfully implemented:
 
-**Key Changes:**
-- Added Formation Notes connecting technical details to user sovereignty
-- Created comprehensive glossary explaining neurosymbolic transcended architecture
-- Removed repository patterns in favor of direct DbContext usage
-- Replaced academic jargon with accessible language
-- Fixed unenforceable "guarantees" language
+**✅ Milestone 0: Database Schema**
+- Composite primary keys `(UserId, Id)` for all user-owned entities
+- Partition-aware indexes for locality
+- Migration `CompositePrimaryKeys` ready for deployment
 
-**PENDING TASK**: Ensure development direction aligns with the updated specification. The implementation must follow the spec as documented in `/docs`, not exceed or diverge from it.
+**✅ Milestone 1: Core Domain Entities**
+- All entities implement `IUserOwned` interface
+- UserId property added to all user-owned entities
+- Partition boundaries enforced at entity level
 
-### Previous Alignment Gaps
+**✅ Milestone 2: Query Infrastructure**
+- `QueryExtensions` class with `.ForUser<T>()` methods
+- Journey-scoped operations (`.ForJourney()`, `.WithAssessments()`, etc.)
+- Partition enforcement at query level
 
-**[ALIGNMENT-GAPS.md](./ALIGNMENT-GAPS.md)** - Contains previous epistemic scan findings showing discrepancies between documented claims and actual implementation status.
+**🔄 CURRENT: Milestone 3 - Test Infrastructure**
+- Replacing InMemory database with real PostgreSQL + Respawn
+- Updating test files to use partition-aware patterns
+- Removing references to deleted properties
 
-⚠️ **Previous Finding**: Implementation was ~40-50% complete, not the claimed 85%. Test infrastructure broken. Journey projection spaces not implemented. **These gaps need reassessment against the updated specification.**
+### Previous Alignment Gaps (ARCHIVED)
+
+**[archives/old-development-docs/ALIGNMENT-GAPS.md](./archives/old-development-docs/ALIGNMENT-GAPS.md)** - Contains previous epistemic scan findings showing discrepancies between documented claims and actual implementation status.
+
+⚠️ **Previous Finding**: Implementation was ~40-50% complete, not the claimed 85%. Test infrastructure broken. Journey projection spaces not implemented. **These gaps have been addressed through foundation layer implementation.**
 
 ## Contents
 
@@ -29,9 +40,9 @@ The `/docs` folder has undergone comprehensive alignment to emphasize **formatio
 - **DEVELOPMENT-WORKFLOW.md** - MANDATORY workflow: Human → Journey → Docs → Code
 
 ### Progress Tracking
-- **PROGRESS.md** - Main implementation tracker with PDCA cycles for all 12 phases
+- **PROGRESS.md** - Main implementation tracker with PDCA cycles for all dependency levels
 - **PDCA-WORKFLOW.md** - Detailed workflow guide for Plan-Do-Check-Act methodology
-- **ALIGNMENT-GAPS.md** - CRITICAL architectural violations and fixes needed
+- **IMPLEMENTATION-SUMMARY.md** - One-page summary of implementation plan
 
 ### Implementation Planning
 - **IMPLEMENTATION-SUMMARY.md** - One-page summary of implementation plan
@@ -56,7 +67,7 @@ cat IMPLEMENTATION-SUMMARY.md
 
 1. **Track Progress**: Update PROGRESS.md as you complete work
 2. **Check Status**: Run `./check-progress.sh` for quick overview
-3. **Recover Context**: Read CONTEXT-RECOVERY.md when resuming work
+3. **Recover Context**: Read IMPLEMENTATION-SUMMARY.md when resuming work
 4. **Follow PDCA**: Use PDCA-WORKFLOW.md for quality implementation
 
 ## Important Rules
@@ -65,3 +76,4 @@ cat IMPLEMENTATION-SUMMARY.md
 - Update PROGRESS.md before context switches
 - Commit frequently with descriptive messages
 - Keep source files < 500 lines, docs < 1000 lines
+- **Follow partition boundaries** - all queries must use `.ForUser<T>()`

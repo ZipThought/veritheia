@@ -18,7 +18,7 @@ The system is constructed through progressive passes, each completing the entire
 
 **Validation Pass** – Journey-aware queries replace generic ones, projection logic respects journey boundaries, assessment flows confirm that AI measures within the user's conceptual space. The system begins to embody its philosophy through actual use.
 
-**Precision Pass** – Embedding generation tunes to user vocabularies rather than generic models. Prompts refine through observed assessment patterns. Measurements validate against actual research outcomes. The system learns its precision through deployment, not speculation.
+**Precision Pass** – Embedding generation tunes to user vocabularies rather than generic models. Prompts refine through observed assessment patterns. Measurements validate against actual research outcomes. The system achieves precision through deployment validation, not speculation.
 
 **Production Pass** – Edge cases surface and resolve. Performance bottlenecks identify and optimize. Operational resilience confirms through stress testing. The system hardens for sustained intellectual work.
 

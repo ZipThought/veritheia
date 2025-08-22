@@ -63,20 +63,24 @@ dotnet run --project veritheia.AppHost
 ### Running Tests
 
 ```bash
-# Run all tests (excluding integration)
-dotnet test --filter "Category!=Integration&Category!=LLMIntegration"
+# Run CI-safe tests (excludes LLM integration)
+dotnet test --filter "Category!=LLMIntegration"
 
-# Run LLM integration tests (requires local LLM server)
+# Run all tests including database integration (local only)
+dotnet test
+
+# Run only LLM integration tests (requires local LLM server)
 dotnet test --filter "Category=LLMIntegration"
 
-# With custom LLM server URL
-LLM_URL=http://localhost:1234 dotnet test --filter "Category=LLMIntegration"
+# Run specific test categories
+dotnet test --filter "Category=Unit"           # Unit tests only
+dotnet test --filter "Category=Integration"    # Integration tests only
 ```
 
 ### Test Categories
-- **Unit Tests**: Fast, isolated tests (run in CI)
-- **Integration**: Database tests using Testcontainers (local only)
-- **LLMIntegration**: Tests requiring LLM server (local only)
+- **Unit Tests**: Fast, isolated tests with mocks (run in CI)
+- **Integration**: Database + service tests using mocks (run in CI)  
+- **LLMIntegration**: Tests requiring real LLM server (local only, excluded from CI)
 
 ## Current Status
 

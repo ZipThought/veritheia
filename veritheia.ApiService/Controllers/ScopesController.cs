@@ -32,9 +32,8 @@ public class ScopesController : ControllerBase
         var scope = new KnowledgeScope
         {
             Id = Guid.CreateVersion7(),
-            // UserId removed - scopes are global in MVP
+            UserId = request.UserId, // Required for partition enforcement
             Name = request.Name,
-            Description = request.Description,
             Type = request.Type ?? "General",
             CreatedAt = DateTime.UtcNow
         };
@@ -58,12 +57,12 @@ public class ScopesController : ControllerBase
     public async Task<IActionResult> GetScopes([FromQuery] Guid userId)
     {
         var scopes = await _db.KnowledgeScopes
+            .Where(s => s.UserId == userId) // Partition enforcement
             .OrderBy(s => s.Name)
             .Select(s => new
             {
                 s.Id,
                 s.Name,
-                s.Description,
                 s.Type,
                 DocumentCount = s.Documents.Count(),
                 s.CreatedAt
@@ -83,16 +82,14 @@ public class ScopesController : ControllerBase
         [FromQuery] Guid userId)
     {
         var scope = await _db.KnowledgeScopes
-            .FirstOrDefaultAsync(s => s.Id == scopeId );
+            .Where(s => s.UserId == userId) // Partition enforcement
+            .FirstOrDefaultAsync(s => s.Id == scopeId);
         
         if (scope == null)
             return NotFound();
         
         if (!string.IsNullOrEmpty(request.Name))
             scope.Name = request.Name;
-        
-        if (!string.IsNullOrEmpty(request.Description))
-            scope.Description = request.Description;
         
         await _db.SaveChangesAsync();
         
@@ -106,7 +103,8 @@ public class ScopesController : ControllerBase
     public async Task<IActionResult> DeleteScope(Guid scopeId, [FromQuery] Guid userId)
     {
         var scope = await _db.KnowledgeScopes
-            .FirstOrDefaultAsync(s => s.Id == scopeId );
+            .Where(s => s.UserId == userId) // Partition enforcement
+            .FirstOrDefaultAsync(s => s.Id == scopeId);
         
         if (scope == null)
             return NotFound();

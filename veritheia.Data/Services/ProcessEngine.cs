@@ -75,7 +75,43 @@ public class ProcessEngine
     }
     
     /// <summary>
-    /// Execute a process within a journey's projection space
+    /// Queue a process for background execution
+    /// </summary>
+    public async Task<Guid> QueueProcessAsync(
+        string processId,
+        Guid userId,
+        Guid journeyId,
+        Dictionary<string, object> inputs,
+        CancellationToken cancellationToken = default)
+    {
+        // Validate process exists
+        var process = CreateProcessInstance(processId);
+        if (process == null)
+            throw new InvalidOperationException($"Process {processId} not registered");
+
+        // Create execution record in Pending state
+        var execution = new ProcessExecution
+        {
+            Id = Guid.CreateVersion7(),
+            UserId = userId,
+            JourneyId = journeyId,
+            ProcessType = processId,
+            State = "Pending",
+            Inputs = inputs,
+            CreatedAt = DateTime.UtcNow
+        };
+        
+        _db.ProcessExecutions.Add(execution);
+        await _db.SaveChangesAsync(cancellationToken);
+        
+        _logger.LogInformation("Queued process {ProcessId} for journey {JourneyId} with execution {ExecutionId}", 
+            processId, journeyId, execution.Id);
+        
+        return execution.Id;
+    }
+
+    /// <summary>
+    /// Execute a process synchronously (for immediate execution)
     /// </summary>
     public async Task<ProcessExecutionResult> ExecuteProcessAsync(
         string processId,
@@ -101,10 +137,13 @@ public class ProcessEngine
         var execution = new ProcessExecution
         {
             Id = Guid.CreateVersion7(),
+            UserId = journey.UserId,
             JourneyId = journeyId,
             ProcessType = processId,
             StartedAt = DateTime.UtcNow,
-            State = "Running"
+            State = "Running",
+            Inputs = inputs,
+            CreatedAt = DateTime.UtcNow
         };
         
         _db.ProcessExecutions.Add(execution);
@@ -137,15 +176,19 @@ public class ProcessEngine
             // Update execution record
             execution.CompletedAt = DateTime.UtcNow;
             execution.State = result.Success ? "Completed" : "Failed";
+            if (!result.Success)
+            {
+                execution.ErrorMessage = result.ErrorMessage;
+            }
             
             // Store result
             var processResult = new ProcessResult
             {
                 Id = Guid.CreateVersion7(),
+                UserId = journey.UserId,
                 ExecutionId = execution.Id,
                 ProcessType = processId,
-                Data = result.Data,
-                ExecutedAt = DateTime.UtcNow,
+                Data = result.Data ?? new Dictionary<string, object>(),
                 CreatedAt = DateTime.UtcNow
             };
             
@@ -159,7 +202,7 @@ public class ProcessEngine
             {
                 ExecutionId = execution.Id,
                 Success = result.Success,
-                Data = result.Data,
+                Data = result.Data ?? new Dictionary<string, object>(),
                 ErrorMessage = result.ErrorMessage
             };
         }
@@ -190,12 +233,23 @@ public class ProcessEngine
             .ToListAsync();
     }
     
-    private IAnalyticalProcess? CreateProcessInstance(string processId)
+    /// <summary>
+    /// Create a process instance (exposed for ProcessWorkerService)
+    /// </summary>
+    public IAnalyticalProcess? CreateProcessInstance(string processId)
     {
         if (!_registeredProcesses.TryGetValue(processId, out var processType))
             return null;
         
         return (IAnalyticalProcess)ActivatorUtilities.CreateInstance(_serviceProvider, processType);
+    }
+
+    /// <summary>
+    /// Get registered processes (exposed for ProcessWorkerService)
+    /// </summary>
+    public List<ProcessInfo> GetRegisteredProcesses()
+    {
+        return GetAvailableProcesses();
     }
 }
 

@@ -1,33 +1,29 @@
 using NpgsqlTypes;
+using Veritheia.Data.Interfaces;
 
 namespace Veritheia.Data.Entities;
 
 /// <summary>
-/// Documents projected into journey-specific segments
-/// This is where documents gain meaning through journey frameworks
+/// Documents transformed according to journey-specific intellectual framework
 /// </summary>
-public class JourneyDocumentSegment : BaseEntity
+public class JourneyDocumentSegment : BaseEntity, IUserOwned
 {
+    // Partition key - required for composite primary key (UserId, Id)
+    public Guid UserId { get; set; }
+    
     public Guid JourneyId { get; set; }
     public Guid DocumentId { get; set; }
-    
-    // Content shaped by journey's projection rules
-    public string SegmentContent { get; set; } = string.Empty;
-    public string? SegmentType { get; set; } // abstract, methodology, paragraph, etc.
-    public string? SegmentPurpose { get; set; } // Why this segment exists for this journey
-    
-    // Structure and position
-    public Dictionary<string, object>? StructuralPath { get; set; } // {"path": ["section-2", "subsection-3", "paragraph-5"]}
     public int SequenceIndex { get; set; }
-    public NpgsqlRange<int>? ByteRange { get; set; } // Original position in document
-    
-    // Projection metadata
-    public string? CreatedByRule { get; set; } // Which segmentation rule created this
-    public string? CreatedForQuestion { get; set; } // Which research question drove this
+    public string SegmentContent { get; set; } = string.Empty;
+    public string? SegmentType { get; set; } // paragraph, section, concept, etc.
+    public Dictionary<string, object> StructuralPath { get; set; } = new();
+    public NpgsqlTypes.NpgsqlRange<int>? ByteRange { get; set; }
+    public string? CreatedByRule { get; set; }
+    public string? CreatedForQuestion { get; set; }
     
     // Navigation properties
     public Journey Journey { get; set; } = null!;
     public Document Document { get; set; } = null!;
-    public ICollection<SearchIndex> SearchIndexes { get; set; } = new List<SearchIndex>();
     public ICollection<JourneySegmentAssessment> Assessments { get; set; } = new List<JourneySegmentAssessment>();
+    public ICollection<SearchIndex> SearchIndexes { get; set; } = new List<SearchIndex>();
 }

@@ -1,11 +1,15 @@
+using Veritheia.Data.Interfaces;
+
 namespace Veritheia.Data.Entities;
 
 /// <summary>
 /// Represents user engagement with processes - creates projection spaces
 /// </summary>
-public class Journey : BaseEntity
+public class Journey : BaseEntity, IUserOwned
 {
+    // Partition key - required for composite primary key (UserId, Id)
     public Guid UserId { get; set; }
+    
     public Guid PersonaId { get; set; }
     public string ProcessType { get; set; } = string.Empty;
     public string Purpose { get; set; } = string.Empty;

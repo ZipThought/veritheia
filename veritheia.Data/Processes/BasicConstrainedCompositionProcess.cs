@@ -134,7 +134,6 @@ Generate the complete document in markdown format.";
                 DocumentId = newDocument.Id,
                 SegmentContent = generatedText,
                 SegmentType = "full",
-                SegmentPurpose = $"Generated {documentType} document",
                 SequenceIndex = 0,
                 CreatedByRule = "constrained-composition",
                 CreatedForQuestion = "Generated content"

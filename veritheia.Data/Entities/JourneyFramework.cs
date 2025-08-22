@@ -1,23 +1,18 @@
+using Veritheia.Data.Interfaces;
+
 namespace Veritheia.Data.Entities;
 
 /// <summary>
-/// Defines how each journey projects documents into its intellectual space
+/// User's intellectual framework for a specific journey
 /// </summary>
-public class JourneyFramework : BaseEntity
+public class JourneyFramework : BaseEntity, IUserOwned
 {
+    // Partition key - required for composite primary key (UserId, Id)
+    public Guid UserId { get; set; }
+    
     public Guid JourneyId { get; set; }
-    public string JourneyType { get; set; } = string.Empty; // systematic_review, educational, research_formation
-    
-    /// <summary>
-    /// The intellectual framework that shapes projections
-    /// Contains research_questions, conceptual_vocabulary, assessment_criteria, theoretical_orientation
-    /// </summary>
+    public string JourneyType { get; set; } = string.Empty;
     public Dictionary<string, object> FrameworkElements { get; set; } = new();
-    
-    /// <summary>
-    /// Rules for transforming documents in this journey's space
-    /// Contains segmentation, embedding_context, assessment_prompts, discovery_parameters
-    /// </summary>
     public Dictionary<string, object> ProjectionRules { get; set; } = new();
     
     // Navigation properties

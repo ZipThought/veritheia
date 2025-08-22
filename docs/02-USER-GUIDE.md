@@ -4,9 +4,9 @@ Veritheia is where you author your own understanding. Not through AI-generated s
 
 ## What Veritheia Is (and Isn't)
 
-Veritheia is a foundation for developing understanding through engagement with your documents. Think of it as infrastructure for your intellectual work—like a library that reorganizes itself around your specific questions. It's not an AI that reads for you or generates insights on your behalf. Instead, it creates conditions where your insights can emerge at scale.
+Veritheia is a foundation for developing understanding through engagement with your documents. Think of it as infrastructure for your intellectual work—like a library that reorganizes itself around your specific questions. It's not an AI that reads for you or generates insights on your behalf. Instead, it creates conditions where your insights can accumulate through your decision-making process at scale.
 
-Think of Veritheia as a research assistant who never tells you what to think but helps organize your materials according to your questions, measures documents against your criteria, and preserves the trail of your developing understanding. The insights that emerge are irreducibly yours because they arise from your engagement with documents projected through your intellectual framework.
+Think of Veritheia as a research assistant who never tells you what to think but helps organize your materials according to your questions, measures documents against your criteria, and preserves the trail of your developing understanding. The insights that accumulate through your decision-making process are irreducibly yours because they arise from your engagement with documents projected through your intellectual framework.
 
 ## Starting Your Research Journey
 
@@ -47,8 +47,8 @@ With documents projected through your framework, engagement becomes tractable ev
 
 You engage with these projections by:
 - Making inclusion/exclusion decisions based on systematic assessment
-- Writing connections between documents that reveal patterns
-- Evolving your framework as patterns emerge
+- Writing connections between documents that you identify as patterns
+- Evolving your framework as you identify patterns
 - Building synthesis through active engagement, not passive consumption
 
 ## Building Your Conceptual Framework
@@ -151,7 +151,7 @@ For comprehensive analysis of research literature:
 
 You define research questions that scope your investigation, provide precise definitions of key terms, establish inclusion/exclusion criteria, and set assessment thresholds. The system projects thousands of papers through this framework, measuring each against your criteria.
 
-Your formation emerges through systematically engaging with assessed papers, making reasoned inclusion decisions, writing synthesis that connects patterns, and developing theoretical understanding. The outcome is not just a literature review but enhanced capacity for scholarly work.
+Your formation results from your structured engagement with systematically assessed papers, making reasoned inclusion decisions, writing synthesis that connects patterns, and developing theoretical understanding. The outcome is not just a literature review but enhanced capacity for scholarly work.
 
 ### Educational Assessment Journeys
 
@@ -165,17 +165,17 @@ Your formation emerges through recognizing patterns in student development, refi
 
 For investigating new domains without fixed frameworks:
 
-You begin with curiosity rather than rigid questions, allow vocabulary to emerge from engagement, let criteria develop through encounter, and embrace framework evolution as discovery. The system supports this exploration by enabling rapid framework adjustment and revealing unexpected connections.
+You begin with curiosity rather than rigid questions, allow vocabulary to develop through engagement, let criteria evolve through encounter, and embrace framework evolution as discovery. The system supports this exploration by enabling rapid framework adjustment and surfacing potential connections for your review.
 
-Your formation emerges through wandering that becomes purposeful, questions that sharpen through encounter, vocabulary that crystallizes through use, and understanding that surprises you. The journey's value lies not in confirming hypotheses but in discovering what you didn't know to ask.
+Your formation accumulates as your wandering becomes purposeful through your decision-making process, questions that sharpen through encounter, vocabulary that crystallizes through use, and understanding that surprises you. The journey's value lies not in confirming hypotheses but in discovering what you didn't know to ask.
 
 ### Cross-Disciplinary Integration Journeys
 
 For connecting knowledge across fields:
 
-You maintain multiple conceptual vocabularies, create bridges between different literatures, recognize patterns across domains, and synthesize diverse perspectives. The system enables this by supporting multiple projection frameworks and revealing conceptual overlaps.
+You maintain multiple conceptual vocabularies, create bridges between different literatures, recognize patterns across domains, and synthesize diverse perspectives. The system enables this by supporting multiple projection frameworks and surfacing potential conceptual overlaps for your review.
 
-Your formation emerges through seeing connections others miss, developing hybrid vocabulary, creating novel theoretical syntheses, and building integrative understanding. You become a translator between worlds, creating knowledge that exists at intersections.
+Your formation accumulates through your decision-making process as you identify connections others miss, develop hybrid vocabulary, create novel theoretical syntheses, and build integrative understanding. You become a translator between worlds, creating knowledge that exists at intersections.
 
 ## Privacy and Intellectual Sovereignty
 
@@ -371,7 +371,7 @@ You verify through engagement. The AI's assessments are measurements, not truths
 
 ### "What if documents are assessed incorrectly?"
 
-You can override assessments, refine criteria, or adjust frameworks. Misassessment often reveals framework ambiguity that, once clarified, improves future assessments. The system learns from your refinements.
+You can override assessments, refine criteria, or adjust frameworks. Misassessment often reveals framework ambiguity that, once clarified, improves future assessments. The system applies your refined frameworks to subsequent processing.
 
 ## The Invitation to Formation
 

@@ -1,12 +1,13 @@
+using Veritheia.Data.Interfaces;
+
 namespace Veritheia.Data.Entities;
 
 /// <summary>
 /// Source materials in the knowledge base - raw corpus
 /// </summary>
-public class Document : BaseEntity
+public class Document : BaseEntity, IUserOwned
 {
-    // Ownership tracking - REQUIRED even for single-user MVP
-    // Legal/copyright clarity, future sharing attribution, audit trail
+    // Partition key - required for composite primary key (UserId, Id)
     public Guid UserId { get; set; }
     
     // File properties

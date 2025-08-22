@@ -26,6 +26,16 @@ Effective prompt engineering requires seven constraint types applied systematica
 
 Veritheia implements three primary assessment roles through the cognitive adapter interface. The Librarian role provides binary relevance assessment with scores (0.0-1.0) for documents against research questions. The Peer Reviewer role evaluates methodological contribution through evidence-based binary assessment. The Instructor role measures student work against rubric criteria, providing scores and location references. All roles perform measurement without interpretation.
 
+### 4.2 Screening Question Optimization
+
+User research questions need translation into LLM-optimized screening questions. Effective screening questions are binary-answerable, specific, and aligned with dual assessment (relevance and contribution). Maintains user intent while improving consistency.
+
+**Research Question Translation**: User question "How can decision-makers strategically leverage contextualized AI to enhance defense capabilities while mitigating risks?" becomes screening question "Does this document discuss strategic factors for implementing LLM-based or contextualized AI in cyber security defense?" Preserves intent while creating focused criteria.
+
+**Dual Assessment**: Each research question generates paired screening questions. Relevance: "Does it discuss topics related to [research question]?" Contribution: "Does it directly research [research question]?" Ensures comprehensive coverage while maintaining precision.
+
+**Definition Integration**: Screening questions incorporate user definitions and frameworks. Preserves user vocabulary while improving LLM comprehension. Maintains formation through authorship.
+
 ### 4.2 Context Assembly
 
 The Process Engine constructs prompts by assembling four context types: (1) Journey state including research questions and process position, (2) Recent journal entries maintaining narrative continuity, (3) Persona vocabulary ensuring domain-appropriate language, and (4) Process-specific parameters. Context assembly algorithms prioritize recency and relevance while respecting token limits. The system maintains coherence through structured templates rather than dynamic assembly.

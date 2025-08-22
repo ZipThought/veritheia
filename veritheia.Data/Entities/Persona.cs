@@ -1,11 +1,15 @@
+using Veritheia.Data.Interfaces;
+
 namespace Veritheia.Data.Entities;
 
 /// <summary>
 /// Evolving representation of user's intellectual style
 /// </summary>
-public class Persona : BaseEntity
+public class Persona : BaseEntity, IUserOwned
 {
+    // Partition key - required for composite primary key (UserId, Id)
     public Guid UserId { get; set; }
+    
     public string Domain { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;
     

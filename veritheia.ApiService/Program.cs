@@ -30,6 +30,11 @@ builder.Services.AddScoped<DocumentIngestionService>();
 builder.Services.AddScoped<TextExtractionService>();
 builder.Services.AddScoped<EmbeddingService>();
 
+// LLAssist Services
+builder.Services.AddScoped<CsvParserService>();
+builder.Services.AddScoped<CsvWriterService>();
+builder.Services.AddScoped<SemanticExtractionService>();
+
 // User & Journey System (Phase 7)
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<JournalService>();
@@ -38,6 +43,9 @@ builder.Services.AddScoped<PersonaService>();
 // Cognitive Adapter (Phase 8) - Local LLM implementation
 builder.Services.AddHttpClient<LocalLLMAdapter>();
 builder.Services.AddSingleton<ICognitiveAdapter, LocalLLMAdapter>();
+
+// Process Worker Service - Background execution
+builder.Services.AddHostedService<ProcessWorkerService>();
 
 // Analytical Processes (Phase 9-10) - SKELETON: Basic structure only
 // These would be discovered and registered by ProcessEngine in real implementation

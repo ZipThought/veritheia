@@ -1,0 +1,5 @@
+"Authors","Title","Year","Abstract","DOI"
+"Smith, J.","Test Paper 1","2024","This is a test abstract","10.1000/test1"
+"Doe, A.","Test Paper 2",,"Missing year abstract","10.1000/test2"
+"Invalid row with missing quotes and comma issues
+"Johnson, K.","Test Paper 3","2023","Valid abstract","10.1000/test3"

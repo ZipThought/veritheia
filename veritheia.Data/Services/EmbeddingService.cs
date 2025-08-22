@@ -64,9 +64,7 @@ public class EmbeddingService
             {
                 Id = Guid.CreateVersion7(),
                 SegmentId = segmentId,
-                VectorModel = _cognitive.GetType().Name,
-                VectorDimension = dimension,
-                IndexedAt = DateTime.UtcNow
+                VectorModel = _cognitive.GetType().Name
             };
             
             _db.SearchIndexes.Add(searchIndex);
@@ -128,7 +126,6 @@ public class EmbeddingService
         // Include journey context for better embeddings
         var context = $"Journey Purpose: {segment.Journey.Purpose}\n";
         context += $"Segment Type: {segment.SegmentType}\n";
-        context += $"Segment Purpose: {segment.SegmentPurpose}\n";
         context += $"Content: {segment.SegmentContent}";
         
         return context;

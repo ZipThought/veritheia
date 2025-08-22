@@ -2,7 +2,9 @@
 
 ## 1. Overview
 
-This document specifies the testing methodology for Veritheia. Tests verify technical implementation, architectural boundaries, and adherence to formation principles. The strategy implements four test levels with specific coverage targets and verification patterns.
+This document specifies the testing methodology for Veritheia using epistemically rigorous test categorization. The strategy recognizes three fundamental test types based on their relationship to external dependencies and system boundaries: unit tests for pure logic, integration tests for component collaboration, and end-to-end tests for complete user workflows.
+
+The categorization follows first principles rather than industry convention. A unit test exercises isolated logic without external state or side effects. An integration test verifies component collaboration across boundaries where correctness depends on external systems with intrinsic logic (like PostgreSQL with constraints and triggers). An end-to-end test validates complete user workflows through the full system stack, mocking only external services that are costly, unreliable, or uncontrollable.
 
 > **Formation Note:** Testing preserves intellectual sovereignty even in test environments. Every test creates proper user partitions with UserId keys, ensuring tests validate the same sovereignty boundaries that protect formation in production. When tests create journeys, they use real user contexts. When they process documents, they respect partition isolation. This isn't just good testing—it's validation that the system mechanically enforces authorship boundaries at every level.
 
@@ -85,152 +87,265 @@ veritheia.Tests/
 
 ### 1. Unit Tests
 
-Test individual components in isolation.
+Unit tests exercise pure logic in complete isolation from external state or side effects. These tests validate the smallest functional components—individual methods, value objects, or domain logic—without touching databases, files, networks, or any external systems. If a test requires mocking complex dependencies, the code under test is likely too large or coupled to be considered a true unit.
 
-#### Core Platform Unit Tests
+The essence of unit testing lies in the stateless, deterministic nature of the code being tested, not in the presence or absence of mocks. A properly designed unit has no external dependencies to mock. When dependencies exist, they should be simple interfaces that can be satisfied with trivial stubs, not complex simulations of external system behavior.
+
+#### Pure Domain Logic Tests
 
 ```csharp
-// Example: Testing Journey creation with real database
+// True unit test - pure logic, no external dependencies
 [Fact]
-public async Task CreateJourney_WithValidUserAndPersona_CreatesJourneyWithCorrectState()
+public void Persona_AddConceptualTerm_IncreasesFrequency()
 {
-    // Arrange - using real database with Respawn
-    var user = new User { Id = Guid.CreateVersion7(), Email = "researcher@example.com" };
-    await _dbContext.Users.AddAsync(user);
-    
-    var persona = new Persona { Id = Guid.CreateVersion7(), UserId = user.Id, Domain = "Researcher" };
-    await _dbContext.Personas.AddAsync(persona);
-    await _dbContext.SaveChangesAsync();
-    
-    var service = new JourneyService(_dbContext);
-    
-    // Act
-    var journey = await service.CreateJourneyAsync(new CreateJourneyRequest
-    {
-        UserId = user.Id,
-        PersonaId = persona.Id,
-        ProcessType = "SystematicScreening",
-        Purpose = "Review ML security literature"
-    });
-    
-    // Assert
-    Assert.Equal(JourneyState.Active, journey.State);
-    Assert.Equal(user.Id, journey.UserId);
-    Assert.Equal(persona.Id, journey.PersonaId);
-    Assert.NotEmpty(journey.Purpose);
-}
-
-// Example: Testing Multiple Personas with real database
-[Fact]
-public async Task User_CanHaveMultiplePersonas()
-{
-    // Arrange - using real database
-    var user = new User { Id = Guid.CreateVersion7(), Email = "multi@example.com" };
-    await _dbContext.Users.AddAsync(user);
-    await _dbContext.SaveChangesAsync();
-    
-    var personaService = new PersonaService(_dbContext);
-    
-    // Act
-    var studentPersona = await personaService.CreatePersonaAsync(user.Id, "Student");
-    var entrepreneurPersona = await personaService.CreatePersonaAsync(user.Id, "Entrepreneur");
-    
-    // Assert
-    var personas = await personaService.GetByUserIdAsync(user.Id);
-    Assert.Equal(2, personas.Count);
-    Assert.Contains(personas, p => p.Domain == "Student");
-    Assert.Contains(personas, p => p.Domain == "Entrepreneur");
-}
-
-// Example: Testing Persona evolution
-[Fact]
-public void AddConceptualTerm_IncreasesFrequency()
-{
-    // Arrange
+    // Arrange - pure object construction
     var persona = new Persona { ConceptualVocabulary = new Dictionary<string, int>() };
     
-    // Act
+    // Act - pure method call
     persona.AddConceptualTerm("epistemic");
     persona.AddConceptualTerm("epistemic");
     
-    // Assert
+    // Assert - deterministic outcome
     Assert.Equal(2, persona.ConceptualVocabulary["epistemic"]);
+}
+
+// True unit test - value object validation
+[Fact]
+public void ProcessContext_ValidatesRequiredInputs_ReturnsFalseWhenMissing()
+{
+    // Arrange
+    var context = new ProcessContext
+    {
+        Inputs = new Dictionary<string, object> { ["scope"] = "test" }
+    };
+    
+    // Act
+    var isValid = context.HasRequiredInputs(new[] { "researchQuestions", "scope" });
+    
+    // Assert
+    Assert.False(isValid);
+}
+
+// True unit test - state transition logic
+[Fact]
+public void Journey_CanTransitionTo_ValidatesStateRules()
+{
+    // Arrange
+    var journey = new Journey { State = JourneyState.Active };
+    
+    // Act & Assert - pure business logic
+    Assert.True(journey.CanTransitionTo(JourneyState.Paused));
+    Assert.True(journey.CanTransitionTo(JourneyState.Completed));
+    Assert.False(journey.CanTransitionTo(JourneyState.Active)); // Already active
+}
+
+// True unit test - formation marker creation
+[Fact]
+public void FormationMarker_CreateInsightMarker_GeneratesCorrectStructure()
+{
+    // Arrange
+    var journeyId = Guid.CreateVersion7();
+    var segmentIds = new[] { Guid.CreateVersion7(), Guid.CreateVersion7() };
+    
+    // Act
+    var marker = FormationMarker.CreateInsightMarker(
+        journeyId, 
+        "Key insight about distributed systems", 
+        segmentIds,
+        new Dictionary<string, object> { ["confidence"] = 0.85 }
+    );
+    
+    // Assert
+    Assert.Equal(journeyId, marker.JourneyId);
+    Assert.Contains("distributed systems", marker.InsightDescription);
+    Assert.Equal(2, marker.ContributingSegmentIds.Count);
+    Assert.Equal(0.85, marker.Context["confidence"]);
 }
 ```
 
-#### Extension Unit Tests
+#### Value Object Behavior Tests
 
 ```csharp
-// Example: Testing ScreeningResult creation
+// True unit test - screening result logic
 [Fact]
-public void ScreeningResult_RequiresBothAssessments()
+public void ScreeningResult_RequiresBothAssessments_ValidatesCorrectly()
 {
     // Arrange & Act
     var result = new ScreeningResult
     {
-        DocumentId = Guid.NewGuid(),
+        DocumentId = Guid.CreateVersion7(),
         IsRelevant = true,
         RelevanceScore = 0.8m,
         ContributesToRQ = false,
         ContributionScore = 0.3m
     };
     
-    // Assert
+    // Assert - pure logic validation
     Assert.True(result.IsRelevant);
     Assert.False(result.ContributesToRQ);
     Assert.True(result.RelevanceScore > result.ContributionScore);
+    Assert.True(result.IsValid()); // Assuming validation method
+}
+
+// True unit test - input definition validation
+[Fact]
+public void InputDefinition_ValidateParameters_RejectsInvalidTypes()
+{
+    // Arrange
+    var definition = new InputDefinition
+    {
+        RequiredInputs = new[] { "researchQuestions", "scope" },
+        OptionalInputs = new[] { "definitions" },
+        InputTypes = new Dictionary<string, Type>
+        {
+            ["researchQuestions"] = typeof(string),
+            ["scope"] = typeof(Guid)
+        }
+    };
+    
+    var invalidInputs = new Dictionary<string, object>
+    {
+        ["researchQuestions"] = 123, // Wrong type
+        ["scope"] = Guid.CreateVersion7()
+    };
+    
+    // Act
+    var isValid = definition.ValidateInputs(invalidInputs);
+    
+    // Assert
+    Assert.False(isValid);
 }
 ```
 
 ### 2. Integration Tests
 
-Test component interactions within bounded contexts.
+Integration tests verify component collaboration across critical boundaries where correctness depends on external systems with intrinsic logic. The database is the primary non-mockable boundary in Veritheia because PostgreSQL enforces referential integrity, constraints, triggers, and provides specialized functionality (pgvector, JSONB operations) that cannot be adequately simulated by mocks or in-memory substitutes.
 
-#### Repository Integration Tests
+These tests use real PostgreSQL with the full schema applied through Entity Framework migrations. The database is not a dumb data store but an active participant that enforces business rules through constraints, provides vector similarity operations, and manages complex relationships with composite primary keys. Mocking such a system would create false confidence—tests might pass with a mock that allows invalid states the real database would reject.
+
+Integration tests focus on verifying that application components work correctly with the real database's behavior, including edge cases that only emerge from actual constraint enforcement and the full feature set of PostgreSQL with pgvector.
+
+#### Database Constraint Integration Tests
 
 ```csharp
+// Integration test - real database with composite primary keys
 [Fact]
-public async Task SaveJourney_WithJournals_PersistsFullAggregate()
+public async Task CreateJourney_WithValidUserAndPersona_EnforcesPartitionConstraints()
 {
-    // Uses test database - Direct DbContext, no repository abstraction
-    await using var context = new TestDbContext();
-    
-    // Arrange - Entity Framework IS our repository
-    var journey = new Journey 
+    // Arrange - real database with full schema
+    var user = new User 
     { 
-        UserId = TestUsers.Researcher.Id,
-        ProcessType = "SystematicScreening",
-        Purpose = "Test journey"
+        Id = Guid.CreateVersion7(), 
+        Email = "researcher@example.com",
+        DisplayName = "Test Researcher"
     };
+    Context.Users.Add(user);
     
-    journey.CreateJournal(JournalType.Research);
-    journey.CreateJournal(JournalType.Method);
+    var persona = new Persona 
+    { 
+        Id = Guid.CreateVersion7(), 
+        UserId = user.Id, // Composite key enforcement
+        Domain = "Researcher" 
+    };
+    Context.Personas.Add(persona);
+    await Context.SaveChangesAsync();
     
-    // Act
-    context.Journeys.Add(journey);
-    await context.SaveChangesAsync();
-    var loaded = await context.Journeys
-        .Include(j => j.Journals)
-        .FirstOrDefaultAsync(j => j.Id == journey.Id);
+    // Act - service uses real database with constraints
+    var service = new JourneyService(Context);
+    var journey = await service.CreateJourneyAsync(new CreateJourneyRequest
+    {
+        UserId = user.Id,
+        PersonaId = persona.Id, // Must match partition
+        ProcessType = "SystematicScreening",
+        Purpose = "Review ML security literature"
+    });
     
-    // Assert
-    Assert.Equal(2, loaded.Journals.Count);
-    Assert.Contains(loaded.Journals, j => j.Type == JournalType.Research);
+    // Assert - database enforced composite key relationships
+    Assert.Equal(user.Id, journey.UserId);
+    Assert.Equal(persona.Id, journey.PersonaId);
+    
+    // Verify constraint enforcement by querying with composite key
+    var retrieved = await Context.Journeys
+        .FirstOrDefaultAsync(j => j.UserId == user.Id && j.Id == journey.Id);
+    Assert.NotNull(retrieved);
+}
+
+// Integration test - vector operations require real pgvector
+[Fact]
+public async Task StoreSearchVector_WithRealEmbedding_UsesPgvectorOperations()
+{
+    // Arrange - create journey document segment
+    var user = CreateTestUser();
+    var document = CreateTestDocument(user.Id);
+    var segment = CreateTestSegment(user.Id, document.Id);
+    
+    Context.Users.Add(user);
+    Context.Documents.Add(document);
+    Context.JourneyDocumentSegments.Add(segment);
+    await Context.SaveChangesAsync();
+    
+    // Act - store real vector embedding
+    var searchIndex = new SearchIndex
+    {
+        Id = Guid.CreateVersion7(),
+        UserId = user.Id, // Partition enforcement
+        SegmentId = segment.Id,
+        VectorModel = "text-embedding-3-large"
+    };
+    Context.SearchIndexes.Add(searchIndex);
+    
+    // Real pgvector operation - cannot be mocked
+    var embedding = new float[1536];
+    for (int i = 0; i < 1536; i++)
+        embedding[i] = (float)Math.Sin(i * 0.01);
+    
+    var vector = new SearchVector1536
+    {
+        UserId = user.Id,
+        IndexId = searchIndex.Id,
+        Embedding = new Vector(embedding)
+    };
+    Context.SearchVectors1536.Add(vector);
+    await Context.SaveChangesAsync();
+    
+    // Assert - verify pgvector similarity operations work
+    var similar = await Context.SearchVectors1536
+        .Where(v => v.UserId == user.Id)
+        .OrderBy(v => v.Embedding.CosineDistance(new Vector(embedding)))
+        .FirstOrDefaultAsync();
+    
+    Assert.NotNull(similar);
+    Assert.Equal(vector.IndexId, similar.IndexId);
 }
 ```
 
 #### Process Integration Tests
 
 ```csharp
+// Integration test - process with real database and mocked external services
 [Fact]
-public async Task SystematicScreening_ProcessesAllDocuments()
+public async Task SystematicScreening_ProcessesAllDocuments_WithRealDatabaseAndMockedLLM()
 {
-    // Arrange
+    // Arrange - real database setup
+    var user = CreateTestUser();
+    var journey = CreateTestJourney(user.Id);
+    var documents = CreateTestDocuments(user.Id, count: 5);
+    
+    Context.Users.Add(user);
+    Context.Journeys.Add(journey);
+    Context.Documents.AddRange(documents);
+    await Context.SaveChangesAsync();
+    
+    // Mock only external LLM service - not internal database operations
+    var mockCognitiveAdapter = new Mock<ICognitiveAdapter>();
+    mockCognitiveAdapter
+        .Setup(x => x.GenerateTextAsync(It.IsAny<string>(), It.IsAny<string>()))
+        .ReturnsAsync("The document is highly relevant to adversarial ML research.");
+    
     var processContext = new ProcessContext
     {
-        UserId = TestUsers.Researcher.Id,
-        JourneyId = Guid.NewGuid(),
-        ScopeId = TestScopes.MLSecurity.Id,
+        UserId = user.Id,
+        JourneyId = journey.Id,
         Inputs = new Dictionary<string, object>
         {
             ["researchQuestions"] = "RQ1: What are adversarial attacks?",
@@ -238,83 +353,166 @@ public async Task SystematicScreening_ProcessesAllDocuments()
         }
     };
     
-    var process = new SystematicScreeningProcess(
-        mockKnowledgeRepo.Object,
-        mockCognitiveAdapter.Object
-    );
+    // Process uses real database context, mocked LLM
+    var process = new SystematicScreeningProcess(Context, mockCognitiveAdapter.Object);
     
-    // Act
+    // Act - process interacts with real database
     var result = await process.ExecuteAsync(processContext);
     
-    // Assert
+    // Assert - verify database state changes
     var screeningData = result.GetData<ScreeningProcessResult>();
-    Assert.Equal(10, screeningData.Results.Count); // All docs in scope
-    Assert.All(screeningData.Results, r => 
-    {
-        Assert.NotNull(r.RelevanceRationale);
-        Assert.NotNull(r.ContributionRationale);
-    });
+    Assert.Equal(5, screeningData.Results.Count); // All docs processed
+    
+    // Verify actual database records created
+    var journalEntries = await Context.JournalEntries
+        .Where(e => e.UserId == user.Id)
+        .ToListAsync();
+    Assert.NotEmpty(journalEntries); // Process created journal entries
+    
+    // Verify partition boundaries respected
+    Assert.All(journalEntries, entry => Assert.Equal(user.Id, entry.UserId));
 }
 ```
 
-### 3. Behavioral Tests
+### 3. End-to-End Tests
 
-Verify system behavior from user perspective using BDD approach.
+End-to-end tests validate complete user workflows through the full system stack, from API endpoints or UI interactions through all internal layers to final outcomes. These tests exercise the entire application as users would experience it, ensuring that all components integrate correctly to deliver the intended functionality.
 
-#### Journey Behavior Specifications
+The key principle for E2E testing is pragmatic boundary management. All internal system components use their real implementations—the actual database, real services, genuine business logic, and authentic data flows. However, external services that are costly, unreliable, or uncontrollable are mocked or stubbed to ensure test determinism and cost control.
 
-```gherkin
-Feature: User Journey Management
-  As a researcher
-  I want to manage multiple journeys
-  So that I can pursue different inquiries simultaneously
+For Veritheia, this means using real PostgreSQL, real Entity Framework operations, genuine process engines, and actual API controllers, while mocking the LLM services (OpenAI, Ollama), external search services, email providers, or any third-party APIs. The goal is to verify the complete system orchestration while controlling for external uncertainty.
 
-  Scenario: Starting a new systematic review journey
-    Given I am a registered user with "SystematicScreening" capability
-    And I have uploaded 20 research papers to my knowledge base
-    When I start a new journey with purpose "Review adversarial ML attacks"
-    And I select the "SystematicScreening" process
-    Then a new active journey should be created
-    And 4 journals should be automatically created (Research, Method, Decision, Reflection)
-    And the journey context should contain my purpose
+#### Complete User Journey Tests
 
-  Scenario: Resuming an existing journey
-    Given I have an active journey for "Literature review on privacy"
-    And the journey has 15 journal entries
-    When I resume the journey
-    Then the context should include recent journal entries
-    And I should see my previous progress
-    And I can continue from where I left off
-```
+```csharp
+// E2E test - full API workflow with real internal stack, mocked external services
+[Fact]
+public async Task CompleteResearchJourney_FromCreationToScreening_WorksEndToEnd()
+{
+    // Arrange - real API test server with real database
+    using var factory = new WebApplicationFactory<Program>();
+    var client = factory.CreateClient();
+    
+    // Mock external LLM service at the boundary
+    var mockCognitiveAdapter = factory.Services.GetRequiredService<Mock<ICognitiveAdapter>>();
+    mockCognitiveAdapter
+        .Setup(x => x.GenerateTextAsync(It.IsAny<string>(), It.IsAny<string>()))
+        .ReturnsAsync("This document contributes significantly to understanding adversarial attacks.");
+    
+    // Act 1 - Create user (real API, real database)
+    var createUserResponse = await client.PostAsJsonAsync("/api/users", new
+    {
+        Email = "researcher@test.com",
+        DisplayName = "Test Researcher"
+    });
+    var user = await createUserResponse.Content.ReadFromJsonAsync<User>();
+    
+    // Act 2 - Create persona (real API, real database)
+    var createPersonaResponse = await client.PostAsJsonAsync("/api/personas", new
+    {
+        UserId = user.Id,
+        Domain = "ML Security Researcher"
+    });
+    var persona = await createPersonaResponse.Content.ReadFromJsonAsync<Persona>();
+    
+    // Act 3 - Create journey (real API, real database, real business logic)
+    var createJourneyResponse = await client.PostAsJsonAsync("/api/journeys", new
+    {
+        UserId = user.Id,
+        PersonaId = persona.Id,
+        ProcessType = "SystematicScreening",
+        Purpose = "Review adversarial ML attacks literature"
+    });
+    var journey = await createJourneyResponse.Content.ReadFromJsonAsync<Journey>();
+    
+    // Act 4 - Upload documents (real file processing, real database)
+    var documentContent = "This paper presents novel adversarial attack methods...";
+    var uploadResponse = await client.PostAsJsonAsync($"/api/journeys/{journey.Id}/documents", new
+    {
+        FileName = "adversarial_attacks.pdf",
+        Content = documentContent,
+        MimeType = "application/pdf"
+    });
+    
+    // Act 5 - Run screening process (real process engine, real database, mocked LLM)
+    var screeningResponse = await client.PostAsJsonAsync($"/api/journeys/{journey.Id}/processes/screening", new
+    {
+        ResearchQuestions = "RQ1: What are the main adversarial attack methods?",
+        Definitions = new Dictionary<string, string>
+        {
+            ["adversarial"] = "Intentionally crafted malicious inputs"
+        }
+    });
+    
+    // Assert - verify complete end-to-end outcome
+    screeningResponse.EnsureSuccessStatusCode();
+    var result = await screeningResponse.Content.ReadFromJsonAsync<ProcessExecutionResult>();
+    
+    Assert.True(result.Success);
+    Assert.NotEmpty(result.Data);
+    
+    // Verify the complete workflow created proper database state
+    using var scope = factory.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<VeritheiaDbContext>();
+    
+    // Check journey was created with correct partition
+    var savedJourney = await dbContext.Journeys
+        .FirstOrDefaultAsync(j => j.UserId == user.Id && j.Id == journey.Id);
+    Assert.NotNull(savedJourney);
+    Assert.Equal("SystematicScreening", savedJourney.ProcessType);
+    
+    // Check documents were processed and segmented
+    var segments = await dbContext.JourneyDocumentSegments
+        .Where(s => s.UserId == user.Id && s.JourneyId == journey.Id)
+        .ToListAsync();
+    Assert.NotEmpty(segments);
+    
+    // Check journal entries were created by the process
+    var journalEntries = await dbContext.JournalEntries
+        .Where(e => e.UserId == user.Id)
+        .ToListAsync();
+    Assert.NotEmpty(journalEntries);
+    
+    // Verify all data respects partition boundaries
+    Assert.All(segments, s => Assert.Equal(user.Id, s.UserId));
+    Assert.All(journalEntries, e => Assert.Equal(user.Id, e.UserId));
+}
 
-#### Process Behavior Specifications
-
-```gherkin
-Feature: Systematic Screening Process
-  As a researcher
-  I want to screen documents for relevance and contribution
-  So that I can identify core papers for my research
-
-  Background:
-    Given I have an active journey for systematic review
-    And my scope contains 50 research papers
-
-  Scenario: Screening with clear research questions
-    When I run systematic screening with:
-      | Research Questions | RQ1: What are the main approaches to adversarial attacks? |
-      | Definitions       | adversarial: intentionally crafted malicious inputs       |
-    Then all 50 documents should be assessed
-    And each document should have relevance and contribution scores
-    And documents with high contribution should address specific RQs
-    And rationales should reference my research questions
-
-  Scenario: Journaling screening decisions
-    When I complete a screening process
-    Then decision journal should contain entries for:
-      | High contribution papers with rationales |
-      | Exclusion decisions for irrelevant papers |
-      | Borderline cases requiring manual review |
-    And method journal should record my screening criteria
+// E2E test - error handling across full stack
+[Fact]
+public async Task CreateJourney_WithInvalidPersona_ReturnsProperErrorResponse()
+{
+    // Arrange
+    using var factory = new WebApplicationFactory<Program>();
+    var client = factory.CreateClient();
+    
+    var user = await CreateTestUserViaAPI(client);
+    var invalidPersonaId = Guid.CreateVersion7(); // Non-existent persona
+    
+    // Act - attempt invalid journey creation
+    var response = await client.PostAsJsonAsync("/api/journeys", new
+    {
+        UserId = user.Id,
+        PersonaId = invalidPersonaId, // Invalid - will fail constraint
+        ProcessType = "SystematicScreening",
+        Purpose = "Test journey"
+    });
+    
+    // Assert - proper error handling through full stack
+    Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    
+    var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+    Assert.Contains("persona", errorResponse.Message, StringComparison.OrdinalIgnoreCase);
+    
+    // Verify no partial state was created in database
+    using var scope = factory.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<VeritheiaDbContext>();
+    
+    var journeys = await dbContext.Journeys
+        .Where(j => j.UserId == user.Id)
+        .ToListAsync();
+    Assert.Empty(journeys); // No journey should have been created
+}
 ```
 
 ### 4. Context Assembly Tests
@@ -838,72 +1036,110 @@ public class JournalServiceMock : Mock<IJournalService>
 
 ## Anti-Patterns to Avoid
 
-### ❌ Testing LLM Content
+### ❌ Mislabeling Integration Tests as Unit Tests
+
+The most common anti-pattern is calling any test that uses mocks a "unit test," regardless of whether it touches external systems. A true unit test exercises pure logic without external dependencies.
 
 ```csharp
-// BAD: Testing specific LLM output
+// BAD: Called "unit test" but uses database - this is integration test
+[Fact] // Labeled as "unit test" but isn't
+public async Task CreateJourney_WithValidUser_CreatesJourney()
+{
+    await _dbContext.Users.AddAsync(user); // Database dependency!
+    var service = new JourneyService(_dbContext);
+    var result = await service.CreateJourneyAsync(request);
+    Assert.NotNull(result);
+}
+
+// GOOD: Actual unit test - pure logic only
+[Fact] // True unit test
+public void Journey_ValidateTransition_RejectsInvalidStates()
+{
+    var journey = new Journey { State = JourneyState.Completed };
+    var canTransition = journey.CanTransitionTo(JourneyState.Active);
+    Assert.False(canTransition); // Pure logic, no external dependencies
+}
+```
+
+### ❌ Mocking Non-Mockable Dependencies
+
+Attempting to mock systems with intrinsic logic creates false confidence. PostgreSQL with constraints, triggers, and pgvector operations cannot be adequately simulated.
+
+```csharp
+// BAD: Mocking database with complex logic
 [Fact]
-public void CognitiveAdapter_ReturnsSpecificSummary()
+public async Task StoreVector_WithEmbedding_SavesCorrectly()
+{
+    var mockContext = new Mock<VeritheiaDbContext>();
+    // Mock cannot simulate pgvector operations, constraints, or composite keys
+    mockContext.Setup(x => x.SearchVectors1536.Add(It.IsAny<SearchVector1536>()));
+    // Test passes but doesn't verify real database behavior
+}
+
+// GOOD: Use real database for integration test
+[Fact]
+public async Task StoreVector_WithEmbedding_SavesCorrectly()
+{
+    // Real database with real pgvector operations
+    var vector = new SearchVector1536 { /* real data */ };
+    Context.SearchVectors1536.Add(vector);
+    await Context.SaveChangesAsync();
+    // Verifies actual database constraints and operations
+}
+```
+
+### ❌ Testing External Service Content
+
+Testing specific outputs from external services creates brittle tests that break when the service changes, without providing real value.
+
+```csharp
+// BAD: Testing specific LLM output content
+[Fact]
+public async Task CognitiveAdapter_GeneratesSummary_ReturnsExpectedText()
 {
     var summary = await adapter.GenerateTextAsync("Summarize this paper");
     Assert.Equal("This paper presents a novel approach to...", summary);
+    // Brittle - LLM output can vary while still being correct
 }
 
-// GOOD: Testing integration behavior
+// GOOD: Testing integration behavior and format
 [Fact]
-public void CognitiveAdapter_ReturnsSummary()
+public async Task CognitiveAdapter_GeneratesSummary_ReturnsValidSummary()
 {
     var summary = await adapter.GenerateTextAsync("Summarize this paper");
     Assert.NotNull(summary);
-    Assert.True(summary.Length > 50);
-    Assert.True(summary.Length < 500);
+    Assert.True(summary.Length > 50); // Reasonable length
+    Assert.True(summary.Length < 2000); // Not truncated
+    // Tests integration without depending on specific content
 }
 ```
 
-### ❌ Cross-Process Dependencies
+### ❌ Excessive Mocking in Integration Tests
+
+Creating elaborate mock setups for internal services defeats the purpose of integration testing, which is to verify real component collaboration.
 
 ```csharp
-// BAD: One process test depends on another
+// BAD: Over-mocking in integration test
 [Fact]
-public void GuidedComposition_UsesScreeningResults()
+public async Task ProcessEngine_ExecutesProcess_WorksCorrectly()
 {
-    // First run screening process
-    var screeningResult = await screeningProcess.ExecuteAsync(context);
-    // Then use in composition - creates coupling
+    var mockJournalService = new Mock<IJournalService>();
+    var mockDocumentService = new Mock<IDocumentService>();
+    var mockEmbeddingService = new Mock<IEmbeddingService>();
+    // So many mocks that we're not testing real integration
+    
+    var engine = new ProcessEngine(mockJournalService.Object, /* etc */);
+    // Test doesn't verify real service collaboration
 }
 
-// GOOD: Mock the data you need
+// GOOD: Real services with mocked external boundaries only
 [Fact]
-public void GuidedComposition_WithSourceDocuments()
+public async Task ProcessEngine_ExecutesProcess_WorksCorrectly()
 {
-    var context = new ProcessContext
-    {
-        Inputs = new Dictionary<string, object>
-        {
-            ["sourceDocuments"] = TestDataBuilder.CreateDocuments()
-        }
-    };
-}
-```
-
-### ❌ Testing UI Implementation
-
-```csharp
-// BAD: Testing Blazor component internals
-[Fact]
-public void ScreeningResultsComponent_RendersTableWithClasses()
-{
-    var component = render.FindComponent<ScreeningResults>();
-    Assert.Contains("table table-striped", component.Markup);
-}
-
-// GOOD: Testing component behavior
-[Fact]
-public void ScreeningResultsComponent_DisplaysAllResults()
-{
-    var component = render.FindComponent<ScreeningResults>();
-    var rows = component.FindAll("tr[data-result]");
-    Assert.Equal(10, rows.Count);
+    // Real database, real internal services
+    var mockCognitiveAdapter = new Mock<ICognitiveAdapter>(); // Only external service
+    var engine = new ProcessEngine(Context, mockCognitiveAdapter.Object);
+    // Tests real service integration with controlled external dependency
 }
 ```
 
@@ -948,20 +1184,33 @@ public async Task SemanticSearch_ReturnsResultsQuickly()
 
 ### Test Review Checklist
 
+- [ ] Test is correctly categorized (Unit/Integration/E2E)
+- [ ] Unit tests have no external dependencies or side effects
+- [ ] Integration tests use real database, mock only external services
+- [ ] E2E tests exercise complete user workflows
 - [ ] Test name clearly describes what is being tested
 - [ ] Arrange-Act-Assert structure is followed
 - [ ] Test is independent and can run in any order
 - [ ] Test data is minimal and focused
-- [ ] Mocks are used appropriately, not excessively
-- [ ] Test verifies behavior, not implementation
+- [ ] Mocks are used only for external, uncontrollable services
+- [ ] Test verifies behavior, not implementation details
+- [ ] Partition boundaries are respected in all test data
 - [ ] Edge cases and error conditions are covered
-- [ ] Test will not break with minor refactoring
+
+### Test Category Summary
+
+**Unit Tests**: Pure logic, no external dependencies, fully deterministic. Test individual methods, value objects, and domain logic in complete isolation.
+
+**Integration Tests**: Real database with full schema, mocked external services only. Verify component collaboration where correctness depends on systems with intrinsic logic (PostgreSQL constraints, pgvector operations).
+
+**End-to-End Tests**: Complete user workflows through full internal stack, mocked external services for cost/reliability. Validate system orchestration from API/UI through all layers to final outcomes.
 
 ### Continuous Improvement
 
-1. **Flaky Test Detection**: Track and fix intermittent failures
-2. **Coverage Gaps**: Regular review of uncovered code paths
-3. **Test Speed**: Monitor and optimize slow tests
-4. **Documentation**: Keep test scenarios aligned with features
+1. **Test Category Accuracy**: Regularly audit that tests are correctly categorized
+2. **Flaky Test Detection**: Track and fix intermittent failures
+3. **Coverage Gaps**: Regular review of uncovered code paths, especially pure domain logic
+4. **Test Speed**: Monitor and optimize slow tests, especially E2E workflows
+5. **Documentation**: Keep test scenarios aligned with features and architectural principles
 
-The testing strategy verifies that Veritheia remains true to its core principle. Every test verifies that users author their own understanding through structured engagement with knowledge.
+The testing strategy ensures Veritheia's technical implementation serves its philosophical foundation. Every test validates that the system mechanically enforces user authorship boundaries, preserving intellectual sovereignty through structured engagement with knowledge rather than passive consumption of AI-generated content.

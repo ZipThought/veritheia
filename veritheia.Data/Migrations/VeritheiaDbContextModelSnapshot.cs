@@ -28,8 +28,10 @@ namespace veritheia.Data.Migrations
 
             modelBuilder.Entity("Veritheia.Data.Entities.Document", b =>
                 {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
@@ -62,40 +64,53 @@ namespace veritheia.Data.Migrations
                     b.Property<DateTime>("UploadedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                    b.HasKey("UserId", "Id");
 
-                    b.HasKey("Id");
+                    b.HasIndex("UserId", "CreatedAt");
 
-                    b.HasIndex("ScopeId");
+                    b.HasIndex("UserId", "FileName");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId", "MimeType");
+
+                    b.HasIndex("UserId", "ScopeId");
 
                     b.ToTable("documents", (string)null);
                 });
 
             modelBuilder.Entity("Veritheia.Data.Entities.DocumentMetadata", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
-                    b.PrimitiveCollection<List<string>>("Authors")
-                        .IsRequired()
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Abstract")
+                        .HasColumnType("text");
+
+                    b.PrimitiveCollection<string[]>("Authors")
                         .HasColumnType("text[]");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("DOI")
+                        .HasColumnType("text");
+
                     b.Property<Guid>("DocumentId")
                         .HasColumnType("uuid");
 
                     b.Property<Dictionary<string, object>>("ExtendedMetadata")
-                        .IsRequired()
                         .HasColumnType("jsonb");
+
+                    b.PrimitiveCollection<string[]>("Keywords")
+                        .HasColumnType("text[]");
 
                     b.Property<DateTime?>("PublicationDate")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Publisher")
+                        .HasColumnType("text");
 
                     b.Property<string>("Title")
                         .HasMaxLength(1000)
@@ -104,9 +119,11 @@ namespace veritheia.Data.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("Id");
+                    b.HasKey("UserId", "Id");
 
-                    b.HasIndex("DocumentId")
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.HasIndex("UserId", "DocumentId")
                         .IsUnique();
 
                     b.ToTable("document_metadata", (string)null);
@@ -114,8 +131,10 @@ namespace veritheia.Data.Migrations
 
             modelBuilder.Entity("Veritheia.Data.Entities.Journal", b =>
                 {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
@@ -135,9 +154,13 @@ namespace veritheia.Data.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("Id");
+                    b.HasKey("UserId", "Id");
 
-                    b.HasIndex("JourneyId");
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.HasIndex("UserId", "JourneyId");
+
+                    b.HasIndex("UserId", "Type");
 
                     b.ToTable("journals", null, t =>
                         {
@@ -147,8 +170,10 @@ namespace veritheia.Data.Migrations
 
             modelBuilder.Entity("Veritheia.Data.Entities.JournalEntry", b =>
                 {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("Content")
@@ -162,7 +187,6 @@ namespace veritheia.Data.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<Dictionary<string, object>>("Metadata")
-                        .IsRequired()
                         .HasColumnType("jsonb");
 
                     b.Property<string>("Significance")
@@ -170,16 +194,19 @@ namespace veritheia.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.PrimitiveCollection<List<string>>("Tags")
-                        .IsRequired()
+                    b.PrimitiveCollection<string[]>("Tags")
                         .HasColumnType("text[]");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("Id");
+                    b.HasKey("UserId", "Id");
 
-                    b.HasIndex("JournalId");
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.HasIndex("UserId", "JournalId");
+
+                    b.HasIndex("UserId", "Significance");
 
                     b.ToTable("journal_entries", null, t =>
                         {
@@ -189,8 +216,10 @@ namespace veritheia.Data.Migrations
 
             modelBuilder.Entity("Veritheia.Data.Entities.Journey", b =>
                 {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<Dictionary<string, object>>("Context")
@@ -220,14 +249,15 @@ namespace veritheia.Data.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                    b.HasKey("UserId", "Id");
 
-                    b.HasKey("Id");
+                    b.HasIndex("UserId", "CreatedAt");
 
-                    b.HasIndex("PersonaId");
+                    b.HasIndex("UserId", "PersonaId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId", "ProcessType");
+
+                    b.HasIndex("UserId", "State");
 
                     b.ToTable("journeys", null, t =>
                         {
@@ -237,8 +267,10 @@ namespace veritheia.Data.Migrations
 
             modelBuilder.Entity("Veritheia.Data.Entities.JourneyDocumentSegment", b =>
                 {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<NpgsqlRange<int>?>("ByteRange")
@@ -265,9 +297,6 @@ namespace veritheia.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("SegmentPurpose")
-                        .HasColumnType("text");
-
                     b.Property<string>("SegmentType")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
@@ -276,16 +305,21 @@ namespace veritheia.Data.Migrations
                         .HasColumnType("integer");
 
                     b.Property<Dictionary<string, object>>("StructuralPath")
+                        .IsRequired()
                         .HasColumnType("jsonb");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("Id");
+                    b.HasKey("UserId", "Id");
 
-                    b.HasIndex("DocumentId");
+                    b.HasIndex("UserId", "CreatedAt");
 
-                    b.HasIndex("JourneyId", "DocumentId", "SequenceIndex")
+                    b.HasIndex("UserId", "DocumentId");
+
+                    b.HasIndex("UserId", "JourneyId");
+
+                    b.HasIndex("UserId", "JourneyId", "DocumentId", "SequenceIndex")
                         .IsUnique();
 
                     b.ToTable("journey_document_segments", (string)null);
@@ -293,20 +327,13 @@ namespace veritheia.Data.Migrations
 
             modelBuilder.Entity("Veritheia.Data.Entities.JourneyFormation", b =>
                 {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("FormationMarker")
-                        .HasColumnType("text");
-
-                    b.Property<string>("FormationReasoning")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("FormedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Dictionary<string, object>>("FormedFromSegments")
@@ -330,17 +357,23 @@ namespace veritheia.Data.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("Id");
+                    b.HasKey("UserId", "Id");
 
-                    b.HasIndex("JourneyId");
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.HasIndex("UserId", "InsightType");
+
+                    b.HasIndex("UserId", "JourneyId");
 
                     b.ToTable("journey_formations", (string)null);
                 });
 
             modelBuilder.Entity("Veritheia.Data.Entities.JourneyFramework", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("JourneyId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
@@ -350,7 +383,7 @@ namespace veritheia.Data.Migrations
                         .IsRequired()
                         .HasColumnType("jsonb");
 
-                    b.Property<Guid>("JourneyId")
+                    b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
                     b.Property<string>("JourneyType")
@@ -365,52 +398,47 @@ namespace veritheia.Data.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("Id");
+                    b.HasKey("UserId", "JourneyId");
 
-                    b.HasIndex("JourneyId")
-                        .IsUnique();
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.HasIndex("UserId", "JourneyType");
 
                     b.ToTable("journey_frameworks", (string)null);
                 });
 
             modelBuilder.Entity("Veritheia.Data.Entities.JourneySegmentAssessment", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("AssessedAt")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("AssessedByModel")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
-
-                    b.Property<string>("AssessmentReasoning")
-                        .HasColumnType("text");
 
                     b.Property<string>("AssessmentType")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<float?>("ContributionScore")
-                        .HasColumnType("real");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Reasoning")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<Dictionary<string, object>>("ReasoningChain")
                         .HasColumnType("jsonb");
 
-                    b.Property<float?>("RelevanceScore")
-                        .HasColumnType("real");
-
-                    b.Property<int?>("ResearchQuestionId")
-                        .HasColumnType("integer");
-
                     b.Property<Dictionary<string, object>>("RubricScores")
                         .HasColumnType("jsonb");
+
+                    b.Property<double>("Score")
+                        .HasColumnType("double precision");
 
                     b.Property<Guid>("SegmentId")
                         .HasColumnType("uuid");
@@ -418,24 +446,27 @@ namespace veritheia.Data.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("Id");
+                    b.HasKey("UserId", "Id");
 
-                    b.HasIndex("SegmentId");
+                    b.HasIndex("UserId", "AssessmentType");
+
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.HasIndex("UserId", "SegmentId");
 
                     b.ToTable("journey_segment_assessments", (string)null);
                 });
 
             modelBuilder.Entity("Veritheia.Data.Entities.KnowledgeScope", b =>
                 {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -453,9 +484,13 @@ namespace veritheia.Data.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("Id");
+                    b.HasKey("UserId", "Id");
 
-                    b.HasIndex("ParentScopeId");
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.HasIndex("UserId", "ParentScopeId");
+
+                    b.HasIndex("UserId", "Type");
 
                     b.ToTable("knowledge_scopes", null, t =>
                         {
@@ -465,8 +500,10 @@ namespace veritheia.Data.Migrations
 
             modelBuilder.Entity("Veritheia.Data.Entities.Persona", b =>
                 {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<Dictionary<string, object>>("ConceptualVocabulary")
@@ -502,31 +539,34 @@ namespace veritheia.Data.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                    b.HasKey("UserId", "Id");
 
-                    b.HasKey("Id");
+                    b.HasIndex("UserId", "CreatedAt");
 
                     b.HasIndex("UserId", "Domain")
                         .IsUnique();
+
+                    b.HasIndex("UserId", "IsActive");
 
                     b.ToTable("personas", (string)null);
                 });
 
             modelBuilder.Entity("Veritheia.Data.Entities.ProcessCapability", b =>
                 {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("GrantedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsEnabled")
+                    b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("LastUsed")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("ProcessType")
                         .IsRequired()
@@ -536,10 +576,9 @@ namespace veritheia.Data.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                    b.HasKey("UserId", "Id");
 
-                    b.HasKey("Id");
+                    b.HasIndex("UserId", "CreatedAt");
 
                     b.HasIndex("UserId", "ProcessType")
                         .IsUnique();
@@ -549,8 +588,10 @@ namespace veritheia.Data.Migrations
 
             modelBuilder.Entity("Veritheia.Data.Entities.ProcessDefinition", b =>
                 {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("Category")
@@ -559,14 +600,10 @@ namespace veritheia.Data.Migrations
                         .HasColumnType("character varying(50)");
 
                     b.Property<Dictionary<string, object>>("Configuration")
-                        .IsRequired()
                         .HasColumnType("jsonb");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
 
                     b.Property<Dictionary<string, object>>("Inputs")
                         .IsRequired()
@@ -590,9 +627,13 @@ namespace veritheia.Data.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("Id");
+                    b.HasKey("UserId", "Id");
 
-                    b.HasIndex("ProcessType")
+                    b.HasIndex("UserId", "Category");
+
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.HasIndex("UserId", "ProcessType")
                         .IsUnique();
 
                     b.ToTable("process_definitions", null, t =>
@@ -605,8 +646,10 @@ namespace veritheia.Data.Migrations
 
             modelBuilder.Entity("Veritheia.Data.Entities.ProcessExecution", b =>
                 {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<DateTime?>("CompletedAt")
@@ -630,7 +673,7 @@ namespace veritheia.Data.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
-                    b.Property<DateTime>("StartedAt")
+                    b.Property<DateTime?>("StartedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("State")
@@ -641,9 +684,13 @@ namespace veritheia.Data.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("Id");
+                    b.HasKey("UserId", "Id");
 
-                    b.HasIndex("JourneyId");
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.HasIndex("UserId", "JourneyId");
+
+                    b.HasIndex("UserId", "State");
 
                     b.ToTable("process_executions", null, t =>
                         {
@@ -653,8 +700,10 @@ namespace veritheia.Data.Migrations
 
             modelBuilder.Entity("Veritheia.Data.Entities.ProcessResult", b =>
                 {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
@@ -664,14 +713,10 @@ namespace veritheia.Data.Migrations
                         .IsRequired()
                         .HasColumnType("jsonb");
 
-                    b.Property<DateTime>("ExecutedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<Guid>("ExecutionId")
                         .HasColumnType("uuid");
 
                     b.Property<Dictionary<string, object>>("Metadata")
-                        .IsRequired()
                         .HasColumnType("jsonb");
 
                     b.Property<string>("ProcessType")
@@ -682,9 +727,11 @@ namespace veritheia.Data.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("Id");
+                    b.HasKey("UserId", "Id");
 
-                    b.HasIndex("ExecutionId")
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.HasIndex("UserId", "ExecutionId")
                         .IsUnique();
 
                     b.ToTable("process_results", (string)null);
@@ -692,14 +739,13 @@ namespace veritheia.Data.Migrations
 
             modelBuilder.Entity("Veritheia.Data.Entities.SearchIndex", b =>
                 {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("IndexedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("SegmentId")
@@ -708,17 +754,16 @@ namespace veritheia.Data.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("VectorDimension")
-                        .HasColumnType("integer");
-
                     b.Property<string>("VectorModel")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.HasKey("Id");
+                    b.HasKey("UserId", "Id");
 
-                    b.HasIndex("SegmentId", "VectorModel")
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.HasIndex("UserId", "SegmentId", "VectorModel")
                         .IsUnique();
 
                     b.ToTable("search_indexes", (string)null);
@@ -726,42 +771,84 @@ namespace veritheia.Data.Migrations
 
             modelBuilder.Entity("Veritheia.Data.Entities.SearchVector1536", b =>
                 {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("IndexId")
                         .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Vector>("Embedding")
                         .IsRequired()
                         .HasColumnType("vector(1536)");
 
-                    b.HasKey("IndexId");
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("UserId", "IndexId");
+
+                    b.HasIndex("UserId", "CreatedAt");
 
                     b.ToTable("search_vectors_1536", (string)null);
                 });
 
             modelBuilder.Entity("Veritheia.Data.Entities.SearchVector384", b =>
                 {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("IndexId")
                         .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Vector>("Embedding")
                         .IsRequired()
                         .HasColumnType("vector(384)");
 
-                    b.HasKey("IndexId");
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("UserId", "IndexId");
+
+                    b.HasIndex("UserId", "CreatedAt");
 
                     b.ToTable("search_vectors_384", (string)null);
                 });
 
             modelBuilder.Entity("Veritheia.Data.Entities.SearchVector768", b =>
                 {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("IndexId")
                         .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Vector>("Embedding")
                         .IsRequired()
                         .HasColumnType("vector(768)");
 
-                    b.HasKey("IndexId");
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("UserId", "IndexId");
+
+                    b.HasIndex("UserId", "CreatedAt");
 
                     b.ToTable("search_vectors_768", (string)null);
                 });
@@ -801,16 +888,16 @@ namespace veritheia.Data.Migrations
 
             modelBuilder.Entity("Veritheia.Data.Entities.Document", b =>
                 {
-                    b.HasOne("Veritheia.Data.Entities.KnowledgeScope", "Scope")
-                        .WithMany("Documents")
-                        .HasForeignKey("ScopeId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("Veritheia.Data.Entities.User", "User")
                         .WithMany("Documents")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("Veritheia.Data.Entities.KnowledgeScope", "Scope")
+                        .WithMany("Documents")
+                        .HasForeignKey("UserId", "ScopeId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Scope");
 
@@ -821,7 +908,7 @@ namespace veritheia.Data.Migrations
                 {
                     b.HasOne("Veritheia.Data.Entities.Document", "Document")
                         .WithOne("Metadata")
-                        .HasForeignKey("Veritheia.Data.Entities.DocumentMetadata", "DocumentId")
+                        .HasForeignKey("Veritheia.Data.Entities.DocumentMetadata", "UserId", "DocumentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -832,7 +919,7 @@ namespace veritheia.Data.Migrations
                 {
                     b.HasOne("Veritheia.Data.Entities.Journey", "Journey")
                         .WithMany("Journals")
-                        .HasForeignKey("JourneyId")
+                        .HasForeignKey("UserId", "JourneyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -843,7 +930,7 @@ namespace veritheia.Data.Migrations
                 {
                     b.HasOne("Veritheia.Data.Entities.Journal", "Journal")
                         .WithMany("Entries")
-                        .HasForeignKey("JournalId")
+                        .HasForeignKey("UserId", "JournalId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -852,15 +939,15 @@ namespace veritheia.Data.Migrations
 
             modelBuilder.Entity("Veritheia.Data.Entities.Journey", b =>
                 {
-                    b.HasOne("Veritheia.Data.Entities.Persona", "Persona")
-                        .WithMany("Journeys")
-                        .HasForeignKey("PersonaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Veritheia.Data.Entities.User", "User")
                         .WithMany("Journeys")
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Veritheia.Data.Entities.Persona", "Persona")
+                        .WithMany("Journeys")
+                        .HasForeignKey("UserId", "PersonaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -873,13 +960,13 @@ namespace veritheia.Data.Migrations
                 {
                     b.HasOne("Veritheia.Data.Entities.Document", "Document")
                         .WithMany("JourneySegments")
-                        .HasForeignKey("DocumentId")
+                        .HasForeignKey("UserId", "DocumentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Veritheia.Data.Entities.Journey", "Journey")
                         .WithMany("DocumentSegments")
-                        .HasForeignKey("JourneyId")
+                        .HasForeignKey("UserId", "JourneyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -892,7 +979,7 @@ namespace veritheia.Data.Migrations
                 {
                     b.HasOne("Veritheia.Data.Entities.Journey", "Journey")
                         .WithMany("Formations")
-                        .HasForeignKey("JourneyId")
+                        .HasForeignKey("UserId", "JourneyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -903,7 +990,7 @@ namespace veritheia.Data.Migrations
                 {
                     b.HasOne("Veritheia.Data.Entities.Journey", "Journey")
                         .WithOne("Framework")
-                        .HasForeignKey("Veritheia.Data.Entities.JourneyFramework", "JourneyId")
+                        .HasForeignKey("Veritheia.Data.Entities.JourneyFramework", "UserId", "JourneyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -914,7 +1001,7 @@ namespace veritheia.Data.Migrations
                 {
                     b.HasOne("Veritheia.Data.Entities.JourneyDocumentSegment", "Segment")
                         .WithMany("Assessments")
-                        .HasForeignKey("SegmentId")
+                        .HasForeignKey("UserId", "SegmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -925,7 +1012,7 @@ namespace veritheia.Data.Migrations
                 {
                     b.HasOne("Veritheia.Data.Entities.KnowledgeScope", "ParentScope")
                         .WithMany("ChildScopes")
-                        .HasForeignKey("ParentScopeId")
+                        .HasForeignKey("UserId", "ParentScopeId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("ParentScope");
@@ -957,7 +1044,7 @@ namespace veritheia.Data.Migrations
                 {
                     b.HasOne("Veritheia.Data.Entities.Journey", "Journey")
                         .WithMany("ProcessExecutions")
-                        .HasForeignKey("JourneyId")
+                        .HasForeignKey("UserId", "JourneyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -968,7 +1055,7 @@ namespace veritheia.Data.Migrations
                 {
                     b.HasOne("Veritheia.Data.Entities.ProcessExecution", "Execution")
                         .WithOne("Result")
-                        .HasForeignKey("Veritheia.Data.Entities.ProcessResult", "ExecutionId")
+                        .HasForeignKey("Veritheia.Data.Entities.ProcessResult", "UserId", "ExecutionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -979,7 +1066,7 @@ namespace veritheia.Data.Migrations
                 {
                     b.HasOne("Veritheia.Data.Entities.JourneyDocumentSegment", "Segment")
                         .WithMany("SearchIndexes")
-                        .HasForeignKey("SegmentId")
+                        .HasForeignKey("UserId", "SegmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -990,7 +1077,7 @@ namespace veritheia.Data.Migrations
                 {
                     b.HasOne("Veritheia.Data.Entities.SearchIndex", "Index")
                         .WithOne()
-                        .HasForeignKey("Veritheia.Data.Entities.SearchVector1536", "IndexId")
+                        .HasForeignKey("Veritheia.Data.Entities.SearchVector1536", "UserId", "IndexId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1001,7 +1088,7 @@ namespace veritheia.Data.Migrations
                 {
                     b.HasOne("Veritheia.Data.Entities.SearchIndex", "Index")
                         .WithOne()
-                        .HasForeignKey("Veritheia.Data.Entities.SearchVector384", "IndexId")
+                        .HasForeignKey("Veritheia.Data.Entities.SearchVector384", "UserId", "IndexId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1012,7 +1099,7 @@ namespace veritheia.Data.Migrations
                 {
                     b.HasOne("Veritheia.Data.Entities.SearchIndex", "Index")
                         .WithOne()
-                        .HasForeignKey("Veritheia.Data.Entities.SearchVector768", "IndexId")
+                        .HasForeignKey("Veritheia.Data.Entities.SearchVector768", "UserId", "IndexId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

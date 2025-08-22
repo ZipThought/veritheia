@@ -1,6 +1,15 @@
 #!/bin/bash
 # Veritheia Progress Checker
 # Run this script to quickly see implementation status
+# Must be run from repository root
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Get the repository root (parent of development folder)
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+
+# Change to repository root for all operations
+cd "$REPO_ROOT"
 
 echo "=== Veritheia Progress Check ==="
 echo "Date: $(date '+%Y-%m-%d %H:%M:%S')"
@@ -16,13 +25,18 @@ echo "- Branch: $(git branch --show-current)"
 echo "- Last commit: $(git log -1 --oneline)"
 echo ""
 
-# Check phase status
-echo "Phase Status:"
-grep -E "^### Phase [0-9]+:|^\*\*Status\*\*:" development/PROGRESS.md | paste - - | while IFS=$'\t' read -r phase status; do
-    phase_name=$(echo "$phase" | sed 's/### //')
-    status_value=$(echo "$status" | sed 's/\*\*Status\*\*: //')
-    printf "%-40s %s\n" "$phase_name" "$status_value"
-done
+# Check level status
+echo "Dependency Graph Status:"
+if [ -f "development/PROGRESS.md" ]; then
+    grep -E "^### ✅ Level [0-9]+:|^### 🔄 Level [0-9]+:|^### ⏳ Level [0-9]+:" development/PROGRESS.md | while read -r line; do
+        level=$(echo "$line" | sed 's/### [✅🔄⏳] Level \([0-9]\+\):.*/\1/')
+        status=$(echo "$line" | sed 's/### \([✅🔄⏳]\) Level [0-9]\+:.*/\1/')
+        name=$(echo "$line" | sed 's/### [✅🔄⏳] Level [0-9]\+: \(.*\) - .*/\1/')
+        printf "Level %-2s %-25s %s\n" "$level" "$name" "$status"
+    done
+else
+    echo "PROGRESS.md not found - check development folder"
+fi
 echo ""
 
 # Check for TODO comments
@@ -33,11 +47,21 @@ if [ $(grep -r "TODO" --include="*.cs" . 2>/dev/null | grep -v "/obj/" | grep -v
 fi
 echo ""
 
+# Check build status
+echo "Build Status:"
+if command -v dotnet &> /dev/null; then
+    echo "Building main projects..."
+    dotnet build --no-restore --nologo -v q 2>/dev/null && echo "✅ Main projects build successfully" || echo "❌ Build errors found"
+else
+    echo "dotnet CLI not found"
+fi
+echo ""
+
 # Check test status
 echo "Test Status:"
 if command -v dotnet &> /dev/null; then
-    echo "Running tests..."
-    dotnet test --no-build --nologo -v q 2>/dev/null || echo "No tests found or build required"
+    echo "Building test project..."
+    dotnet build veritheia.Tests --no-restore --nologo -v q 2>/dev/null && echo "✅ Tests build successfully" || echo "❌ Test build errors"
 else
     echo "dotnet CLI not found"
 fi
@@ -54,15 +78,17 @@ echo ""
 # Check database status
 echo "Database Status:"
 if command -v psql &> /dev/null; then
-    psql -U postgres -h localhost -c "SELECT version();" 2>/dev/null || echo "PostgreSQL not accessible"
+    psql -U postgres -h localhost -c "SELECT version();" 2>/dev/null && echo "✅ PostgreSQL accessible" || echo "❌ PostgreSQL not accessible"
 else
     echo "psql not found"
 fi
 echo ""
 
-# Recent progress notes
-echo "Recent Progress Notes:"
-grep -A 3 "^- Note:" development/PROGRESS.md | tail -15
+# Current level details
+echo "Current Level Details:"
+if [ -f "development/PROGRESS.md" ]; then
+    grep -A 10 "### 🔄 Level [0-9]\+:" development/PROGRESS.md | head -15
+fi
 echo ""
 
 echo "=== End of Progress Check ==="

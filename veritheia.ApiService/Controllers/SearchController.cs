@@ -106,7 +106,6 @@ public class SearchController : ControllerBase
                 DocumentName = s.Document.FileName,
                 s.SegmentContent,
                 s.SegmentType,
-                s.SegmentPurpose,
                 s.SequenceIndex
             })
             .ToListAsync();

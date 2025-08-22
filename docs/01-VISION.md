@@ -8,7 +8,7 @@ AI systems promise to solve this by reading everything for us, generating summar
 
 ## What Veritheia Does Differently
 
-Veritheia helps you engage with thousands of documents while ensuring every insight remains yours. Instead of AI reading for you, it measures documents against YOUR questions, using YOUR definitions, within YOUR framework. The understanding that emerges comes from your engagement, not AI generation.
+Veritheia helps you engage with thousands of documents while ensuring every insight remains yours. Instead of AI reading for you, it measures documents against YOUR questions, using YOUR definitions, within YOUR framework. The understanding that accumulates through your decision-making process comes from your engagement, not AI generation.
 
 > **The Key Difference**: Veritheia implements neurosymbolic architecture, transcended—where you author your own rules through natural language rather than code. When you write "Papers are relevant if they provide empirical evidence," that statement becomes the rule governing how documents are processed. No programming required—your words shape the system's behavior.
 
@@ -23,7 +23,7 @@ Veritheia approach:
 2. You define what "relevant" means to you
 3. The system measures all 3,000 papers against YOUR criteria
 4. You engage with organized results, making decisions and connections
-5. Your understanding emerges from this engagement
+5. Your understanding accumulates through your decision-making process during this engagement
 
 **For educators**, it works similarly:
 1. Define your learning objectives
@@ -84,9 +84,9 @@ Veritheia functions as infrastructure for your intellectual work rather than an 
 
 ### Scale Without Oracle
 
-The system enables engagement with thousands of documents where manual review could handle only hundreds. This scale does not come from AI summarization or selection but from projection and measurement. When AI assesses three thousand articles against user-defined research questions, it acts as an instrument measuring each document's position in the user's projection space. The patterns that emerge—clusters of terminology, bridges between disciplines, evolution of concepts—these become visible to the user not as AI insights but as the natural topology of their projected knowledge space.
+The system enables engagement with thousands of documents where manual review could handle only hundreds. This scale does not come from AI summarization or selection but from projection and measurement. When AI assesses three thousand articles against user-defined research questions, it acts as an instrument measuring each document's position in the user's projection space. The system surfaces potential patterns—clusters of terminology, bridges between disciplines, evolution of concepts—for the user to review and evaluate, not as AI insights but as the natural topology of their projected knowledge space made visible for their assessment.
 
-Progressive refinement becomes possible at this scale. The first pass might cast a broad net to minimize false negatives. As patterns emerge, the user refines their framework—expanding vocabulary, sharpening questions, recognizing new connections. Each refinement creates a new projection, revealing different aspects of the same corpus. Formation happens through this iterative engagement with the full breadth of available knowledge, not through consumption of AI-generated summaries.
+Progressive refinement becomes possible at this scale. The first pass might cast a broad net to minimize false negatives. As the user identifies patterns through their review, they refine their framework—expanding vocabulary, sharpening questions, recognizing new connections. Each refinement creates a new projection, surfacing different aspects of the same corpus for the user's consideration. Formation happens through this iterative engagement with the full breadth of available knowledge, not through consumption of AI-generated summaries.
 
 ## Why User Agency Matters
 
@@ -209,11 +209,11 @@ The name Veritheia synthesizes two ancient conceptions of truth that, together, 
 
 **Veritas** (Latin) represents truth as fixed, determinate correctness—what can be stated, verified, and stored. In Veritheia, this manifests as the Raw Corpus: unchanging source documents that serve as anchors for all understanding. These are the facts, the evidence, the stable ground from which inquiry begins.
 
-**Aletheia** (Greek: ἀλήθεια) means truth as unconcealment, the dynamic process by which reality reveals itself from hiddenness. In Veritheia, this manifests as the journey: the active projection of documents through user frameworks that reveals patterns, connections, and meanings previously concealed. Truth happens through engagement, not consumption.
+**Aletheia** (Greek: ἀλήθεια) means truth as unconcealment, the dynamic process by which reality reveals itself from hiddenness. In Veritheia, this manifests as the journey: the active projection of documents through user frameworks that surfaces patterns, connections, and meanings for the user to uncover through their engagement. Truth happens through engagement, not consumption.
 
 Neither conception alone suffices. Pure Veritas becomes dogma—fixed truths divorced from living understanding. Pure Aletheia becomes relativism—endless revelation without stable reference. Veritheia holds both in creative tension: truth as a living anchor.
 
-The system architecturally embodies this synthesis. Every insight emerges from the intersection of stable corpus (Veritas) and revealing journey (Aletheia). Documents provide the anchor; user engagement provides the breath. Together they create epistemic infrastructure where truth is neither merely found nor merely constructed, but continuously revealed through disciplined encounter with what is.
+The system architecturally embodies this synthesis. Every insight accumulates through the user's decision-making process at the intersection of stable corpus (Veritas) and their revealing journey (Aletheia). Documents provide the anchor; user engagement provides the breath. Together they create epistemic infrastructure where truth is neither merely found nor merely constructed, but continuously uncovered through disciplined encounter with what is.
 
 This is why formation—the accumulated insights from journeys—cannot be transferred by copying outputs. The meaning of any insight depends on three inseparable elements: the specific documents examined (which corpus), the framework that guided examination (whose questions and vocabulary), and the path of reasoning taken through them (which connections were seen and why). 
 

@@ -1,15 +1,20 @@
+using Veritheia.Data.Interfaces;
+
 namespace Veritheia.Data.Entities;
 
 /// <summary>
-/// Tracks process runs within journeys
+/// Execution instances of processes within journeys
 /// </summary>
-public class ProcessExecution : BaseEntity
+public class ProcessExecution : BaseEntity, IUserOwned
 {
+    // Partition key - required for composite primary key (UserId, Id)
+    public Guid UserId { get; set; }
+    
     public Guid JourneyId { get; set; }
     public string ProcessType { get; set; } = string.Empty;
-    public string State { get; set; } = "Pending"; // Pending, Running, Completed, Failed, Cancelled
+    public string State { get; set; } = string.Empty; // Pending, Running, Completed, Failed, Cancelled
     public Dictionary<string, object> Inputs { get; set; } = new();
-    public DateTime StartedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? StartedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
     public string? ErrorMessage { get; set; }
     

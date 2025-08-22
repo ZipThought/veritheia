@@ -1,12 +1,16 @@
+using Veritheia.Data.Interfaces;
+
 namespace Veritheia.Data.Entities;
 
 /// <summary>
-/// Organizational boundaries for documents
+/// Organizational structure for documents
 /// </summary>
-public class KnowledgeScope : BaseEntity
+public class KnowledgeScope : BaseEntity, IUserOwned
 {
+    // Partition key - required for composite primary key (UserId, Id)
+    public Guid UserId { get; set; }
+    
     public string Name { get; set; } = string.Empty;
-    public string? Description { get; set; }
     public string Type { get; set; } = string.Empty; // Project, Topic, Subject, Custom
     public Guid? ParentScopeId { get; set; }
     

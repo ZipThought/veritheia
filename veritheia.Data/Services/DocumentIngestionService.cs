@@ -82,7 +82,7 @@ public class DocumentIngestionService
             Id = Guid.CreateVersion7(),
             DocumentId = document.Id,
             Title = metadata.Title,
-            Authors = new List<string> { metadata.Author },
+            Authors = new string[] { metadata.Author },
             PublicationDate = metadata.PublicationDate,
             ExtendedMetadata = new Dictionary<string, object> 
             { 
@@ -108,7 +108,6 @@ public class DocumentIngestionService
                 DocumentId = document.Id,
                 SegmentContent = chunks[i].Content,
                 SegmentType = chunks[i].Type,
-                SegmentPurpose = options.SegmentPurpose ?? "General",
                 SequenceIndex = i,
                 CreatedAt = DateTime.UtcNow
             };

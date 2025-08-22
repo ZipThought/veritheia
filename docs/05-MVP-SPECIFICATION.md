@@ -113,10 +113,55 @@ Projection rules might include segmentation strategies, embedding contexts, asse
 **Level 4: Formative Process Implementations** (Extensible, must support formation through authorship)
 
 *Known Process Implementations*:
-- `SystematicScreeningProcess` - Embodies LLAssist methodology for research formation
-- `ConstrainedCompositionProcess` - Embodies EdgePrompt methodology for pedagogical formation
+
+**SystematicScreeningProcess** - Implements the LLAssist methodology for systematic literature review. Enables processing thousands of documents rather than hundreds through dual-phase assessment: Phase 1 extracts key semantics (topics, entities, keywords) from abstracts; Phase 2 evaluates each document against user research questions through relevance assessment (discusses the topic) and contribution assessment (researches the topic directly). Generates scores (0-1 scale), binary decisions, and reasoning chains. Every document receives identical treatment to prevent selective processing bias. Formation occurs through user engagement with these measurements.
+
+**ConstrainedCompositionProcess** - Embodies EdgePrompt methodology for pedagogical formation within lesson planning journeys.
 
 *Extension Requirements*: New processes must enable formation through authorship within journey projection spaces
+
+**Process Input/Output Patterns**: Processes accept researcher frameworks and produce assessments for user evaluation. SystematicScreeningProcess: researchers upload CSV datasets (title, abstract, authors, venue, keywords), define research questions, optionally provide screening questions. Process generates outputs with scores (0-1), binary decisions, and reasoning chains. Enables processing thousands of documents while maintaining user control through evaluation of measurements, not consumption of insights.
+
+**Input/Output Formats**: CSV input requires columns: title, abstract, authors, publication_venue, keywords. Research questions as plain text, one per line. JSON output contains per-article: extracted semantics (topics, entities, keywords arrays), scores (relevance_score, contribution_score as floats 0.0-1.0), binary decisions (is_relevant, is_contributing), reasoning chains, must-read determination (logical OR of decisions).
+
+**User Interface Patterns**: SystematicScreeningProcess requires tabular interface for thousand-document result sets. Core table displays: Title | Authors | Venue | Relevance Score | Contribution Score | Must-Read | Actions. Filters enable viewing subsets (relevant only, contributing only, must-read only, by venue, by score thresholds). Row selection enables bulk actions. Detail view shows reasoning chains and extracted semantics. Progress interface shows processing status during batch execution. Formation interface enables iterative refinement of research questions based on result patterns.
+
+```
+Systematic Screening Results (2,576 documents → 324 must-read)
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ [Must-Read Only ▼] [Year: All ▼] [Venue: Scopus ▼] [Threshold≥0.7] [Export] │
+├─────────────────────────────────────────────────────────────────────────────┤
+│☐ Title                        │Authors   │RQ1│RQ2│RQ3│RQ4│Must│Actions     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│☐ LLMs for Threat Detection... │Chen, L.  │0.9│0.8│0.2│0.1│ ✓  │[View][Tag] │
+│☐ AI Security Vulnerabilities..│Smith, J. │0.7│0.9│0.3│0.6│ ✓  │[View][Tag] │
+│☐ Adversarial ML in Cyber...   │Brown, M. │0.3│0.4│0.9│0.2│ ✓  │[View][Tag] │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Showing 1-50 of 324 must-read results                    [1][2]...[7][>]    │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Detail View (when row selected):
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ AI Security in Critical Infrastructure Systems                              │
+│ Authors: Smith, J., Davis, K.  │ Venue: IEEE Security & Privacy 2024        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Relevance Assessment (0.9): Discusses strategic AI implementation in        │
+│ cyber defense contexts as specified in RQ1.                                 │
+│                                                                             │
+│ Contribution Assessment (0.8): Directly researches AI deployment            │
+│ strategies with empirical evaluation as specified in RQ2.                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Extracted Semantics: [AI deployment][risk mitigation][critical systems]     │
+│ Must-Read: YES (meets both relevance and contribution thresholds)           │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Processing Status (during 10+ hour batch execution):
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Processing: Article 1,247 of 2,576 (48%) │ Elapsed: 4.2h │ Remaining: 4.8h  │
+│ Current: "Machine Learning for Intrusion Detection Systems"                 │
+│ [Pause] [Resume] [Cancel]                    Last saved: 2 minutes ago      │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ## 4. MVP Technical Architecture
 

@@ -14,7 +14,5 @@ jobs:
       with:
         dotnet-version: '9.0.x'
     
-    - name: Run tests (excluding integration tests)
-      run: dotnet test --filter "Category!=Integration&Category!=LLMIntegration"
-      env:
-        TESTCONTAINERS_RYUK_DISABLED: true
+    - name: Run tests (excluding LLM integration)
+      run: dotnet test veritheia.Tests --filter "Category!=LLMIntegration" --logger "console;verbosity=minimal"

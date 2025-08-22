@@ -67,7 +67,7 @@ public class JournalService
             JournalId = journalId,
             Content = content,
             Significance = significance,
-            Tags = tags ?? new List<string>(),
+            Tags = tags?.ToArray(),
             Metadata = metadata ?? new Dictionary<string, object>(),
             CreatedAt = DateTime.UtcNow
         };

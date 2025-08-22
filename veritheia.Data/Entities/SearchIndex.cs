@@ -1,19 +1,18 @@
+using Veritheia.Data.Interfaces;
+
 namespace Veritheia.Data.Entities;
 
 /// <summary>
-/// Metadata for segment embeddings - enables polymorphic vector storage
+/// Vector search indexes for journey document segments
 /// </summary>
-public class SearchIndex : BaseEntity
+public class SearchIndex : BaseEntity, IUserOwned
 {
+    // Partition key - required for composite primary key (UserId, Id)
+    public Guid UserId { get; set; }
+    
     public Guid SegmentId { get; set; }
-    public string VectorModel { get; set; } = string.Empty; // openai-ada-002, e5-large-v2, etc.
-    public int VectorDimension { get; set; } // 1536, 768, 384
-    public DateTime IndexedAt { get; set; } = DateTime.UtcNow;
+    public string VectorModel { get; set; } = string.Empty; // text-embedding-3-small, text-embedding-3-large, etc.
     
     // Navigation properties
     public JourneyDocumentSegment Segment { get; set; } = null!;
-    
-    // Polymorphic relationship to vector storage tables
-    // The actual vector is stored in SearchVector1536, SearchVector768, etc.
-    // based on VectorDimension value
 }
