@@ -32,7 +32,9 @@ The key innovation: You write rules in plain English ("Papers are relevant if th
 
 ## Development Philosophy: Specification-First
 
-**Veritheia follows strict specification-first development.** Complete specifications are written in `/docs` before any implementation. The implementation must follow the spec exactly—it cannot exceed or diverge from what is specified. This ensures architectural coherence and prevents feature creep.
+**Veritheia follows strict specification-first development.** Complete specifications are written in `/docs` before any implementation. The implementation, which is majority AI-assisted, must follow the spec exactly—it cannot exceed or diverge from what is specified. This ensures architectural coherence and prevents feature creep.
+
+<img width="3840" height="2160" alt="Screenshot 2025-08-23 121320" src="https://github.com/user-attachments/assets/90753eb1-de9f-4374-9c30-08e5bc1fb7f7" />
 
 ## Documentation
 
@@ -131,4 +133,5 @@ The architecture and its methodologies are derived from the following research.
 - Haryanto, C. Y., Elvira, A. M., Nguyen, T. D., Vu, M. H., Hartanto, Y., Lomempow, E., & Arakala, A. (2024). Contextualized AI for Cyber Defense: An Automated Survey using LLMs. In *2024 17th International Conference on Security of Information and Networks (SIN)*, 02-04 December 2024. IEEE. DOI: [10.1109/SIN63213.2024.10871242](https://doi.org/10.1109/SIN63213.2024.10871242). Also available: *arXiv:2409.13524 [cs.CR]*. [https://doi.org/10.48550/arXiv.2409.13524](https://doi.org/10.48550/arXiv.2409.13524)
 
 - Haryanto, C. Y. (2024). Progress: A Post-AI Manifesto. *arXiv preprint arXiv:2408.13775*. [https://doi.org/10.48550/arXiv.2408.13775](https://doi.org/10.48550/arXiv.2408.13775)
+
 
