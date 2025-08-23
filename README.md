@@ -82,6 +82,32 @@ dotnet test --filter "Category=Integration"    # Integration tests only
 - **Integration**: Database + service tests using mocks (run in CI)  
 - **LLMIntegration**: Tests requiring real LLM server (local only, excluded from CI)
 
+### Test Infrastructure
+Our tests use Testcontainers to spin up PostgreSQL with pgvector automatically:
+- **No configuration needed** - Works identically locally and in CI
+- **Isolation** - Each test run gets a fresh database
+- **Real PostgreSQL** - Tests run against actual PostgreSQL 17 with pgvector
+
+## CI/CD Workflows
+
+### test.yml - Quick Test Runner
+- **Trigger**: Push/PR to main, master, develop branches
+- **Purpose**: Fast feedback on test status
+- **Features**:
+  - Runs all tests using Testcontainers
+  - Generates test reports
+  - Uploads test results as artifacts
+
+### ci.yml - Complete CI/CD Pipeline
+- **Trigger**: Push/PR to main, master branches, and version tags
+- **Purpose**: Full validation and release pipeline
+- **Features**:
+  - Multi-OS testing (Ubuntu, Windows, macOS)
+  - Code quality checks
+  - Test coverage reporting
+  - Docker image building
+  - Automated releases for version tags
+
 ## Current Status
 
 See [Development Progress](development/PROGRESS.md) for detailed phase implementation status.
