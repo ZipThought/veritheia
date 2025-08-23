@@ -1,6 +1,11 @@
 @page "/journeys/create"
 @using Microsoft.AspNetCore.Components.Web
+@using Veritheia.Data.Services
+@using Veritheia.Data.Entities
 @inject NavigationManager Navigation
+@inject JourneyService JourneyService
+@inject PersonaService PersonaService
+@inject UserService UserService
 
 <PageTitle>Create New Journey - Veritheia</PageTitle>
 
@@ -14,6 +19,13 @@
     </div>
 
     <div class="create-journey-form">
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="error-message">
+                <strong>Error:</strong> @errorMessage
+            </div>
+        }
+
         <div class="form-section">
             <h2 class="section-title">Journey Details</h2>
             
@@ -57,7 +69,7 @@
                          @onclick="() => SelectPersona(persona.Id)">
                         <div class="persona-icon">👤</div>
                         <h3 class="persona-title">@persona.Domain</h3>
-                        <p class="persona-description">@persona.Description</p>
+                        <p class="persona-description">@GetPersonaDescription(persona.Domain)</p>
                     </div>
                 }
             </div>
@@ -116,9 +128,11 @@
     private string selectedProcessType = "";
     private bool showValidation = false;
     private bool isCreating = false;
+    private string? errorMessage;
 
-    private List<PersonaOption> availablePersonas = new();
+    private List<Persona> availablePersonas = new();
     private List<ProcessOption> availableProcesses = new();
+    private User? currentUser;
 
     protected override async Task OnInitializedAsync()
     {
@@ -127,66 +141,62 @@
 
     private async Task LoadAvailableOptions()
     {
-        // Mock data - will be replaced with actual data loading
-        availablePersonas = new List<PersonaOption>
+        try
         {
-            new PersonaOption
-            {
-                Id = Guid.NewGuid(),
-                Domain = "Researcher",
-                Description = "Domain expertise, investigation methods"
-            },
-            new PersonaOption
-            {
-                Id = Guid.NewGuid(),
-                Domain = "Student",
-                Description = "Academic vocabulary, learning-focused patterns"
-            },
-            new PersonaOption
-            {
-                Id = Guid.NewGuid(),
-                Domain = "Entrepreneur",
-                Description = "Business terminology, market analysis approaches"
-            }
-        };
+            // Get current user (in production, this would come from authentication)
+            currentUser = await UserService.GetDemoUserAsync();
+            
+            // Load user's personas
+            availablePersonas = await PersonaService.GetActivePersonasAsync(currentUser.Id);
 
-        availableProcesses = new List<ProcessOption>
+            // Load available processes (hardcoded for now, could be dynamic)
+            availableProcesses = new List<ProcessOption>
+            {
+                new ProcessOption
+                {
+                    Type = "systematic-screening",
+                    DisplayName = "Systematic Literature Screening",
+                    Icon = "📊",
+                    Description = "LLAssist methodology for systematic literature review with dual assessment (relevance + contribution)",
+                    Requirements = "Research questions and CSV file with academic papers"
+                },
+                new ProcessOption
+                {
+                    Type = "basic-constrained-composition",
+                    DisplayName = "Constrained Composition",
+                    Icon = "✍️",
+                    Description = "Pedagogical formation with structured writing frameworks and assessment rubrics",
+                    Requirements = "Learning objectives, constraints, and document templates"
+                }
+            };
+        }
+        catch (Exception ex)
         {
-            new ProcessOption
-            {
-                Type = "SystematicScreeningProcess",
-                DisplayName = "SystematicScreeningProcess",
-                Icon = "📋",
-                Description = "Literature review with dual-phase assessment (relevance + contribution)",
-                Requirements = "CSV datasets, research questions"
-            },
-            new ProcessOption
-            {
-                Type = "ConstrainedCompositionProcess",
-                DisplayName = "ConstrainedCompositionProcess",
-                Icon = "✍️",
-                Description = "Pedagogical formation with structured writing frameworks",
-                Requirements = "Learning objectives, rubrics, safety constraints"
-            }
-        };
+            errorMessage = $"Failed to load options: {ex.Message}";
+            Console.WriteLine($"CreateJourney load error: {ex}");
+        }
     }
 
     private void SelectPersona(Guid personaId)
     {
         selectedPersonaId = personaId;
         showValidation = false;
+        errorMessage = null;
     }
 
     private void SelectProcess(string processType)
     {
         selectedProcessType = processType;
         showValidation = false;
+        errorMessage = null;
     }
 
     private async Task CreateNewJourneyAsync()
     {
         showValidation = true;
+        errorMessage = null;
 
+        // Validate form
         if (string.IsNullOrWhiteSpace(journeyName) || 
             string.IsNullOrWhiteSpace(journeyPurpose) ||
             selectedPersonaId == Guid.Empty ||
@@ -195,22 +205,33 @@
             return;
         }
 
+        if (currentUser == null)
+        {
+            errorMessage = "User not found. Please refresh the page.";
+            return;
+        }
+
         isCreating = true;
         StateHasChanged();
 
         try
         {
-            // TODO: Implement actual journey creation
-            await Task.Delay(1000); // Simulate API call
+            // Create the journey using the backend service
+            var journey = await JourneyService.CreateJourneyAsync(
+                currentUser.Id, 
+                journeyPurpose, // Use purpose as the main description
+                selectedPersonaId, 
+                selectedProcessType);
 
             // Navigate to the new journey
-            var journeyId = Guid.NewGuid(); // This would come from the API
-            Navigation.NavigateTo($"/journeys/{journeyId}");
+            Navigation.NavigateTo($"/journeys/{journey.Id}");
         }
         catch (Exception ex)
         {
-            // TODO: Handle error appropriately
+            errorMessage = $"Failed to create journey: {ex.Message}";
             isCreating = false;
+            StateHasChanged();
+            Console.WriteLine($"Journey creation error: {ex}");
         }
     }
 
@@ -219,12 +240,13 @@
         Navigation.NavigateTo("/");
     }
 
-    public class PersonaOption
+    private string GetPersonaDescription(string domain) => domain switch
     {
-        public Guid Id { get; set; }
-        public string Domain { get; set; } = "";
-        public string Description { get; set; } = "";
-    }
+        "Researcher" => "Domain expertise, investigation methods, systematic approaches",
+        "Student" => "Academic vocabulary, learning-focused patterns, comprehension goals",
+        "Entrepreneur" => "Business terminology, market analysis approaches, opportunity assessment",
+        _ => "Custom intellectual style and methodological preferences"
+    };
 
     public class ProcessOption
     {

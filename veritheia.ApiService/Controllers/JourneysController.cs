@@ -28,98 +28,124 @@ public class JourneysController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateJourney([FromBody] CreateJourneyRequest request)
     {
-        // For MVP, use default user if not specified
-        var userId = request.UserId ?? (await _userService.GetOrCreateDefaultUserAsync()).Id;
-        
-        var journey = await _journeyService.CreateJourneyAsync(
-            userId,
-            request.PersonaId,
-            request.Purpose);
-        
-        return CreatedAtAction(nameof(GetJourney), new { journeyId = journey.Id }, journey);
+        try
+        {
+            // For MVP, use demo user if not specified
+            var userId = request.UserId ?? (await _userService.GetDemoUserAsync()).Id;
+            
+            var journey = await _journeyService.CreateJourneyAsync(
+                userId,
+                request.Purpose,
+                request.PersonaId,
+                request.ProcessType);
+            
+            return CreatedAtAction(nameof(GetJourney), new { journeyId = journey.Id }, journey);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
     
     /// <summary>
     /// Get journey by ID
     /// </summary>
     [HttpGet("{journeyId}")]
-    public async Task<IActionResult> GetJourney(Guid journeyId)
+    public async Task<IActionResult> GetJourney(Guid journeyId, [FromQuery] Guid? userId = null)
     {
-        var journey = await _journeyService.GetJourneyWithProjectionsAsync(journeyId);
+        // For MVP, use demo user if not specified
+        var actualUserId = userId ?? (await _userService.GetDemoUserAsync()).Id;
+        
+        var journey = await _journeyService.GetJourneyAsync(actualUserId, journeyId);
         if (journey == null)
             return NotFound();
-        
+            
         return Ok(journey);
     }
     
     /// <summary>
-    /// Get active journeys for user
+    /// Get all journeys for user
     /// </summary>
-    [HttpGet("user/{userId}/active")]
-    public async Task<IActionResult> GetActiveJourneys(Guid userId)
+    [HttpGet]
+    public async Task<IActionResult> GetUserJourneys([FromQuery] Guid? userId = null)
     {
-        var journeys = await _journeyService.GetActiveJourneysAsync(userId);
+        // For MVP, use demo user if not specified
+        var actualUserId = userId ?? (await _userService.GetDemoUserAsync()).Id;
+        
+        var journeys = await _journeyService.GetUserJourneysAsync(actualUserId);
         return Ok(journeys);
     }
     
     /// <summary>
-    /// Resume a journey
+    /// Update journey
     /// </summary>
-    [HttpPost("{journeyId}/resume")]
-    public async Task<IActionResult> ResumeJourney(Guid journeyId)
+    [HttpPut("{journeyId}")]
+    public async Task<IActionResult> UpdateJourney(Guid journeyId, [FromBody] UpdateJourneyRequest request)
     {
-        var journey = await _journeyService.ResumeJourneyAsync(journeyId);
-        if (journey == null)
-            return NotFound();
+        try
+        {
+            // For MVP, use demo user if not specified
+            var userId = request.UserId ?? (await _userService.GetDemoUserAsync()).Id;
+            
+            var journey = await _journeyService.UpdateJourneyAsync(
+                userId, 
+                journeyId, 
+                request.State, 
+                request.Context);
+                
+            return Ok(journey);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
+    }
+    
+    /// <summary>
+    /// Archive journey
+    /// </summary>
+    [HttpDelete("{journeyId}")]
+    public async Task<IActionResult> ArchiveJourney(Guid journeyId, [FromQuery] Guid? userId = null)
+    {
+        try
+        {
+            // For MVP, use demo user if not specified
+            var actualUserId = userId ?? (await _userService.GetDemoUserAsync()).Id;
+            
+            await _journeyService.ArchiveJourneyAsync(actualUserId, journeyId);
+            return NoContent();
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
+    }
+    
+    /// <summary>
+    /// Get journey statistics for user
+    /// </summary>
+    [HttpGet("statistics")]
+    public async Task<IActionResult> GetJourneyStatistics([FromQuery] Guid? userId = null)
+    {
+        // For MVP, use demo user if not specified
+        var actualUserId = userId ?? (await _userService.GetDemoUserAsync()).Id;
         
-        return Ok(journey);
+        var statistics = await _journeyService.GetJourneyStatisticsAsync(actualUserId);
+        return Ok(statistics);
     }
-    
-    /// <summary>
-    /// Update journey state
-    /// </summary>
-    [HttpPut("{journeyId}/state")]
-    public async Task<IActionResult> UpdateJourneyState(
-        Guid journeyId,
-        [FromBody] UpdateStateRequest request)
-    {
-        try
-        {
-            await _journeyService.UpdateJourneyStateAsync(journeyId, request.State);
-            return NoContent();
-        }
-        catch (InvalidOperationException ex)
-        {
-            return NotFound(new { error = ex.Message });
-        }
-    }
-    
-    /// <summary>
-    /// Archive a journey
-    /// </summary>
-    [HttpPost("{journeyId}/archive")]
-    public async Task<IActionResult> ArchiveJourney(Guid journeyId)
-    {
-        try
-        {
-            await _journeyService.ArchiveJourneyAsync(journeyId);
-            return NoContent();
-        }
-        catch (InvalidOperationException ex)
-        {
-            return NotFound(new { error = ex.Message });
-        }
-    }
-    
+
     public class CreateJourneyRequest
     {
         public Guid? UserId { get; set; }
-        public Guid PersonaId { get; set; }
         public string Purpose { get; set; } = string.Empty;
+        public Guid PersonaId { get; set; }
+        public string ProcessType { get; set; } = string.Empty;
     }
-    
-    public class UpdateStateRequest
+
+    public class UpdateJourneyRequest
     {
-        public string State { get; set; } = string.Empty;
+        public Guid? UserId { get; set; }
+        public string? State { get; set; }
+        public Dictionary<string, object>? Context { get; set; }
     }
 }

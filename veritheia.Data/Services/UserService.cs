@@ -1,153 +1,99 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Veritheia.Data;
 using Veritheia.Data.Entities;
 
 namespace Veritheia.Data.Services;
 
 /// <summary>
-/// User management service - MVP 4.1
-/// Post-DDD: Direct EF Core usage
+/// Service for managing users - the constant in the system
 /// </summary>
 public class UserService
 {
-    private readonly VeritheiaDbContext _db;
+    private readonly VeritheiaDbContext _context;
+    private readonly PersonaService _personaService;
     private readonly ILogger<UserService> _logger;
-    
-    public UserService(VeritheiaDbContext dbContext, ILogger<UserService> logger)
+
+    public UserService(VeritheiaDbContext context, PersonaService personaService, ILogger<UserService> logger)
     {
-        _db = dbContext;
+        _context = context;
+        _personaService = personaService;
         _logger = logger;
     }
-    
+
     /// <summary>
-    /// Create new user with default persona
+    /// Get user by ID
     /// </summary>
-    public async Task<User> CreateUserAsync(string name, string email)
+    public async Task<User?> GetUserAsync(Guid userId)
     {
-        // Check if user exists
-        var existing = await _db.Users.FirstOrDefaultAsync(u => u.Email == email);
-        if (existing != null)
-        {
-            _logger.LogWarning("User with email {Email} already exists", email);
-            return existing;
-        }
-        
-        var user = new User
-        {
-            Id = Guid.CreateVersion7(),
-            DisplayName = name,
-            Email = email,
-            CreatedAt = DateTime.UtcNow
-        };
-        
-        _db.Users.Add(user);
-        
-        // Create default persona
-        var persona = new Persona
-        {
-            Id = Guid.CreateVersion7(),
-            UserId = user.Id,
-            Domain = "General",
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow
-        };
-        
-        _db.Personas.Add(persona);
-        
-        await _db.SaveChangesAsync();
-        
-        _logger.LogInformation("Created user {UserId} with default persona", user.Id);
-        
-        return user;
+        return await _context.Users.FindAsync(userId);
     }
-    
+
     /// <summary>
     /// Get user by email
     /// </summary>
     public async Task<User?> GetUserByEmailAsync(string email)
     {
-        return await _db.Users
-            .Include(u => u.Personas)
-            .FirstOrDefaultAsync(u => u.Email == email);
+        return await _context.Users
+            .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
     }
-    
+
     /// <summary>
-    /// Get user with full context
+    /// Create or get user (for development/demo purposes)
+    /// In production, this would integrate with proper authentication
     /// </summary>
-    public async Task<User?> GetUserWithContextAsync(Guid userId)
+    public async Task<User> CreateOrGetUserAsync(string email, string displayName)
     {
-        return await _db.Users
-            .Include(u => u.Personas)
-            .Include(u => u.Journeys)
-                .ThenInclude(j => j.Persona)
-            .Include(u => u.Documents)
-            .FirstOrDefaultAsync(u => u.Id == userId);
-    }
-    
-    /// <summary>
-    /// Get or create default user for single-user MVP
-    /// </summary>
-    public async Task<User> GetOrCreateDefaultUserAsync()
-    {
-        var defaultEmail = "user@veritheia.local";
-        var user = await GetUserByEmailAsync(defaultEmail);
-        
-        if (user == null)
+        var existingUser = await GetUserByEmailAsync(email);
+        if (existingUser != null)
         {
-            user = await CreateUserAsync("Default User", defaultEmail);
-            _logger.LogInformation("Created default user for single-user MVP");
+            // Update last active
+            existingUser.LastActiveAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            return existingUser;
         }
-        
+
+        _logger.LogInformation("Creating new user: {Email}", email);
+
+        var user = new User
+        {
+            Id = Guid.CreateVersion7(),
+            Email = email,
+            DisplayName = displayName,
+            LastActiveAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        // Create default personas for new user
+        await _personaService.CreateDefaultPersonasAsync(user.Id);
+
+        _logger.LogInformation("Created new user {UserId} with email {Email}", user.Id, email);
         return user;
     }
-    
-    /// <summary>
-    /// Update user profile
-    /// </summary>
-    public async Task UpdateUserProfileAsync(Guid userId, string name, string email)
-    {
-        var user = await _db.Users.FindAsync(userId);
-        if (user == null)
-            throw new InvalidOperationException($"User {userId} not found");
-        
-        user.DisplayName = name;
-        user.Email = email;
-        user.UpdatedAt = DateTime.UtcNow;
-        
-        await _db.SaveChangesAsync();
-    }
-    
-    /// <summary>
-    /// Get user statistics
-    /// </summary>
-    public async Task<UserStatistics> GetUserStatisticsAsync(Guid userId)
-    {
-        var stats = new UserStatistics
-        {
-            TotalJourneys = await _db.Journeys.CountAsync(j => j.UserId == userId),
-            ActiveJourneys = await _db.Journeys.CountAsync(j => j.UserId == userId && j.State == "Active"),
-            TotalDocuments = await _db.Documents.CountAsync(d => d.UserId == userId),
-            TotalPersonas = await _db.Personas.CountAsync(p => p.UserId == userId),
-            JournalEntries = await _db.JournalEntries
-                .Include(e => e.Journal)
-                    .ThenInclude(j => j.Journey)
-                .CountAsync(e => e.Journal.Journey.UserId == userId)
-        };
-        
-        return stats;
-    }
-}
 
-public class UserStatistics
-{
-    public int TotalJourneys { get; set; }
-    public int ActiveJourneys { get; set; }
-    public int TotalDocuments { get; set; }
-    public int TotalPersonas { get; set; }
-    public int JournalEntries { get; set; }
+    /// <summary>
+    /// Get demo user (for development purposes)
+    /// </summary>
+    public async Task<User> GetDemoUserAsync()
+    {
+        const string demoEmail = "demo@veritheia.local";
+        const string demoName = "Dr. Sarah Chen";
+
+        return await CreateOrGetUserAsync(demoEmail, demoName);
+    }
+
+    /// <summary>
+    /// Update user's last active timestamp
+    /// </summary>
+    public async Task UpdateLastActiveAsync(Guid userId)
+    {
+        var user = await GetUserAsync(userId);
+        if (user != null)
+        {
+            user.LastActiveAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+        }
+    }
 }

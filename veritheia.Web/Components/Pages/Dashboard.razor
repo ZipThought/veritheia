@@ -1,114 +1,156 @@
 @page "/"
-@using Microsoft.AspNetCore.Components.Web
+@using Veritheia.Data.Services
+@using Veritheia.Data.Entities
+@using Veritheia.Core.Enums
+@inject JourneyService JourneyService
+@inject UserService UserService
 @inject NavigationManager Navigation
 
 <PageTitle>Dashboard - Veritheia</PageTitle>
 
 <div class="dashboard">
     <div class="dashboard-header">
-        <h1 class="dashboard-title">Active Journeys (@journeys.Count)</h1>
-        <button class="btn btn-primary" @onclick="CreateNewJourney">
+        <h1 class="dashboard-title">Active Journeys (@(_statistics?.ActiveJourneys ?? 0))</h1>
+        <button class="btn btn-primary" @onclick="NavigateToCreateJourney">
             <span class="btn-icon">+</span>
             New Journey
         </button>
     </div>
 
-    <div class="journeys-grid">
-        @foreach (var journey in journeys)
-        {
-            <div class="journey-card">
-                <div class="journey-card-header">
-                    <div class="journey-icon">
-                        @GetJourneyIcon(journey.ProcessType)
-                    </div>
-                    <h3 class="journey-title">@journey.Purpose</h3>
-                </div>
-                
-                <div class="journey-meta">
-                    <div class="journey-meta-item">
-                        <span class="meta-label">Persona:</span>
-                        <span class="meta-value">@journey.PersonaDomain</span>
-                    </div>
-                    <div class="journey-meta-item">
-                        <span class="meta-label">Process:</span>
-                        <span class="meta-value">@GetProcessDisplayName(journey.ProcessType)</span>
-                    </div>
-                    <div class="journey-meta-item">
-                        <span class="meta-label">Status:</span>
-                        <span class="meta-value status-@journey.State.ToLower()">@journey.State</span>
-                    </div>
-                </div>
-
-                @if (journey.ProcessType == "SystematicScreeningProcess" && journey.DocumentCount > 0)
-                {
-                    <div class="journey-progress">
-                        <div class="progress-stats">
-                            <span class="stat">@journey.DocumentCount docs</span>
-                            @if (journey.MustReadCount > 0)
-                            {
-                                <span class="stat highlight">→ @journey.MustReadCount must-read</span>
-                            }
+    @if (_loading)
+    {
+        <div class="loading">
+            <div class="loading-spinner"></div>
+            <p>Loading your journeys...</p>
+        </div>
+    }
+    else if (_error != null)
+    {
+        <div class="error-state">
+            <h3>Error Loading Dashboard</h3>
+            <p>@_error</p>
+            <button class="btn btn-primary" @onclick="LoadDashboardData">Retry</button>
+        </div>
+    }
+    else if (_journeys?.Any() != true)
+    {
+        <div class="empty-state">
+            <div class="empty-icon">🚀</div>
+            <h3>Welcome to Veritheia</h3>
+            <p>Create your first journey to begin your formative experience through document engagement.</p>
+            <button class="btn btn-primary" @onclick="NavigateToCreateJourney">Create Your First Journey</button>
+        </div>
+    }
+    else
+    {
+        <div class="journeys-grid">
+            @foreach (var journey in _journeys)
+            {
+                <div class="journey-card">
+                    <div class="journey-card-header">
+                        <div class="journey-icon">
+                            @GetJourneyIcon(journey.ProcessType)
                         </div>
-                        @if (journey.ProcessingProgress > 0 && journey.ProcessingProgress < 100)
+                        <h3 class="journey-title">@journey.Purpose</h3>
+                    </div>
+                    
+                    <div class="journey-meta">
+                        <div class="journey-meta-item">
+                            <span class="meta-label">Persona:</span>
+                            <span class="meta-value">@(journey.Persona?.Domain ?? "Unknown")</span>
+                        </div>
+                        <div class="journey-meta-item">
+                            <span class="meta-label">Process:</span>
+                            <span class="meta-value">@GetProcessDisplayName(journey.ProcessType)</span>
+                        </div>
+                        <div class="journey-meta-item">
+                            <span class="meta-label">Status:</span>
+                            <span class="meta-value status-@journey.State.ToLower()">@journey.State</span>
+                        </div>
+                    </div>
+
+                    @if (journey.ProcessExecutions.Any())
+                    {
+                        var latestExecution = journey.ProcessExecutions.OrderByDescending(pe => pe.CreatedAt).First();
+                        @if (latestExecution.State == "Running")
                         {
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: @(journey.ProcessingProgress)%"></div>
-                                <span class="progress-text">@(journey.ProcessingProgress)%</span>
+                            <div class="journey-progress">
+                                <div class="progress-stats">
+                                    <span class="stat">Processing...</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill animated" style="width: 50%"></div>
+                                    <span class="progress-text">Running</span>
+                                </div>
                             </div>
                         }
+                        else if (latestExecution.State == "Completed")
+                        {
+                            <div class="journey-progress">
+                                <div class="progress-stats">
+                                    <span class="stat highlight">✓ Completed</span>
+                                    @if (latestExecution.CompletedAt.HasValue)
+                                    {
+                                        <span class="stat">@latestExecution.CompletedAt.Value.ToString("MMM dd")</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                        else if (latestExecution.State == "Failed")
+                        {
+                            <div class="journey-progress">
+                                <div class="progress-stats">
+                                    <span class="stat error">⚠ Failed</span>
+                                </div>
+                            </div>
+                        }
+                    }
+
+                    <div class="journey-meta-item">
+                        <span class="meta-label">Last activity:</span>
+                        <span class="meta-value">@GetRelativeTime(journey.UpdatedAt ?? journey.CreatedAt)</span>
                     </div>
-                }
 
-                <div class="journey-meta-item">
-                    <span class="meta-label">Last activity:</span>
-                    <span class="meta-value">@GetRelativeTime(journey.LastActivity)</span>
+                    <div class="journey-actions">
+                        @if (journey.State == JourneyState.Active.ToString())
+                        {
+                            <button class="btn btn-sm btn-primary" @onclick="() => ViewJourney(journey.Id)">
+                                Continue
+                            </button>
+                        }
+                        
+                        @if (journey.ProcessExecutions.Any(pe => pe.State == "Completed"))
+                        {
+                            <button class="btn btn-sm btn-outline-primary" @onclick="() => ViewResults(journey.Id)">
+                                View Results
+                            </button>
+                        }
+                        
+                        @if (journey.State == JourneyState.Completed.ToString())
+                        {
+                            <button class="btn btn-sm btn-outline-secondary" @onclick="() => ArchiveJourney(journey.Id)">
+                                Archive
+                            </button>
+                        }
+                    </div>
                 </div>
+            }
+        </div>
+    }
 
-                <div class="journey-actions">
-                    @if (journey.State == "Processing")
-                    {
-                        <button class="btn btn-sm btn-secondary" @onclick="() => PauseProcessing(journey.Id)">
-                            Pause
-                        </button>
-                    }
-                    else if (journey.State == "Active" || journey.State == "Paused")
-                    {
-                        <button class="btn btn-sm btn-primary" @onclick="() => ContinueJourney(journey.Id)">
-                            Continue
-                        </button>
-                    }
-                    
-                    @if (journey.MustReadCount > 0 || journey.State == "Completed")
-                    {
-                        <button class="btn btn-sm btn-outline-primary" @onclick="() => ViewResults(journey.Id)">
-                            View Results
-                        </button>
-                    }
-                    
-                    @if (journey.State == "Completed")
-                    {
-                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => ExportResults(journey.Id)">
-                            Export
-                        </button>
-                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => ArchiveJourney(journey.Id)">
-                            Archive
-                        </button>
-                    }
-                </div>
-            </div>
-        }
-    </div>
-
-    @if (recentActivities.Any())
+    @if (_statistics?.RecentActivity.Any() == true)
     {
         <div class="recent-activity">
             <h2 class="section-title">Recent Activity</h2>
             <div class="activity-list">
-                @foreach (var activity in recentActivities.Take(5))
+                @foreach (var activity in _statistics.RecentActivity.Take(5))
                 {
                     <div class="activity-item">
-                        <span class="activity-icon">•</span>
-                        <span class="activity-text">@activity</span>
+                        <span class="activity-icon">@GetActivityIcon(activity.ProcessType)</span>
+                        <div class="activity-content">
+                            <span class="activity-text">@activity.Description</span>
+                            <span class="activity-time">@GetRelativeTime(activity.Timestamp)</span>
+                        </div>
                     </div>
                 }
             </div>
@@ -117,8 +159,11 @@
 </div>
 
 @code {
-    private List<JourneyViewModel> journeys = new();
-    private List<string> recentActivities = new();
+    private List<Journey>? _journeys;
+    private JourneyStatistics? _statistics;
+    private User? _currentUser;
+    private bool _loading = true;
+    private string? _error;
 
     protected override async Task OnInitializedAsync()
     {
@@ -127,57 +172,68 @@
 
     private async Task LoadDashboardData()
     {
-        // Mock data - will be replaced with actual data loading
-        journeys = new List<JourneyViewModel>
-        {
-            new JourneyViewModel
-            {
-                Id = Guid.NewGuid(),
-                Purpose = "ML Security Literature Review",
-                PersonaDomain = "Researcher",
-                ProcessType = "SystematicScreeningProcess",
-                State = "Processing",
-                DocumentCount = 2576,
-                MustReadCount = 324,
-                ProcessingProgress = 67,
-                LastActivity = DateTime.UtcNow.AddHours(-2)
-            },
-            new JourneyViewModel
-            {
-                Id = Guid.NewGuid(),
-                Purpose = "Research Methods Course",
-                PersonaDomain = "Student",
-                ProcessType = "ConstrainedCompositionProcess",
-                State = "Active",
-                DocumentCount = 0,
-                MustReadCount = 0,
-                ProcessingProgress = 0,
-                LastActivity = DateTime.UtcNow.AddDays(-1)
-            },
-            new JourneyViewModel
-            {
-                Id = Guid.NewGuid(),
-                Purpose = "Startup Market Analysis",
-                PersonaDomain = "Entrepreneur",
-                ProcessType = "SystematicScreeningProcess",
-                State = "Completed",
-                DocumentCount = 847,
-                MustReadCount = 89,
-                ProcessingProgress = 100,
-                LastActivity = DateTime.UtcNow.AddDays(-3)
-            }
-        };
+        _loading = true;
+        _error = null;
+        StateHasChanged();
 
-        recentActivities = new List<string>
+        try
         {
-            "ML Security: 156 new assessments completed",
-            "Research Methods: 3 new student submissions",
-            "Market Analysis: Results exported to PDF"
-        };
+            // Get demo user (in production, this would come from authentication context)
+            _currentUser = await UserService.GetDemoUserAsync();
+            
+            // Load user's journeys with related data
+            _journeys = await JourneyService.GetUserJourneysAsync(_currentUser.Id);
+            
+            // Load dashboard statistics
+            _statistics = await JourneyService.GetJourneyStatisticsAsync(_currentUser.Id);
+        }
+        catch (Exception ex)
+        {
+            _error = $"Failed to load dashboard: {ex.Message}";
+            Console.WriteLine($"Dashboard error: {ex}");
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void NavigateToCreateJourney()
+    {
+        Navigation.NavigateTo("/journeys/create");
+    }
+
+    private void ViewJourney(Guid journeyId)
+    {
+        Navigation.NavigateTo($"/journeys/{journeyId}");
+    }
+
+    private void ViewResults(Guid journeyId)
+    {
+        Navigation.NavigateTo($"/journeys/{journeyId}/results");
+    }
+
+    private async Task ArchiveJourney(Guid journeyId)
+    {
+        if (_currentUser == null) return;
+        
+        try
+        {
+            await JourneyService.ArchiveJourneyAsync(_currentUser.Id, journeyId);
+            await LoadDashboardData(); // Refresh the dashboard
+        }
+        catch (Exception ex)
+        {
+            _error = $"Failed to archive journey: {ex.Message}";
+            StateHasChanged();
+        }
     }
 
     private string GetJourneyIcon(string processType) => processType switch
     {
+        "systematic-screening" => "📊",
+        "basic-constrained-composition" => "🎓",
         "SystematicScreeningProcess" => "📊",
         "ConstrainedCompositionProcess" => "🎓",
         _ => "📄"
@@ -185,9 +241,18 @@
 
     private string GetProcessDisplayName(string processType) => processType switch
     {
+        "systematic-screening" => "Systematic Screening",
+        "basic-constrained-composition" => "Constrained Composition", 
         "SystematicScreeningProcess" => "Systematic Screening",
         "ConstrainedCompositionProcess" => "Constrained Composition",
         _ => processType
+    };
+
+    private string GetActivityIcon(string processType) => processType switch
+    {
+        "systematic-screening" => "🔍",
+        "basic-constrained-composition" => "✍️",
+        _ => "📋"
     };
 
     private string GetRelativeTime(DateTime dateTime)
@@ -196,48 +261,5 @@
         return timeSpan.TotalDays >= 1 ? $"{(int)timeSpan.TotalDays} day{(timeSpan.TotalDays >= 2 ? "s" : "")} ago"
              : timeSpan.TotalHours >= 1 ? $"{(int)timeSpan.TotalHours} hour{(timeSpan.TotalHours >= 2 ? "s" : "")} ago"
              : $"{(int)timeSpan.TotalMinutes} minute{(timeSpan.TotalMinutes >= 2 ? "s" : "")} ago";
-    }
-
-    private async Task CreateNewJourney()
-    {
-        Navigation.NavigateTo("/journeys/create");
-    }
-
-    private async Task ContinueJourney(Guid journeyId)
-    {
-        Navigation.NavigateTo($"/journeys/{journeyId}");
-    }
-
-    private async Task ViewResults(Guid journeyId)
-    {
-        Navigation.NavigateTo($"/journeys/{journeyId}/results");
-    }
-
-    private async Task PauseProcessing(Guid journeyId)
-    {
-        // TODO: Implement pause processing
-    }
-
-    private async Task ExportResults(Guid journeyId)
-    {
-        // TODO: Implement export results
-    }
-
-    private async Task ArchiveJourney(Guid journeyId)
-    {
-        // TODO: Implement archive journey
-    }
-
-    public class JourneyViewModel
-    {
-        public Guid Id { get; set; }
-        public string Purpose { get; set; } = "";
-        public string PersonaDomain { get; set; } = "";
-        public string ProcessType { get; set; } = "";
-        public string State { get; set; } = "";
-        public int DocumentCount { get; set; }
-        public int MustReadCount { get; set; }
-        public int ProcessingProgress { get; set; }
-        public DateTime LastActivity { get; set; }
     }
 }

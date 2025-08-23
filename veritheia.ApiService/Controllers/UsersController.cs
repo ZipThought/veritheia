@@ -20,12 +20,12 @@ public class UsersController : ControllerBase
     }
     
     /// <summary>
-    /// Get current user (single-user MVP)
+    /// Get current user (demo user for MVP)
     /// </summary>
     [HttpGet("current")]
     public async Task<IActionResult> GetCurrentUser()
     {
-        var user = await _userService.GetOrCreateDefaultUserAsync();
+        var user = await _userService.GetDemoUserAsync();
         return Ok(user);
     }
     
@@ -35,43 +35,49 @@ public class UsersController : ControllerBase
     [HttpGet("{userId}")]
     public async Task<IActionResult> GetUser(Guid userId)
     {
-        var user = await _userService.GetUserWithContextAsync(userId);
+        var user = await _userService.GetUserAsync(userId);
         if (user == null)
             return NotFound();
-        
+            
         return Ok(user);
     }
     
     /// <summary>
-    /// Update user profile
+    /// Get user by email
     /// </summary>
-    [HttpPut("{userId}")]
-    public async Task<IActionResult> UpdateUser(Guid userId, [FromBody] UpdateUserRequest request)
+    [HttpGet("by-email/{email}")]
+    public async Task<IActionResult> GetUserByEmail(string email)
     {
-        try
-        {
-            await _userService.UpdateUserProfileAsync(userId, request.Name, request.Email);
-            return NoContent();
-        }
-        catch (InvalidOperationException ex)
-        {
-            return NotFound(new { error = ex.Message });
-        }
+        var user = await _userService.GetUserByEmailAsync(email);
+        if (user == null)
+            return NotFound();
+            
+        return Ok(user);
     }
     
     /// <summary>
-    /// Get user statistics
+    /// Create or get user
     /// </summary>
-    [HttpGet("{userId}/statistics")]
-    public async Task<IActionResult> GetUserStatistics(Guid userId)
+    [HttpPost]
+    public async Task<IActionResult> CreateOrGetUser([FromBody] CreateUserRequest request)
     {
-        var stats = await _userService.GetUserStatisticsAsync(userId);
-        return Ok(stats);
+        var user = await _userService.CreateOrGetUserAsync(request.Email, request.DisplayName);
+        return Ok(user);
     }
     
-    public class UpdateUserRequest
+    /// <summary>
+    /// Update user's last active timestamp
+    /// </summary>
+    [HttpPut("{userId}/activity")]
+    public async Task<IActionResult> UpdateLastActive(Guid userId)
     {
-        public string Name { get; set; } = string.Empty;
+        await _userService.UpdateLastActiveAsync(userId);
+        return NoContent();
+    }
+
+    public class CreateUserRequest
+    {
         public string Email { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
     }
 }

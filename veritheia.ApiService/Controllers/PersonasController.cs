@@ -7,127 +7,91 @@ using Veritheia.Data.Services;
 namespace Veritheia.ApiService.Controllers;
 
 /// <summary>
-/// Persona development API - MVP 4.4
+/// Persona management API - MVP 4.3
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class PersonasController : ControllerBase
 {
     private readonly PersonaService _personaService;
+    private readonly UserService _userService;
     
-    public PersonasController(PersonaService personaService)
+    public PersonasController(PersonaService personaService, UserService userService)
     {
         _personaService = personaService;
+        _userService = userService;
     }
     
     /// <summary>
-    /// Create new persona
+    /// Get all personas for user
     /// </summary>
-    [HttpPost]
-    public async Task<IActionResult> CreatePersona([FromBody] CreatePersonaRequest request)
+    [HttpGet]
+    public async Task<IActionResult> GetUserPersonas([FromQuery] Guid? userId = null)
     {
-        var persona = await _personaService.CreatePersonaAsync(request.UserId, request.Domain);
-        return CreatedAtAction(nameof(GetPersona), new { personaId = persona.Id }, persona);
-    }
-    
-    /// <summary>
-    /// Get persona with journeys
-    /// </summary>
-    [HttpGet("{personaId}")]
-    public async Task<IActionResult> GetPersona(Guid personaId)
-    {
-        var persona = await _personaService.GetPersonaWithJourneysAsync(personaId);
-        if (persona == null)
-            return NotFound();
+        // For MVP, use demo user if not specified
+        var actualUserId = userId ?? (await _userService.GetDemoUserAsync()).Id;
         
-        return Ok(persona);
+        var personas = await _personaService.GetUserPersonasAsync(actualUserId);
+        return Ok(personas);
     }
     
     /// <summary>
     /// Get active personas for user
     /// </summary>
-    [HttpGet("user/{userId}/active")]
-    public async Task<IActionResult> GetActivePersonas(Guid userId)
+    [HttpGet("active")]
+    public async Task<IActionResult> GetActivePersonas([FromQuery] Guid? userId = null)
     {
-        var personas = await _personaService.GetActivePersonasAsync(userId);
+        // For MVP, use demo user if not specified
+        var actualUserId = userId ?? (await _userService.GetDemoUserAsync()).Id;
+        
+        var personas = await _personaService.GetActivePersonasAsync(actualUserId);
         return Ok(personas);
     }
     
     /// <summary>
-    /// Update conceptual vocabulary
+    /// Get persona by ID
     /// </summary>
-    [HttpPost("{personaId}/vocabulary")]
-    public async Task<IActionResult> UpdateVocabulary(
-        Guid personaId,
-        [FromBody] Dictionary<string, int> termFrequencies)
+    [HttpGet("{personaId}")]
+    public async Task<IActionResult> GetPersona(Guid personaId, [FromQuery] Guid? userId = null)
     {
-        try
-        {
-            await _personaService.UpdateConceptualVocabularyAsync(personaId, termFrequencies);
-            return NoContent();
-        }
-        catch (InvalidOperationException ex)
-        {
-            return NotFound(new { error = ex.Message });
-        }
+        // For MVP, use demo user if not specified
+        var actualUserId = userId ?? (await _userService.GetDemoUserAsync()).Id;
+        
+        var persona = await _personaService.GetPersonaAsync(actualUserId, personaId);
+        if (persona == null)
+            return NotFound();
+            
+        return Ok(persona);
     }
     
     /// <summary>
-    /// Identify patterns in persona
+    /// Create custom persona
     /// </summary>
-    [HttpPost("{personaId}/patterns/identify")]
-    public async Task<IActionResult> IdentifyPatterns(Guid personaId)
+    [HttpPost]
+    public async Task<IActionResult> CreatePersona([FromBody] CreatePersonaRequest request)
     {
         try
         {
-            var patterns = await _personaService.IdentifyPatternsAsync(personaId);
-            return Ok(patterns);
+            // For MVP, use demo user if not specified
+            var userId = request.UserId ?? (await _userService.GetDemoUserAsync()).Id;
+            
+            var persona = await _personaService.CreatePersonaAsync(
+                userId,
+                request.Domain,
+                request.ConceptualVocabulary);
+                
+            return CreatedAtAction(nameof(GetPersona), new { personaId = persona.Id }, persona);
         }
-        catch (InvalidOperationException ex)
+        catch (ArgumentException ex)
         {
-            return NotFound(new { error = ex.Message });
+            return BadRequest(new { error = ex.Message });
         }
     }
-    
-    /// <summary>
-    /// Get personalized context
-    /// </summary>
-    [HttpGet("{personaId}/context")]
-    public async Task<IActionResult> GetPersonalizedContext(Guid personaId)
-    {
-        try
-        {
-            var context = await _personaService.GetPersonalizedContextAsync(personaId);
-            return Ok(context);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return NotFound(new { error = ex.Message });
-        }
-    }
-    
-    /// <summary>
-    /// Get persona evolution
-    /// </summary>
-    [HttpGet("{personaId}/evolution")]
-    public async Task<IActionResult> GetEvolution(Guid personaId)
-    {
-        try
-        {
-            var evolution = await _personaService.GetPersonaEvolutionAsync(personaId);
-            return Ok(evolution);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return NotFound(new { error = ex.Message });
-        }
-    }
-    
-    
+
     public class CreatePersonaRequest
     {
-        public Guid UserId { get; set; }
+        public Guid? UserId { get; set; }
         public string Domain { get; set; } = string.Empty;
+        public Dictionary<string, object>? ConceptualVocabulary { get; set; }
     }
-    
 }

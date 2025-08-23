@@ -23,6 +23,8 @@ builder.Services.AddDbContext<VeritheiaDbContext>(options =>
 
 // Register Services (Post-DDD: Direct service registration)
 builder.Services.AddScoped<JourneyService>();
+builder.Services.AddScoped<PersonaService>();
+builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<DocumentService>();
 builder.Services.AddScoped<ProcessEngine>();
 
