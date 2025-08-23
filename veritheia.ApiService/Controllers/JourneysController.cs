@@ -30,11 +30,13 @@ public class JourneysController : ControllerBase
     {
         try
         {
-            // For MVP, use demo user if not specified
-            var userId = request.UserId ?? (await _userService.GetDemoUserAsync()).Id;
+            if (request.UserId == Guid.Empty)
+            {
+                return BadRequest(new { error = "UserId is required" });
+            }
             
             var journey = await _journeyService.CreateJourneyAsync(
-                userId,
+                request.UserId,
                 request.Purpose,
                 request.PersonaId,
                 request.ProcessType);
@@ -51,12 +53,14 @@ public class JourneysController : ControllerBase
     /// Get journey by ID
     /// </summary>
     [HttpGet("{journeyId}")]
-    public async Task<IActionResult> GetJourney(Guid journeyId, [FromQuery] Guid? userId = null)
+    public async Task<IActionResult> GetJourney(Guid journeyId, [FromQuery] Guid userId)
     {
-        // For MVP, use demo user if not specified
-        var actualUserId = userId ?? (await _userService.GetDemoUserAsync()).Id;
+        if (userId == Guid.Empty)
+        {
+            return BadRequest(new { error = "UserId is required" });
+        }
         
-        var journey = await _journeyService.GetJourneyAsync(actualUserId, journeyId);
+        var journey = await _journeyService.GetJourneyAsync(userId, journeyId);
         if (journey == null)
             return NotFound();
             
@@ -67,12 +71,14 @@ public class JourneysController : ControllerBase
     /// Get all journeys for user
     /// </summary>
     [HttpGet]
-    public async Task<IActionResult> GetUserJourneys([FromQuery] Guid? userId = null)
+    public async Task<IActionResult> GetUserJourneys([FromQuery] Guid userId)
     {
-        // For MVP, use demo user if not specified
-        var actualUserId = userId ?? (await _userService.GetDemoUserAsync()).Id;
+        if (userId == Guid.Empty)
+        {
+            return BadRequest(new { error = "UserId is required" });
+        }
         
-        var journeys = await _journeyService.GetUserJourneysAsync(actualUserId);
+        var journeys = await _journeyService.GetUserJourneysAsync(userId);
         return Ok(journeys);
     }
     
@@ -84,11 +90,13 @@ public class JourneysController : ControllerBase
     {
         try
         {
-            // For MVP, use demo user if not specified
-            var userId = request.UserId ?? (await _userService.GetDemoUserAsync()).Id;
+            if (request.UserId == Guid.Empty)
+            {
+                return BadRequest(new { error = "UserId is required" });
+            }
             
             var journey = await _journeyService.UpdateJourneyAsync(
-                userId, 
+                request.UserId, 
                 journeyId, 
                 request.State, 
                 request.Context);
@@ -105,14 +113,16 @@ public class JourneysController : ControllerBase
     /// Archive journey
     /// </summary>
     [HttpDelete("{journeyId}")]
-    public async Task<IActionResult> ArchiveJourney(Guid journeyId, [FromQuery] Guid? userId = null)
+    public async Task<IActionResult> ArchiveJourney(Guid journeyId, [FromQuery] Guid userId)
     {
         try
         {
-            // For MVP, use demo user if not specified
-            var actualUserId = userId ?? (await _userService.GetDemoUserAsync()).Id;
+            if (userId == Guid.Empty)
+            {
+                return BadRequest(new { error = "UserId is required" });
+            }
             
-            await _journeyService.ArchiveJourneyAsync(actualUserId, journeyId);
+            await _journeyService.ArchiveJourneyAsync(userId, journeyId);
             return NoContent();
         }
         catch (ArgumentException ex)
@@ -125,18 +135,20 @@ public class JourneysController : ControllerBase
     /// Get journey statistics for user
     /// </summary>
     [HttpGet("statistics")]
-    public async Task<IActionResult> GetJourneyStatistics([FromQuery] Guid? userId = null)
+    public async Task<IActionResult> GetJourneyStatistics([FromQuery] Guid userId)
     {
-        // For MVP, use demo user if not specified
-        var actualUserId = userId ?? (await _userService.GetDemoUserAsync()).Id;
+        if (userId == Guid.Empty)
+        {
+            return BadRequest(new { error = "UserId is required" });
+        }
         
-        var statistics = await _journeyService.GetJourneyStatisticsAsync(actualUserId);
+        var statistics = await _journeyService.GetJourneyStatisticsAsync(userId);
         return Ok(statistics);
     }
 
     public class CreateJourneyRequest
     {
-        public Guid? UserId { get; set; }
+        public Guid UserId { get; set; }
         public string Purpose { get; set; } = string.Empty;
         public Guid PersonaId { get; set; }
         public string ProcessType { get; set; } = string.Empty;
@@ -144,7 +156,7 @@ public class JourneysController : ControllerBase
 
     public class UpdateJourneyRequest
     {
-        public Guid? UserId { get; set; }
+        public Guid UserId { get; set; }
         public string? State { get; set; }
         public Dictionary<string, object>? Context { get; set; }
     }

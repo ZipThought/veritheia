@@ -73,16 +73,7 @@ public class UserService
         return user;
     }
 
-    /// <summary>
-    /// Get demo user (for development purposes)
-    /// </summary>
-    public async Task<User> GetDemoUserAsync()
-    {
-        const string demoEmail = "demo@veritheia.local";
-        const string demoName = "Dr. Sarah Chen";
 
-        return await CreateOrGetUserAsync(demoEmail, demoName);
-    }
 
     /// <summary>
     /// Update user's last active timestamp

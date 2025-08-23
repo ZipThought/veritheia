@@ -158,7 +158,9 @@ public class CrudOperationsTests : DatabaseTestBase
         await Context.SaveChangesAsync();
         
         // Assert - when ordered by ID, should be in creation order
+        // Filter out seeded data to only test our created users
         var orderedUsers = await Context.Users
+            .Where(u => u.Email.EndsWith("@test.com"))
             .OrderBy(u => u.Id)
             .Select(u => u.DisplayName)
             .ToListAsync();

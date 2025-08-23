@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 using Veritheia.Data.Services;
 using Veritheia.Data.Entities;
 using veritheia.Tests.TestBase;
@@ -92,7 +93,7 @@ public class JourneyUIIntegrationTests : DatabaseTestBase
     {
         // Arrange
         var (userService, personaService, journeyService) = CreateServices();
-        var user = await userService.GetDemoUserAsync();
+        var user = await Context.Users.FirstOrDefaultAsync(u => u.Email == "demo@veritheia.local");
         var personas = await personaService.GetActivePersonasAsync(user.Id);
         var studentPersona = personas.First(p => p.Domain == "Student");
 
@@ -140,7 +141,7 @@ public class JourneyUIIntegrationTests : DatabaseTestBase
 
         // Arrange
         var (userService, personaService, journeyService) = CreateServices();
-        var user = await userService.GetDemoUserAsync();
+        var user = await Context.Users.FirstOrDefaultAsync(u => u.Email == "demo@veritheia.local");
         var personas = await personaService.GetActivePersonasAsync(user.Id);
 
         var researcherPersona = personas.First(p => p.Domain == "Researcher");
@@ -188,7 +189,7 @@ public class JourneyUIIntegrationTests : DatabaseTestBase
 
         // Arrange & Act
         var (userService, personaService, journeyService) = CreateServices();
-        var user = await userService.GetDemoUserAsync();
+        var user = await Context.Users.FirstOrDefaultAsync(u => u.Email == "demo@veritheia.local");
         var personas = await personaService.GetActivePersonasAsync(user.Id);
 
         // Assert: Each persona should have distinct intellectual frameworks

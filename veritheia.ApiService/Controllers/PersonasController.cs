@@ -26,12 +26,14 @@ public class PersonasController : ControllerBase
     /// Get all personas for user
     /// </summary>
     [HttpGet]
-    public async Task<IActionResult> GetUserPersonas([FromQuery] Guid? userId = null)
+    public async Task<IActionResult> GetUserPersonas([FromQuery] Guid userId)
     {
-        // For MVP, use demo user if not specified
-        var actualUserId = userId ?? (await _userService.GetDemoUserAsync()).Id;
+        if (userId == Guid.Empty)
+        {
+            return BadRequest(new { error = "UserId is required" });
+        }
         
-        var personas = await _personaService.GetUserPersonasAsync(actualUserId);
+        var personas = await _personaService.GetUserPersonasAsync(userId);
         return Ok(personas);
     }
     
@@ -39,12 +41,14 @@ public class PersonasController : ControllerBase
     /// Get active personas for user
     /// </summary>
     [HttpGet("active")]
-    public async Task<IActionResult> GetActivePersonas([FromQuery] Guid? userId = null)
+    public async Task<IActionResult> GetActivePersonas([FromQuery] Guid userId)
     {
-        // For MVP, use demo user if not specified
-        var actualUserId = userId ?? (await _userService.GetDemoUserAsync()).Id;
+        if (userId == Guid.Empty)
+        {
+            return BadRequest(new { error = "UserId is required" });
+        }
         
-        var personas = await _personaService.GetActivePersonasAsync(actualUserId);
+        var personas = await _personaService.GetActivePersonasAsync(userId);
         return Ok(personas);
     }
     
@@ -52,12 +56,14 @@ public class PersonasController : ControllerBase
     /// Get persona by ID
     /// </summary>
     [HttpGet("{personaId}")]
-    public async Task<IActionResult> GetPersona(Guid personaId, [FromQuery] Guid? userId = null)
+    public async Task<IActionResult> GetPersona(Guid personaId, [FromQuery] Guid userId)
     {
-        // For MVP, use demo user if not specified
-        var actualUserId = userId ?? (await _userService.GetDemoUserAsync()).Id;
+        if (userId == Guid.Empty)
+        {
+            return BadRequest(new { error = "UserId is required" });
+        }
         
-        var persona = await _personaService.GetPersonaAsync(actualUserId, personaId);
+        var persona = await _personaService.GetPersonaAsync(userId, personaId);
         if (persona == null)
             return NotFound();
             
@@ -72,11 +78,13 @@ public class PersonasController : ControllerBase
     {
         try
         {
-            // For MVP, use demo user if not specified
-            var userId = request.UserId ?? (await _userService.GetDemoUserAsync()).Id;
+            if (request.UserId == Guid.Empty)
+            {
+                return BadRequest(new { error = "UserId is required" });
+            }
             
             var persona = await _personaService.CreatePersonaAsync(
-                userId,
+                request.UserId,
                 request.Domain,
                 request.ConceptualVocabulary);
                 
@@ -90,7 +98,7 @@ public class PersonasController : ControllerBase
 
     public class CreatePersonaRequest
     {
-        public Guid? UserId { get; set; }
+        public Guid UserId { get; set; }
         public string Domain { get; set; } = string.Empty;
         public Dictionary<string, object>? ConceptualVocabulary { get; set; }
     }

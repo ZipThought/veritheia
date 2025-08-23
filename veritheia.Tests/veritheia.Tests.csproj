@@ -23,9 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Temporarily removed ApiService reference due to build errors -->
-    <!-- <ProjectReference Include="..\veritheia.ApiService\veritheia.ApiService.csproj" /> -->
-    <!-- <ProjectReference Include="..\veritheia.AppHost\veritheia.AppHost.csproj" /> -->
+    <ProjectReference Include="..\veritheia.ApiService\veritheia.ApiService.csproj" />
     <ProjectReference Include="..\veritheia.Data\veritheia.Data.csproj" />
     <ProjectReference Include="..\veritheia.Core\veritheia.Core.csproj" />
   </ItemGroup>

@@ -20,15 +20,7 @@ public class UsersController : ControllerBase
         _userService = userService;
     }
     
-    /// <summary>
-    /// Get current user (demo user for MVP)
-    /// </summary>
-    [HttpGet("current")]
-    public async Task<IActionResult> GetCurrentUser()
-    {
-        var user = await _userService.GetDemoUserAsync();
-        return Ok(user);
-    }
+
     
     /// <summary>
     /// Get user by ID
@@ -75,6 +67,5 @@ public class UsersController : ControllerBase
         await _userService.UpdateLastActiveAsync(userId);
         return NoContent();
     }
-
 
 }
