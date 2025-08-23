@@ -1,11 +1,11 @@
 @page "/journeys/create"
 @using Microsoft.AspNetCore.Components.Web
-@using Veritheia.Data.Services
-@using Veritheia.Data.Entities
+@using veritheia.Web.Services
+@using Veritheia.Data.DTOs
 @inject NavigationManager Navigation
-@inject JourneyService JourneyService
-@inject PersonaService PersonaService
-@inject UserService UserService
+@inject JourneyApiService JourneyService
+@inject PersonaApiService PersonaService
+@inject UserApiService UserService
 
 <PageTitle>Create New Journey - Veritheia</PageTitle>
 
@@ -130,9 +130,9 @@
     private bool isCreating = false;
     private string? errorMessage;
 
-    private List<Persona> availablePersonas = new();
+    private List<PersonaDto> availablePersonas = new();
     private List<ProcessOption> availableProcesses = new();
-    private User? currentUser;
+    private UserDto? currentUser;
 
     protected override async Task OnInitializedAsync()
     {
@@ -216,12 +216,12 @@
 
         try
         {
-            // Create the journey using the backend service
+            // Create the journey using the API service
             var journey = await JourneyService.CreateJourneyAsync(
-                currentUser.Id, 
                 journeyPurpose, // Use purpose as the main description
                 selectedPersonaId, 
-                selectedProcessType);
+                selectedProcessType,
+                currentUser.Id);
 
             // Navigate to the new journey
             Navigation.NavigateTo($"/journeys/{journey.Id}");

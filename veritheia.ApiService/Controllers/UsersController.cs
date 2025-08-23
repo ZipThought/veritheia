@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Veritheia.Data.Services;
+using Veritheia.Data.DTOs;
 
 namespace Veritheia.ApiService.Controllers;
 
@@ -75,9 +76,5 @@ public class UsersController : ControllerBase
         return NoContent();
     }
 
-    public class CreateUserRequest
-    {
-        public string Email { get; set; } = string.Empty;
-        public string DisplayName { get; set; } = string.Empty;
-    }
+
 }

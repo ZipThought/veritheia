@@ -1,9 +1,8 @@
 @page "/"
-@using Veritheia.Data.Services
-@using Veritheia.Data.Entities
-@using Veritheia.Core.Enums
-@inject JourneyService JourneyService
-@inject UserService UserService
+@using veritheia.Web.Services
+@using Veritheia.Data.DTOs
+@inject JourneyApiService JourneyService
+@inject UserApiService UserService
 @inject NavigationManager Navigation
 
 <PageTitle>Dashboard - Veritheia</PageTitle>
@@ -159,9 +158,9 @@
 </div>
 
 @code {
-    private List<Journey>? _journeys;
-    private JourneyStatistics? _statistics;
-    private User? _currentUser;
+    private List<JourneyDto>? _journeys;
+    private JourneyStatisticsDto? _statistics;
+    private UserDto? _currentUser;
     private bool _loading = true;
     private string? _error;
 

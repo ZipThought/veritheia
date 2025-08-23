@@ -1,25 +1,22 @@
-using Microsoft.EntityFrameworkCore;
-using Pgvector.EntityFrameworkCore;
 using veritheia.Web.Components;
-using Veritheia.Data;
-using Veritheia.Data.Services;
+using veritheia.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add service defaults & Aspire client integrations.
 builder.AddServiceDefaults();
 
-// Register Database
-builder.Services.AddDbContext<VeritheiaDbContext>(options =>
+// Add HTTP client for API service with Aspire service discovery
+builder.Services.AddHttpClient<ApiClient>(client =>
 {
-    var connectionString = builder.Configuration.GetConnectionString("veritheiadb");
-    options.UseNpgsql(connectionString, o => o.UseVector());
+    client.BaseAddress = new Uri("http://apiservice");
+    client.Timeout = TimeSpan.FromSeconds(30);
 });
 
-// Register Services
-builder.Services.AddScoped<JourneyService>();
-builder.Services.AddScoped<PersonaService>();
-builder.Services.AddScoped<UserService>();
+// Register API client services (no direct database access)
+builder.Services.AddScoped<JourneyApiService>();
+builder.Services.AddScoped<PersonaApiService>();
+builder.Services.AddScoped<UserApiService>();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
