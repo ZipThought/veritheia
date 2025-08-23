@@ -1,0 +1,243 @@
+@page "/"
+@using Microsoft.AspNetCore.Components.Web
+@inject NavigationManager Navigation
+
+<PageTitle>Dashboard - Veritheia</PageTitle>
+
+<div class="dashboard">
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">Active Journeys (@journeys.Count)</h1>
+        <button class="btn btn-primary" @onclick="CreateNewJourney">
+            <span class="btn-icon">+</span>
+            New Journey
+        </button>
+    </div>
+
+    <div class="journeys-grid">
+        @foreach (var journey in journeys)
+        {
+            <div class="journey-card">
+                <div class="journey-card-header">
+                    <div class="journey-icon">
+                        @GetJourneyIcon(journey.ProcessType)
+                    </div>
+                    <h3 class="journey-title">@journey.Purpose</h3>
+                </div>
+                
+                <div class="journey-meta">
+                    <div class="journey-meta-item">
+                        <span class="meta-label">Persona:</span>
+                        <span class="meta-value">@journey.PersonaDomain</span>
+                    </div>
+                    <div class="journey-meta-item">
+                        <span class="meta-label">Process:</span>
+                        <span class="meta-value">@GetProcessDisplayName(journey.ProcessType)</span>
+                    </div>
+                    <div class="journey-meta-item">
+                        <span class="meta-label">Status:</span>
+                        <span class="meta-value status-@journey.State.ToLower()">@journey.State</span>
+                    </div>
+                </div>
+
+                @if (journey.ProcessType == "SystematicScreeningProcess" && journey.DocumentCount > 0)
+                {
+                    <div class="journey-progress">
+                        <div class="progress-stats">
+                            <span class="stat">@journey.DocumentCount docs</span>
+                            @if (journey.MustReadCount > 0)
+                            {
+                                <span class="stat highlight">→ @journey.MustReadCount must-read</span>
+                            }
+                        </div>
+                        @if (journey.ProcessingProgress > 0 && journey.ProcessingProgress < 100)
+                        {
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: @(journey.ProcessingProgress)%"></div>
+                                <span class="progress-text">@(journey.ProcessingProgress)%</span>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <div class="journey-meta-item">
+                    <span class="meta-label">Last activity:</span>
+                    <span class="meta-value">@GetRelativeTime(journey.LastActivity)</span>
+                </div>
+
+                <div class="journey-actions">
+                    @if (journey.State == "Processing")
+                    {
+                        <button class="btn btn-sm btn-secondary" @onclick="() => PauseProcessing(journey.Id)">
+                            Pause
+                        </button>
+                    }
+                    else if (journey.State == "Active" || journey.State == "Paused")
+                    {
+                        <button class="btn btn-sm btn-primary" @onclick="() => ContinueJourney(journey.Id)">
+                            Continue
+                        </button>
+                    }
+                    
+                    @if (journey.MustReadCount > 0 || journey.State == "Completed")
+                    {
+                        <button class="btn btn-sm btn-outline-primary" @onclick="() => ViewResults(journey.Id)">
+                            View Results
+                        </button>
+                    }
+                    
+                    @if (journey.State == "Completed")
+                    {
+                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => ExportResults(journey.Id)">
+                            Export
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => ArchiveJourney(journey.Id)">
+                            Archive
+                        </button>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (recentActivities.Any())
+    {
+        <div class="recent-activity">
+            <h2 class="section-title">Recent Activity</h2>
+            <div class="activity-list">
+                @foreach (var activity in recentActivities.Take(5))
+                {
+                    <div class="activity-item">
+                        <span class="activity-icon">•</span>
+                        <span class="activity-text">@activity</span>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<JourneyViewModel> journeys = new();
+    private List<string> recentActivities = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDashboardData();
+    }
+
+    private async Task LoadDashboardData()
+    {
+        // Mock data - will be replaced with actual data loading
+        journeys = new List<JourneyViewModel>
+        {
+            new JourneyViewModel
+            {
+                Id = Guid.NewGuid(),
+                Purpose = "ML Security Literature Review",
+                PersonaDomain = "Researcher",
+                ProcessType = "SystematicScreeningProcess",
+                State = "Processing",
+                DocumentCount = 2576,
+                MustReadCount = 324,
+                ProcessingProgress = 67,
+                LastActivity = DateTime.UtcNow.AddHours(-2)
+            },
+            new JourneyViewModel
+            {
+                Id = Guid.NewGuid(),
+                Purpose = "Research Methods Course",
+                PersonaDomain = "Student",
+                ProcessType = "ConstrainedCompositionProcess",
+                State = "Active",
+                DocumentCount = 0,
+                MustReadCount = 0,
+                ProcessingProgress = 0,
+                LastActivity = DateTime.UtcNow.AddDays(-1)
+            },
+            new JourneyViewModel
+            {
+                Id = Guid.NewGuid(),
+                Purpose = "Startup Market Analysis",
+                PersonaDomain = "Entrepreneur",
+                ProcessType = "SystematicScreeningProcess",
+                State = "Completed",
+                DocumentCount = 847,
+                MustReadCount = 89,
+                ProcessingProgress = 100,
+                LastActivity = DateTime.UtcNow.AddDays(-3)
+            }
+        };
+
+        recentActivities = new List<string>
+        {
+            "ML Security: 156 new assessments completed",
+            "Research Methods: 3 new student submissions",
+            "Market Analysis: Results exported to PDF"
+        };
+    }
+
+    private string GetJourneyIcon(string processType) => processType switch
+    {
+        "SystematicScreeningProcess" => "📊",
+        "ConstrainedCompositionProcess" => "🎓",
+        _ => "📄"
+    };
+
+    private string GetProcessDisplayName(string processType) => processType switch
+    {
+        "SystematicScreeningProcess" => "Systematic Screening",
+        "ConstrainedCompositionProcess" => "Constrained Composition",
+        _ => processType
+    };
+
+    private string GetRelativeTime(DateTime dateTime)
+    {
+        var timeSpan = DateTime.UtcNow - dateTime;
+        return timeSpan.TotalDays >= 1 ? $"{(int)timeSpan.TotalDays} day{(timeSpan.TotalDays >= 2 ? "s" : "")} ago"
+             : timeSpan.TotalHours >= 1 ? $"{(int)timeSpan.TotalHours} hour{(timeSpan.TotalHours >= 2 ? "s" : "")} ago"
+             : $"{(int)timeSpan.TotalMinutes} minute{(timeSpan.TotalMinutes >= 2 ? "s" : "")} ago";
+    }
+
+    private async Task CreateNewJourney()
+    {
+        Navigation.NavigateTo("/journeys/create");
+    }
+
+    private async Task ContinueJourney(Guid journeyId)
+    {
+        Navigation.NavigateTo($"/journeys/{journeyId}");
+    }
+
+    private async Task ViewResults(Guid journeyId)
+    {
+        Navigation.NavigateTo($"/journeys/{journeyId}/results");
+    }
+
+    private async Task PauseProcessing(Guid journeyId)
+    {
+        // TODO: Implement pause processing
+    }
+
+    private async Task ExportResults(Guid journeyId)
+    {
+        // TODO: Implement export results
+    }
+
+    private async Task ArchiveJourney(Guid journeyId)
+    {
+        // TODO: Implement archive journey
+    }
+
+    public class JourneyViewModel
+    {
+        public Guid Id { get; set; }
+        public string Purpose { get; set; } = "";
+        public string PersonaDomain { get; set; } = "";
+        public string ProcessType { get; set; } = "";
+        public string State { get; set; } = "";
+        public int DocumentCount { get; set; }
+        public int MustReadCount { get; set; }
+        public int ProcessingProgress { get; set; }
+        public DateTime LastActivity { get; set; }
+    }
+}

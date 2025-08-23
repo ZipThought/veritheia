@@ -124,9 +124,140 @@ Projection rules might include segmentation strategies, embedding contexts, asse
 
 **Input/Output Formats**: CSV input requires columns: title, abstract, authors, publication_venue, keywords. Research questions as plain text, one per line. JSON output contains per-article: extracted semantics (topics, entities, keywords arrays), scores (relevance_score, contribution_score as floats 0.0-1.0), binary decisions (is_relevant, is_contributing), reasoning chains, must-read determination (logical OR of decisions).
 
-**User Interface Patterns**: SystematicScreeningProcess requires tabular interface for thousand-document result sets. Core table displays: Title | Authors | Venue | Relevance Score | Contribution Score | Must-Read | Actions. Filters enable viewing subsets (relevant only, contributing only, must-read only, by venue, by score thresholds). Row selection enables bulk actions. Detail view shows reasoning chains and extracted semantics. Progress interface shows processing status during batch execution. Formation interface enables iterative refinement of research questions based on result patterns.
+**User Interface Patterns**: The main interface uses enterprise sidebar navigation organizing around journeys, not processes. Sidebar Navigation provides primary access to journeys, personas, and system functions. Main Content Area displays journey-specific interfaces, process results, and configuration screens. Journey Dashboard shows active journeys with persona context, process types, current states, and recent activity. Users create new journeys by selecting persona and process, then configure journey-specific frameworks.
+
+SystematicScreeningProcess requires tabular interface for thousand-document result sets within journey context. Core table displays: Title | Authors | Venue | Relevance Score | Contribution Score | Must-Read | Actions. Filters enable viewing subsets (relevant only, contributing only, must-read only, by venue, by score thresholds). Row selection enables bulk actions. Detail view shows reasoning chains and extracted semantics. Progress interface shows processing status during batch execution. Formation interface enables iterative refinement of research questions based on result patterns.
 
 ```
+Sidebar Navigation (Persistent across all pages):
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ ┌─────────────┐                                                             │
+│ │ VERITHEIA   │ Dr. Sarah Chen │ [Researcher ▼] │ [Settings] │ [Logout]     │
+│ └─────────────┘                                                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ │📊 Dashboard │ Main Content Area (varies by selection)                     │
+│ │             │                                                             │
+│ │🚀 Journeys  │ ┌─────────────────────────────────────────────────────────┐ │
+│ │ • ML Sec... │ │ [Selected content displays here]                        │ │
+│ │ • Research  │ │                                                         │ │
+│ │ • Market    │ │ Dashboard: Journey overview and recent activity         │ │
+│ │             │ │ Journey: Process interface and results                  │ │
+│ │👤 Personas  │ │ Personas: Context management and vocabulary             │ │
+│ │ • Researcher│ │ Documents: Upload and corpus management                 │ │
+│ │ • Student   │ │ Settings: User preferences and configuration            │ │
+│ │ • Entrepren.│ │                                                         │ │
+│ │             │ │                                                         │ │
+│ │📄 Documents │ │                                                         │ │
+│ │             │ │                                                         │ │
+│ │⚙️  Settings │ │                                                         │ │
+│ │             │ │                                                         │ │
+│ │❓ Help      │ │                                                         │ │
+│ └─────────────┘ └─────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Journey Dashboard (When Dashboard selected in sidebar):
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ │📊 Dashboard │ Active Journeys (3)                     [+ New Journey]     │
+│ │             │                                                             │
+│ │🚀 Journeys  │ 📊 ML Security Literature Review                           │
+│ │ • ML Sec... │    Researcher persona │ SystematicScreeningProcess         │
+│ │ • Research  │    2,576 docs → 324 must-read │ Processing (67%)           │
+│ │ • Market    │    [Continue] [View Results] [Pause]                       │
+│ │             │                                                             │
+│ │👤 Personas  │ 🎓 Research Methods Course                                 │
+│ │ • Researcher│    Student persona │ ConstrainedCompositionProcess         │
+│ │ • Student   │    Essay framework │ Active │ Last: 1 day ago              │
+│ │ • Entrepren.│    [Continue] [View Submissions] [Edit Framework]          │
+│ │             │                                                             │
+│ │📄 Documents │ 💼 Startup Market Analysis                                 │
+│ │             │    Entrepreneur persona │ SystematicScreeningProcess       │
+│ │⚙️  Settings │    847 docs → 89 must-read │ Completed: 3 days ago         │
+│ │             │    [View Results] [Export] [Archive]                       │
+│ │❓ Help      │                                                             │
+│ └─────────────┘ Recent Activity                                            │
+│                 • ML Security: 156 new assessments completed               │
+│                 • Research Methods: 3 new student submissions              │
+│                 • Market Analysis: Results exported to PDF                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Journey Detail View (When specific journey selected in sidebar):
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ │📊 Dashboard │ ML Security Literature Review │ [⚙️ Configure] [📤 Export] │
+│ │             │                                                             │
+│ │🚀 Journeys  │ ┌─ Process Status ─────────────────────────────────────────┐ │
+│ │ • ML Sec... │ │ SystematicScreeningProcess │ Processing (67%)             │ │
+│ │ • Research  │ │ Article 1,724 of 2,576 │ 4.2h elapsed │ 2.8h remaining  │ │
+│ │ • Market    │ │ [Pause] [Resume] [Cancel]                                │ │
+│ │             │ └─────────────────────────────────────────────────────────┘ │
+│ │👤 Personas  │                                                             │
+│ │ • Researcher│ ┌─ Results Summary ────────────────────────────────────────┐ │
+│ │ • Student   │ │ Total: 2,576 docs │ Processed: 1,724 │ Must-Read: 243   │ │
+│ │ • Entrepren.│ │ [View All Results] [View Must-Read Only] [Export CSV]    │ │
+│ │             │ └─────────────────────────────────────────────────────────┘ │
+│ │📄 Documents │                                                             │
+│ │             │ ┌─ Framework Configuration ────────────────────────────────┐ │
+│ │⚙️  Settings │ │ Research Questions (4) │ Last updated: 2 hours ago      │ │
+│ │             │ │ • How are LLMs being utilized for threat detection?      │ │
+│ │❓ Help      │ │ • What are the main challenges in AI security?          │ │
+│ └─────────────┘ │ [Edit Questions] [Add Question] [View Full Framework]    │ │
+│                 └─────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Journey Dashboard (Main Interface - Journey-Centric Organization):
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ Veritheia │ Dr. Sarah Chen │ [Researcher ▼] │ [Settings] │ [Help] │ [Logout] │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ Active Journeys (3)                                         [+ New Journey]  │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ 📊 ML Security Literature Review                                            │
+│    Researcher persona │ SystematicScreeningProcess │ Processing (67%)        │
+│    2,576 docs → 324 must-read │ Last activity: 2 hours ago                   │
+│    [Continue] [View Results] [Pause Processing]                              │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ 🎓 Research Methods Course                                                  │
+│    Student persona │ ConstrainedCompositionProcess │ Active                  │
+│    Essay assignment framework │ Last activity: 1 day ago                     │
+│    [Continue] [View Submissions] [Edit Framework]                            │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ 💼 Startup Market Analysis                                                  │
+│    Entrepreneur persona │ SystematicScreeningProcess │ Completed             │
+│    847 docs → 89 must-read │ Completed: 3 days ago                           │
+│    [View Results] [Export] [Archive]                                         │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ Recent Activity                                                              │
+│ • ML Security: 156 new assessments completed                                 │
+│ • Research Methods: 3 new student submissions                                │
+│ • Market Analysis: Results exported to PDF                                   │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+New Journey Creation (Process Selection Interface):
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ Create New Journey                                               [Cancel][×] │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ Journey Name: [Cybersecurity AI Applications Review____________]             │
+│ Purpose: [Systematic review of AI/ML applications in cyber defense_______]   │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ Select Persona:                                                              │
+│ ● Researcher (Domain expertise, investigation methods)                       │
+│ ○ Student (Academic vocabulary, learning-focused patterns)                   │
+│ ○ Entrepreneur (Business terminology, market analysis approaches)            │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ Select Process:                                                              │
+│ ● SystematicScreeningProcess                                                 │
+│   📋 Literature review with dual-phase assessment (relevance + contribution) │
+│   📊 Handles thousands of documents, generates must-read determinations      │
+│   📝 Requires: CSV datasets, research questions                             │
+│                                                                              │
+│ ○ ConstrainedCompositionProcess                                              │
+│   ✍️ Pedagogical formation with structured writing frameworks               │
+│   👥 Student response evaluation, assignment creation                       │
+│   📝 Requires: Learning objectives, rubrics, safety constraints             │
+│                                                                              │
+│ ○ [Custom Process] (Future extension capability)                             │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                [Create Journey] [Cancel]     │
+└──────────────────────────────────────────────────────────────────────────────┘
+
 Systematic Screening Results (2,576 documents → 324 must-read)
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ [Must-Read Only ▼] [Year: All ▼] [Venue: Scopus ▼] [Threshold≥0.7] [Export] │

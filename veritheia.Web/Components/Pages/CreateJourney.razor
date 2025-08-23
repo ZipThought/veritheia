@@ -1,0 +1,237 @@
+@page "/journeys/create"
+@using Microsoft.AspNetCore.Components.Web
+@inject NavigationManager Navigation
+
+<PageTitle>Create New Journey - Veritheia</PageTitle>
+
+<div class="create-journey">
+    <div class="create-journey-header">
+        <h1 class="page-title">Create New Journey</h1>
+        <button class="btn btn-outline-secondary" @onclick="Cancel">
+            <span class="btn-icon">×</span>
+            Cancel
+        </button>
+    </div>
+
+    <div class="create-journey-form">
+        <div class="form-section">
+            <h2 class="section-title">Journey Details</h2>
+            
+            <div class="form-group">
+                <label for="journey-name" class="form-label">Journey Name</label>
+                <input 
+                    id="journey-name" 
+                    type="text" 
+                    class="form-control" 
+                    placeholder="e.g., Cybersecurity AI Applications Review"
+                    @bind="journeyName" 
+                    @bind:event="oninput" />
+                @if (showValidation && string.IsNullOrWhiteSpace(journeyName))
+                {
+                    <div class="validation-message">Journey name is required.</div>
+                }
+            </div>
+
+            <div class="form-group">
+                <label for="journey-purpose" class="form-label">Purpose</label>
+                <textarea 
+                    id="journey-purpose" 
+                    class="form-control" 
+                    rows="3"
+                    placeholder="e.g., Systematic review of AI/ML applications in cyber defense"
+                    @bind="journeyPurpose" 
+                    @bind:event="oninput"></textarea>
+                @if (showValidation && string.IsNullOrWhiteSpace(journeyPurpose))
+                {
+                    <div class="validation-message">Purpose is required.</div>
+                }
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h2 class="section-title">Select Persona</h2>
+            <div class="persona-grid">
+                @foreach (var persona in availablePersonas)
+                {
+                    <div class="persona-card @(selectedPersonaId == persona.Id ? "selected" : "")" 
+                         @onclick="() => SelectPersona(persona.Id)">
+                        <div class="persona-icon">👤</div>
+                        <h3 class="persona-title">@persona.Domain</h3>
+                        <p class="persona-description">@persona.Description</p>
+                    </div>
+                }
+            </div>
+            @if (showValidation && selectedPersonaId == Guid.Empty)
+            {
+                <div class="validation-message">Please select a persona.</div>
+            }
+        </div>
+
+        <div class="form-section">
+            <h2 class="section-title">Select Process</h2>
+            <div class="process-grid">
+                @foreach (var process in availableProcesses)
+                {
+                    <div class="process-card @(selectedProcessType == process.Type ? "selected" : "")" 
+                         @onclick="() => SelectProcess(process.Type)">
+                        <div class="process-icon">@process.Icon</div>
+                        <h3 class="process-title">@process.DisplayName</h3>
+                        <p class="process-description">@process.Description</p>
+                        <div class="process-requirements">
+                            <strong>Requires:</strong> @process.Requirements
+                        </div>
+                    </div>
+                }
+            </div>
+            @if (showValidation && string.IsNullOrWhiteSpace(selectedProcessType))
+            {
+                <div class="validation-message">Please select a process.</div>
+            }
+        </div>
+
+        <div class="form-actions">
+            <button class="btn btn-primary" @onclick="CreateNewJourneyAsync" disabled="@isCreating">
+                @if (isCreating)
+                {
+                    <span class="spinner"></span>
+                    <span>Creating Journey...</span>
+                }
+                else
+                {
+                    <span class="btn-icon">+</span>
+                    <span>Create Journey</span>
+                }
+            </button>
+            <button class="btn btn-outline-secondary" @onclick="Cancel" disabled="@isCreating">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string journeyName = "";
+    private string journeyPurpose = "";
+    private Guid selectedPersonaId = Guid.Empty;
+    private string selectedProcessType = "";
+    private bool showValidation = false;
+    private bool isCreating = false;
+
+    private List<PersonaOption> availablePersonas = new();
+    private List<ProcessOption> availableProcesses = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAvailableOptions();
+    }
+
+    private async Task LoadAvailableOptions()
+    {
+        // Mock data - will be replaced with actual data loading
+        availablePersonas = new List<PersonaOption>
+        {
+            new PersonaOption
+            {
+                Id = Guid.NewGuid(),
+                Domain = "Researcher",
+                Description = "Domain expertise, investigation methods"
+            },
+            new PersonaOption
+            {
+                Id = Guid.NewGuid(),
+                Domain = "Student",
+                Description = "Academic vocabulary, learning-focused patterns"
+            },
+            new PersonaOption
+            {
+                Id = Guid.NewGuid(),
+                Domain = "Entrepreneur",
+                Description = "Business terminology, market analysis approaches"
+            }
+        };
+
+        availableProcesses = new List<ProcessOption>
+        {
+            new ProcessOption
+            {
+                Type = "SystematicScreeningProcess",
+                DisplayName = "SystematicScreeningProcess",
+                Icon = "📋",
+                Description = "Literature review with dual-phase assessment (relevance + contribution)",
+                Requirements = "CSV datasets, research questions"
+            },
+            new ProcessOption
+            {
+                Type = "ConstrainedCompositionProcess",
+                DisplayName = "ConstrainedCompositionProcess",
+                Icon = "✍️",
+                Description = "Pedagogical formation with structured writing frameworks",
+                Requirements = "Learning objectives, rubrics, safety constraints"
+            }
+        };
+    }
+
+    private void SelectPersona(Guid personaId)
+    {
+        selectedPersonaId = personaId;
+        showValidation = false;
+    }
+
+    private void SelectProcess(string processType)
+    {
+        selectedProcessType = processType;
+        showValidation = false;
+    }
+
+    private async Task CreateNewJourneyAsync()
+    {
+        showValidation = true;
+
+        if (string.IsNullOrWhiteSpace(journeyName) || 
+            string.IsNullOrWhiteSpace(journeyPurpose) ||
+            selectedPersonaId == Guid.Empty ||
+            string.IsNullOrWhiteSpace(selectedProcessType))
+        {
+            return;
+        }
+
+        isCreating = true;
+        StateHasChanged();
+
+        try
+        {
+            // TODO: Implement actual journey creation
+            await Task.Delay(1000); // Simulate API call
+
+            // Navigate to the new journey
+            var journeyId = Guid.NewGuid(); // This would come from the API
+            Navigation.NavigateTo($"/journeys/{journeyId}");
+        }
+        catch (Exception ex)
+        {
+            // TODO: Handle error appropriately
+            isCreating = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/");
+    }
+
+    public class PersonaOption
+    {
+        public Guid Id { get; set; }
+        public string Domain { get; set; } = "";
+        public string Description { get; set; } = "";
+    }
+
+    public class ProcessOption
+    {
+        public string Type { get; set; } = "";
+        public string DisplayName { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Requirements { get; set; } = "";
+    }
+}

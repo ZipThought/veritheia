@@ -1,0 +1,131 @@
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Web
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<div class="sidebar">
+    <div class="sidebar-header">
+        <div class="logo">
+            <span class="logo-text">VERITHEIA</span>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <div class="nav-section">
+            <NavLink class="nav-item" href="/" Match="NavLinkMatch.All">
+                <span class="nav-icon">📊</span>
+                <span class="nav-text">Dashboard</span>
+            </NavLink>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-header">
+                <span class="nav-icon">🚀</span>
+                <span class="nav-text">Journeys</span>
+            </div>
+            
+            @if (journeys != null && journeys.Any())
+            {
+                <div class="nav-subsection">
+                    @foreach (var journey in journeys)
+                    {
+                        <NavLink class="nav-subitem" href="@($"/journeys/{journey.Id}")">
+                            <span class="nav-subicon">•</span>
+                            <span class="nav-subtext">@GetTruncatedName(journey.Purpose, 10)</span>
+                        </NavLink>
+                    }
+                </div>
+            }
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-header">
+                <span class="nav-icon">👤</span>
+                <span class="nav-text">Personas</span>
+            </div>
+            
+            @if (personas != null && personas.Any())
+            {
+                <div class="nav-subsection">
+                    @foreach (var persona in personas)
+                    {
+                        <NavLink class="nav-subitem" href="@($"/personas/{persona.Id}")">
+                            <span class="nav-subicon">•</span>
+                            <span class="nav-subtext">@persona.Domain</span>
+                        </NavLink>
+                    }
+                </div>
+            }
+        </div>
+
+        <div class="nav-section">
+            <NavLink class="nav-item" href="/documents">
+                <span class="nav-icon">📄</span>
+                <span class="nav-text">Documents</span>
+            </NavLink>
+        </div>
+
+        <div class="nav-section">
+            <NavLink class="nav-item" href="/settings">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-text">Settings</span>
+            </NavLink>
+        </div>
+
+        <div class="nav-section">
+            <NavLink class="nav-item" href="/help">
+                <span class="nav-icon">❓</span>
+                <span class="nav-text">Help</span>
+            </NavLink>
+        </div>
+    </nav>
+</div>
+
+@code {
+    private List<JourneyViewModel>? journeys;
+    private List<PersonaViewModel>? personas;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // TODO: Load user's journeys and personas
+        await LoadUserData();
+    }
+
+    private async Task LoadUserData()
+    {
+        // Mock data for now - will be replaced with actual data loading
+        journeys = new List<JourneyViewModel>
+        {
+            new JourneyViewModel { Id = Guid.NewGuid(), Purpose = "ML Security Literature Review" },
+            new JourneyViewModel { Id = Guid.NewGuid(), Purpose = "Research Methods Course" },
+            new JourneyViewModel { Id = Guid.NewGuid(), Purpose = "Market Analysis" }
+        };
+
+        personas = new List<PersonaViewModel>
+        {
+            new PersonaViewModel { Id = Guid.NewGuid(), Domain = "Researcher" },
+            new PersonaViewModel { Id = Guid.NewGuid(), Domain = "Student" },
+            new PersonaViewModel { Id = Guid.NewGuid(), Domain = "Entrepreneur" }
+        };
+    }
+
+    private string GetTruncatedName(string name, int maxLength)
+    {
+        if (string.IsNullOrEmpty(name) || name.Length <= maxLength)
+            return name ?? "";
+        
+        return name.Substring(0, maxLength - 3) + "...";
+    }
+
+    public class JourneyViewModel
+    {
+        public Guid Id { get; set; }
+        public string Purpose { get; set; } = "";
+    }
+
+    public class PersonaViewModel
+    {
+        public Guid Id { get; set; }
+        public string Domain { get; set; } = "";
+    }
+}

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using Pgvector.EntityFrameworkCore;
 using Veritheia.Core.Interfaces;
 using Veritheia.Data;
 using Veritheia.Data.Processes;
@@ -17,7 +18,7 @@ builder.Services.AddProblemDetails();
 builder.Services.AddDbContext<VeritheiaDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("veritheiadb");
-    options.UseNpgsql(connectionString);
+    options.UseNpgsql(connectionString, o => o.UseVector());
 });
 
 // Register Services (Post-DDD: Direct service registration)

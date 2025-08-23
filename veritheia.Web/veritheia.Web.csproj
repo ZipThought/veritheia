@@ -8,6 +8,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\veritheia.ServiceDefaults\veritheia.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\veritheia.Core\veritheia.Core.csproj" />
+    <ProjectReference Include="..\veritheia.Data\veritheia.Data.csproj" />
   </ItemGroup>
 
   <ItemGroup>

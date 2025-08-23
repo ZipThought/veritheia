@@ -1,0 +1,79 @@
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<div class="top-bar">
+    <div class="top-bar-content">
+        <div class="user-info">
+            <span class="user-name">@currentUserName</span>
+            <div class="persona-selector">
+                <select class="persona-dropdown" @onchange="OnPersonaChanged">
+                    <option value="researcher">Researcher ▼</option>
+                    <option value="student">Student ▼</option>
+                    <option value="entrepreneur">Entrepreneur ▼</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="top-bar-actions">
+            <button class="action-button" @onclick="OpenSettings">
+                <span>Settings</span>
+            </button>
+            <button class="action-button" @onclick="OpenHelp">
+                <span>Help</span>
+            </button>
+            <button class="action-button logout" @onclick="Logout">
+                <span>Logout</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string currentUserName = "Dr. Sarah Chen";
+    private string selectedPersona = "researcher";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // TODO: Load current user information
+        await LoadCurrentUser();
+    }
+
+    private async Task LoadCurrentUser()
+    {
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            if (authState.User.Identity?.IsAuthenticated == true)
+            {
+                currentUserName = authState.User.Identity.Name ?? "Unknown User";
+            }
+        }
+        catch
+        {
+            // For now, use mock data
+            currentUserName = "Dr. Sarah Chen";
+        }
+    }
+
+    private async Task OnPersonaChanged(ChangeEventArgs e)
+    {
+        selectedPersona = e.Value?.ToString() ?? "researcher";
+        // TODO: Update user's active persona context
+        StateHasChanged();
+    }
+
+    private async Task OpenSettings()
+    {
+        // TODO: Navigate to settings or open settings modal
+    }
+
+    private async Task OpenHelp()
+    {
+        // TODO: Navigate to help or open help modal
+    }
+
+    private async Task Logout()
+    {
+        // TODO: Implement logout functionality
+    }
+}
