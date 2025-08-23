@@ -1,21 +1,44 @@
 ﻿@using Microsoft.AspNetCore.Components.Web
 @using veritheia.Web.Components.Layout
+@using veritheia.Web.Services
+@inject AuthenticationService AuthService
+@inject NavigationManager Navigation
 @inherits LayoutComponentBase
 
-<div class="app">
-    <div class="app-container">
-        <SidebarNavigation />
-        <main class="main-content">
-            <TopBar />
-            <div class="content-area">
-                @Body
-            </div>
-        </main>
+@if (isAuthenticated)
+{
+    <div class="app">
+        <div class="app-container">
+            <SidebarNavigation />
+            <main class="main-content">
+                <TopBar />
+                <div class="content-area">
+                    @Body
+                </div>
+            </main>
+        </div>
     </div>
-</div>
+}
+else
+{
+    @Body
+}
 
 <div id="blazor-error-ui">
     An unhandled error has occurred.
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+@code {
+    private bool isAuthenticated = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isAuthenticated = AuthService.IsAuthenticated();
+        if (!isAuthenticated && !Navigation.Uri.EndsWith("/login"))
+        {
+            Navigation.NavigateTo("/login");
+        }
+    }
+}

@@ -10,6 +10,7 @@ The correct response begins with restraint. When asked to "Implement user authen
 > 2. If documented, read fully and follow exactly.
 > 3. If undocumented, signal the gap and wait.
 > 4. If undecided, offer to investigate but pause for human choice.
+> 5. After implementation, ensure all new components are documented.
 
 This same pattern governs all work. Before you act, you establish where you are in the chain of understanding: has the decision been made, has it been investigated, has it been documented, has it been implemented? You may enter at any point in that chain, and it is not always linear. Some flows move forward from decision to implementation. Others begin with a discovery in the code and move backwards to documentation and decision.
 

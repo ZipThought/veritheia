@@ -15,7 +15,7 @@ namespace veritheia.Tests.External;
 /// These tests require a local LLM server to be running.
 /// 
 /// To run these tests locally:
-/// 1. Start LM Studio or similar server at http://192.168.68.100:1234
+/// 1. Start LM Studio or similar server at http://localhost:1234
 /// 2. Load models: gemma-3-12b-it and nomic-embed-text
 /// 3. Run: dotnet test --filter "Category=LLMIntegration"
 /// 
@@ -40,7 +40,7 @@ public class LLMIntegrationTests : IDisposable
         var configBuilder = new ConfigurationBuilder();
         configBuilder.AddInMemoryCollection(new Dictionary<string, string?>
         {
-            ["LocalLLM:Url"] = Environment.GetEnvironmentVariable("LLM_URL") ?? "http://192.168.68.100:1234",
+                            ["LocalLLM:Url"] = Environment.GetEnvironmentVariable("LLM_URL") ?? "http://localhost:1234",
             ["LocalLLM:Model"] = Environment.GetEnvironmentVariable("LLM_MODEL") ?? "gemma-3-12b-it"
         });
         _configuration = configBuilder.Build();

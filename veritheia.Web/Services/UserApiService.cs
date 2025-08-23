@@ -60,11 +60,5 @@ public class UserApiService
         await _apiClient.PutAsync($"api/users/{userId}/activity");
     }
 
-    /// <summary>
-    /// Get demo user (for development purposes)
-    /// </summary>
-    public async Task<UserDto> GetDemoUserAsync()
-    {
-        return await GetCurrentUserAsync() ?? throw new InvalidOperationException("Demo user not found");
-    }
+
 }

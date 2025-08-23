@@ -29,7 +29,7 @@ public class LocalLLMAdapter : ICognitiveAdapter
     {
         _httpClient = httpClient;
         _logger = logger;
-        _llmUrl = configuration["LocalLLM:Url"] ?? "http://192.168.68.100:1234";
+        _llmUrl = configuration["LocalLLM:Url"] ?? "http://localhost:1234";
         _model = configuration["LocalLLM:Model"] ?? "gemma-3-12b-it";
     }
     

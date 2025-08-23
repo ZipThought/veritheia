@@ -25,7 +25,7 @@ public class ProcessWorkerServiceIntegrationTests : DatabaseTestBase
         services.AddSingleton<ILoggerFactory, LoggerFactory>();
         services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
         services.AddScoped(_ => Context);
-        services.AddScoped<ICognitiveAdapter, MockCognitiveAdapter>();
+                    services.AddScoped<ICognitiveAdapter, LocalLLMAdapter>();
         
         var serviceProvider = services.BuildServiceProvider();
         var logger = serviceProvider.GetRequiredService<ILogger<ProcessWorkerService>>();

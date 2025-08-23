@@ -107,6 +107,12 @@ Documents are numbered to suggest a reading path:
    - Technical implementation terms
    - Domain concepts explained
 
+**[17-AUTHENTICATION-SYSTEM.md](./17-AUTHENTICATION-SYSTEM.md)** - User authentication and session management
+   - Cookie-based authentication implementation
+   - User account creation and management
+   - Route protection and security considerations
+   - Integration with existing API services
+
 ### Research Papers
 
 - **[Papers Collection](./papers/)** - Academic references and research papers

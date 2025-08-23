@@ -1,7 +1,12 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.Web
+@using veritheia.Web.Services
+@using Veritheia.Data.DTOs
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@inject JourneyApiService JourneyService
+@inject PersonaApiService PersonaService
+@inject AuthenticationService AuthService
 
 <div class="sidebar">
     <div class="sidebar-header">
@@ -93,20 +98,34 @@
 
     private async Task LoadUserData()
     {
-        // Mock data for now - will be replaced with actual data loading
-        journeys = new List<JourneyViewModel>
+        try
         {
-            new JourneyViewModel { Id = Guid.NewGuid(), Purpose = "ML Security Literature Review" },
-            new JourneyViewModel { Id = Guid.NewGuid(), Purpose = "Research Methods Course" },
-            new JourneyViewModel { Id = Guid.NewGuid(), Purpose = "Market Analysis" }
-        };
+            var user = await AuthService.GetCurrentUserAsync();
+            if (user == null)
+            {
+                Navigation.NavigateTo("/login");
+                return;
+            }
 
-        personas = new List<PersonaViewModel>
+            // Load real data from API
+            var realJourneys = await JourneyService.GetUserJourneysAsync(user.Id);
+            journeys = realJourneys.Select(j => new JourneyViewModel 
+            { 
+                Id = j.Id, 
+                Purpose = j.Purpose 
+            }).ToList();
+
+            var realPersonas = await PersonaService.GetActivePersonasAsync(user.Id);
+            personas = realPersonas.Select(p => new PersonaViewModel 
+            { 
+                Id = p.Id, 
+                Domain = p.Domain 
+            }).ToList();
+        }
+        catch
         {
-            new PersonaViewModel { Id = Guid.NewGuid(), Domain = "Researcher" },
-            new PersonaViewModel { Id = Guid.NewGuid(), Domain = "Student" },
-            new PersonaViewModel { Id = Guid.NewGuid(), Domain = "Entrepreneur" }
-        };
+            Navigation.NavigateTo("/login");
+        }
     }
 
     private string GetTruncatedName(string name, int maxLength)

@@ -5,7 +5,8 @@
 @inject NavigationManager Navigation
 @inject JourneyApiService JourneyService
 @inject PersonaApiService PersonaService
-@inject UserApiService UserService
+@inject AuthenticationService AuthService
+@inject ProcessConfigurationService ProcessConfig
 
 <PageTitle>Create New Journey - Veritheia</PageTitle>
 
@@ -143,32 +144,19 @@
     {
         try
         {
-            // Get current user (in production, this would come from authentication)
-            currentUser = await UserService.GetDemoUserAsync();
+            // Get current authenticated user
+            currentUser = await AuthService.GetCurrentUserAsync();
+            if (currentUser == null)
+            {
+                Navigation.NavigateTo("/login");
+                return;
+            }
             
             // Load user's personas
             availablePersonas = await PersonaService.GetActivePersonasAsync(currentUser.Id);
 
-            // Load available processes (hardcoded for now, could be dynamic)
-            availableProcesses = new List<ProcessOption>
-            {
-                new ProcessOption
-                {
-                    Type = "systematic-screening",
-                    DisplayName = "Systematic Literature Screening",
-                    Icon = "📊",
-                    Description = "LLAssist methodology for systematic literature review with dual assessment (relevance + contribution)",
-                    Requirements = "Research questions and CSV file with academic papers"
-                },
-                new ProcessOption
-                {
-                    Type = "basic-constrained-composition",
-                    DisplayName = "Constrained Composition",
-                    Icon = "✍️",
-                    Description = "Pedagogical formation with structured writing frameworks and assessment rubrics",
-                    Requirements = "Learning objectives, constraints, and document templates"
-                }
-            };
+            // Load available processes from configuration
+            availableProcesses = ProcessConfig.GetAvailableProcesses();
         }
         catch (Exception ex)
         {
@@ -248,12 +236,5 @@
         _ => "Custom intellectual style and methodological preferences"
     };
 
-    public class ProcessOption
-    {
-        public string Type { get; set; } = "";
-        public string DisplayName { get; set; } = "";
-        public string Icon { get; set; } = "";
-        public string Description { get; set; } = "";
-        public string Requirements { get; set; } = "";
-    }
+
 }

@@ -43,7 +43,7 @@ public class PaperAnalysisTests : IDisposable
         var config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["LocalLLM:Url"] = Environment.GetEnvironmentVariable("LLM_URL") ?? "http://192.168.68.100:1234",
+                ["LocalLLM:Url"] = Environment.GetEnvironmentVariable("LLM_URL") ?? "http://localhost:1234",
                 ["LocalLLM:Model"] = Environment.GetEnvironmentVariable("LLM_MODEL") ?? "gemma-3-12b-it"
             })
             .Build();

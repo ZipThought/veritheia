@@ -1,0 +1,229 @@
+@page "/login"
+@using veritheia.Web.Services
+@inject AuthenticationService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Login - Veritheia</PageTitle>
+
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <h1>Welcome to Veritheia</h1>
+            <p>Sign in to continue your knowledge journey</p>
+        </div>
+
+        <div class="login-form">
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger">
+                    @errorMessage
+                </div>
+            }
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    class="form-control" 
+                    @bind="email" 
+                    placeholder="Enter your email"
+                    @onkeypress="OnKeyPress" />
+            </div>
+
+            <div class="form-group">
+                <label for="displayName">Display Name</label>
+                <input 
+                    type="text" 
+                    id="displayName" 
+                    class="form-control" 
+                    @bind="displayName" 
+                    placeholder="Enter your display name"
+                    @onkeypress="OnKeyPress" />
+            </div>
+
+            <button 
+                class="btn btn-primary login-btn" 
+                @onclick="LoginAsync" 
+                disabled="@isLoggingIn">
+                @if (isLoggingIn)
+                {
+                    <span>Signing in...</span>
+                }
+                else
+                {
+                    <span>Sign In</span>
+                }
+            </button>
+
+            <div class="login-info">
+                <p>This will create a new account or sign you into an existing one.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .login-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+    }
+
+    .login-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        padding: 40px;
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .login-header h1 {
+        color: #333;
+        margin-bottom: 10px;
+        font-size: 28px;
+    }
+
+    .login-header p {
+        color: #666;
+        margin: 0;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #333;
+        font-weight: 500;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: border-color 0.3s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+
+    .login-btn {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+
+    .login-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+    }
+
+    .login-btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+    .login-info {
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    .login-info p {
+        color: #666;
+        font-size: 14px;
+        margin: 0;
+    }
+
+    .alert {
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .alert-danger {
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+    }
+</style>
+
+@code {
+    private string email = "";
+    private string displayName = "";
+    private string? errorMessage;
+    private bool isLoggingIn = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Redirect if already authenticated
+        if (AuthService.IsAuthenticated())
+        {
+            Navigation.NavigateTo("/");
+        }
+    }
+
+    private async Task LoginAsync()
+    {
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(displayName))
+        {
+            errorMessage = "Please enter both email and display name.";
+            return;
+        }
+
+        isLoggingIn = true;
+        errorMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            var success = await AuthService.LoginAsync(email, displayName);
+            if (success)
+            {
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                errorMessage = "Failed to sign in. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred: {ex.Message}";
+        }
+        finally
+        {
+            isLoggingIn = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await LoginAsync();
+        }
+    }
+}

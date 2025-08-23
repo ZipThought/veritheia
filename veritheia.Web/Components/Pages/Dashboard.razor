@@ -2,7 +2,7 @@
 @using veritheia.Web.Services
 @using Veritheia.Data.DTOs
 @inject JourneyApiService JourneyService
-@inject UserApiService UserService
+@inject AuthenticationService AuthService
 @inject NavigationManager Navigation
 
 <PageTitle>Dashboard - Veritheia</PageTitle>
@@ -177,8 +177,13 @@
 
         try
         {
-            // Get demo user (in production, this would come from authentication context)
-            _currentUser = await UserService.GetDemoUserAsync();
+            // Get current authenticated user
+            _currentUser = await AuthService.GetCurrentUserAsync();
+            if (_currentUser == null)
+            {
+                Navigation.NavigateTo("/login");
+                return;
+            }
             
             // Load user's journeys with related data
             _journeys = await JourneyService.GetUserJourneysAsync(_currentUser.Id);
