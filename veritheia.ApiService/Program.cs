@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using Npgsql;
 using Pgvector.EntityFrameworkCore;
 using Veritheia.Core.Interfaces;
 using Veritheia.Data;
@@ -14,11 +15,18 @@ builder.AddServiceDefaults();
 // Add services to the container.
 builder.Services.AddProblemDetails();
 
+// Configure JSON serialization for Npgsql
+AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 // Register Database
 builder.Services.AddDbContext<VeritheiaDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("veritheiadb");
-    options.UseNpgsql(connectionString, o => o.UseVector());
+    options.UseNpgsql(connectionString, o => 
+    {
+        o.UseVector();
+    });
 });
 
 // Register Services (Post-DDD: Direct service registration)
@@ -56,8 +64,13 @@ builder.Services.AddScoped<IDocumentStorageRepository>(sp =>
     return new FileStorageService(storagePath);
 });
 
-// Register Controllers
-builder.Services.AddControllers();
+// Register Controllers with JSON configuration
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.MaxDepth = 64;
+    });
 
 // Register Swagger services
 builder.Services.AddEndpointsApiExplorer();
