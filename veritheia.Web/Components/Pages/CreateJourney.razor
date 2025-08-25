@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Components.Web
 @using veritheia.Web.Services
 @using Veritheia.Data.DTOs
+@using Veritheia.Common.Models
 @inject NavigationManager Navigation
 @inject JourneyApiService JourneyService
 @inject PersonaApiService PersonaService
@@ -133,7 +134,7 @@
 
     private List<PersonaDto> availablePersonas = new();
     private List<ProcessOption> availableProcesses = new();
-    private UserDto? currentUser;
+    private UserIdentity? currentUser;
 
     protected override async Task OnInitializedAsync()
     {

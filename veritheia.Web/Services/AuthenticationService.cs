@@ -2,13 +2,14 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Veritheia.Data.DTOs;
+using Veritheia.Common.Models;
 
 namespace veritheia.Web.Services;
 
 /// <summary>
-/// Authentication service for managing user sessions
+/// Authentication service implementing Pattern A: Simple Identifier Authentication
 /// </summary>
-public class AuthenticationService
+public class AuthenticationService : IAuthenticationProvider
 {
     private readonly UserApiService _userApiService;
     private readonly IHttpContextAccessor _httpContextAccessor;
@@ -20,9 +21,51 @@ public class AuthenticationService
     }
 
     /// <summary>
+    /// Authenticate user with identifier (email) only
+    /// </summary>
+    public async Task<UserIdentity> AuthenticateAsync(AuthenticationRequest request)
+    {
+        // Create or get user from API (display name is optional)
+        var displayName = request.AdditionalData?.GetValueOrDefault("displayName")?.ToString();
+        var user = await _userApiService.CreateOrGetUserAsync(request.Identifier, displayName);
+        
+        // Create claims
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Name, user.DisplayName),
+            new Claim(ClaimTypes.Email, user.Email)
+        };
+
+        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var authProperties = new AuthenticationProperties
+        {
+            IsPersistent = true,
+            ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30)
+        };
+
+        var httpContext = _httpContextAccessor.HttpContext;
+        if (httpContext != null)
+        {
+            await httpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(claimsIdentity),
+                authProperties);
+        }
+
+        return new UserIdentity
+        {
+            Id = user.Id,
+            Identifier = user.Email,
+            DisplayName = user.DisplayName,
+            Claims = claims.ToDictionary(c => c.Type, c => c.Value)
+        };
+    }
+
+    /// <summary>
     /// Get current authenticated user
     /// </summary>
-    public async Task<UserDto?> GetCurrentUserAsync()
+    public async Task<UserIdentity?> GetCurrentUserAsync()
     {
         var httpContext = _httpContextAccessor.HttpContext;
         if (httpContext?.User?.Identity?.IsAuthenticated != true)
@@ -32,51 +75,17 @@ public class AuthenticationService
         if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
             return null;
 
-        return await _userApiService.GetUserAsync(userId);
-    }
+        var user = await _userApiService.GetUserAsync(userId);
+        if (user == null)
+            return null;
 
-    /// <summary>
-    /// Login user with email and display name
-    /// </summary>
-    public async Task<bool> LoginAsync(string email, string displayName)
-    {
-        try
+        return new UserIdentity
         {
-            // Create or get user from API
-            var user = await _userApiService.CreateOrGetUserAsync(email, displayName);
-            
-            // Create claims
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.DisplayName),
-                new Claim(ClaimTypes.Email, user.Email)
-            };
-
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var authProperties = new AuthenticationProperties
-            {
-                IsPersistent = true,
-                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30)
-            };
-
-            var httpContext = _httpContextAccessor.HttpContext;
-            if (httpContext != null)
-            {
-                await httpContext.SignInAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme,
-                    new ClaimsPrincipal(claimsIdentity),
-                    authProperties);
-                
-                return true;
-            }
-            
-            return false;
-        }
-        catch
-        {
-            return false;
-        }
+            Id = user.Id,
+            Identifier = user.Email,
+            DisplayName = user.DisplayName,
+            Claims = httpContext.User.Claims.ToDictionary(c => c.Type, c => c.Value)
+        };
     }
 
     /// <summary>
@@ -97,5 +106,19 @@ public class AuthenticationService
     public bool IsAuthenticated()
     {
         return _httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated == true;
+    }
+
+    // Legacy method for backward compatibility - will be removed in future version
+    [Obsolete("Use AuthenticateAsync(AuthenticationRequest) instead")]
+    public async Task<bool> LoginAsync(string email, string displayName)
+    {
+        var request = new AuthenticationRequest
+        {
+            Identifier = email,
+            AdditionalData = new Dictionary<string, object> { ["displayName"] = displayName }
+        };
+        
+        await AuthenticateAsync(request);
+        return true;
     }
 }

@@ -1,10 +1,11 @@
 using Veritheia.Data.DTOs;
+using Veritheia.Common.Models;
 
 namespace veritheia.Web.Services;
 
 /// <summary>
 /// API service wrapper for user operations
-/// Calls the API service instead of accessing database directly
+/// Implements Pattern A: Simple Identifier Authentication
 /// </summary>
 public class UserApiService
 {
@@ -40,16 +41,24 @@ public class UserApiService
     }
 
     /// <summary>
-    /// Create or get user
+    /// Create or get user with optional display name
     /// </summary>
-    public async Task<UserDto> CreateOrGetUserAsync(string email, string displayName)
+    public async Task<UserDto> CreateOrGetUserAsync(string email, string? displayName = null)
     {
         var request = new CreateUserRequest
         {
             Email = email,
-            DisplayName = displayName
+            DisplayName = displayName ?? string.Empty
         };
         return await _apiClient.PostAsync<UserDto>("api/users", request);
+    }
+
+    /// <summary>
+    /// Update user profile information
+    /// </summary>
+    public async Task UpdateUserAsync(Guid userId, UserUpdateRequest request)
+    {
+        await _apiClient.PutAsync<object>($"api/users/{userId}", request);
     }
 
     /// <summary>
@@ -59,6 +68,4 @@ public class UserApiService
     {
         await _apiClient.PutAsync($"api/users/{userId}/activity");
     }
-
-
 }

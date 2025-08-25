@@ -1,16 +1,16 @@
-# Veritheia MVP Specification
+# Veritheia Core Specification
 
 ## 1. Overview
 
-Veritheia is formative technology - epistemic infrastructure that makes formation scalable in the midst of information overload. The MVP provides journey projection spaces where documents are transformed according to user-defined intellectual frameworks, enabling formation through authorship. Users develop intellectual capacity through engagement with projected documents, not through consumption of AI-generated outputs.
+Veritheia is formative technology - epistemic infrastructure that makes formation scalable in the midst of information overload. The system provides journey projection spaces where documents are transformed according to user-defined intellectual frameworks, enabling formation through authorship. Users develop intellectual capacity through engagement with projected documents, not through consumption of AI-generated outputs.
 
-> **Formation Note: The Neurosymbolic Transcendence** - The MVP demonstrates the revolutionary capability where users author their own symbolic systems through natural language. When a researcher writes "Papers are relevant if they provide empirical evidence," or a teacher writes "Good essays use sensory details," these natural language statements become the symbolic rules governing document processing. No programming required—the user's words ARE the symbolic system.
+> **Formation Note: The Neurosymbolic Transcendence** - The system demonstrates the revolutionary capability where users author their own symbolic systems through natural language. When a researcher writes "Papers are relevant if they provide empirical evidence," or a teacher writes "Good essays use sensory details," these natural language statements become the symbolic rules governing document processing. No programming required—the user's words ARE the symbolic system.
 
-## 2. Illustrative MVP Journeys
+## 2. Core Formation Patterns
 
-**Note**: These are illustrative MVP journeys - the same infrastructure supports any formative journey that meets the architecture's authorship constraints.
+**Note**: These are core formation patterns - the same infrastructure supports any formative journey that meets the architecture's authorship constraints.
 
-The MVP infrastructure supports formative journeys - intellectual development through engagement with documents. These examples demonstrate how formation scales through different types of authorship:
+The system supports formative journeys - intellectual development through engagement with documents. These patterns demonstrate how formation scales through different types of authorship:
 
 ### 2.1 Research Formation Journey: Literature Review
 
@@ -97,6 +97,32 @@ public interface IAnalyticalProcess
     InputDefinition GetInputDefinition();
 }
 ```
+
+## 4. System Architecture
+
+The system follows a composable architectural pattern where components can be combined in different configurations to serve different deployment scenarios. This pattern enables clean separation of concerns while supporting flexible composition of functionality.
+
+### 4.1 Composable Components
+
+**ApiService Component**: The core business logic component provides the application programming interface for all system operations. This component contains all business logic, data access patterns, and domain services without any presentation or transport concerns. It serves as the foundation that can be composed with different interface components.
+
+**Important**: The "API" in ApiService refers to **Application Programming Interface**, not HTTP REST API. This component is a pure business logic library that provides programming interfaces for other components to consume through direct method calls.
+
+**Web Component**: The user interface component provides the Blazor Server presentation interface. This component imports the ApiService component and calls its programming interface directly. It handles user interaction, authentication, and session management while delegating all business operations to the ApiService component.
+
+**ApiGateway Component**: The public interface component provides HTTP API endpoints for external system integration. This component imports the ApiService component and exposes its programming interface through HTTP protocols. It serves as the bridge between external systems and the core business logic.
+
+**MCPGateway Component**: The AI agent interface component provides Model Context Protocol endpoints for AI agent integration. This component imports the ApiService component and exposes its programming interface through MCP protocols. It enables AI agents to access system functionality through standardized MCP interfaces.
+
+### 4.2 Composition Patterns
+
+Components communicate through direct method calls within the same process. The ApiService component defines the programming interface that other components consume. This pattern eliminates network overhead while maintaining clean architectural boundaries.
+
+Different deployment scenarios can compose these components in various ways. A simple deployment might combine Web and ApiService components. A public API deployment might combine ApiGateway and ApiService components. A full deployment might include all three components.
+
+### 4.3 Extension Points
+
+The composable architecture provides clear extension points for additional components. New interface components can be added that import the ApiService component. The ApiService component can be extended with additional business logic without affecting interface components. This pattern supports progressive enhancement and flexible deployment scenarios.
 
 ### 3.2 CONFIGURABLE FORMATIVE ABSTRACTIONS (User-definable within formative constraints)
 
@@ -253,7 +279,7 @@ New Journey Creation (Process Selection Interface):
 │   👥 Student response evaluation, assignment creation                       │
 │   📝 Requires: Learning objectives, rubrics, safety constraints             │
 │                                                                              │
-│ ○ [Custom Process] (Future extension capability)                             │
+│ ○ [Custom Process] (Extension capability)                                   │
 ├──────────────────────────────────────────────────────────────────────────────┤
 │                                                [Create Journey] [Cancel]     │
 └──────────────────────────────────────────────────────────────────────────────┘

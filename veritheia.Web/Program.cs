@@ -25,15 +25,15 @@ builder.Services.AddHttpClient<ApiClient>(client =>
     client.Timeout = TimeSpan.FromSeconds(30);
 });
 
+// Add HTTP context accessor for authentication
+builder.Services.AddHttpContextAccessor();
+
 // Register API client services (no direct database access)
 builder.Services.AddScoped<JourneyApiService>();
 builder.Services.AddScoped<PersonaApiService>();
 builder.Services.AddScoped<UserApiService>();
 builder.Services.AddScoped<AuthenticationService>();
 builder.Services.AddScoped<ProcessConfigurationService>();
-
-// Add HTTP context accessor for authentication
-builder.Services.AddHttpContextAccessor();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

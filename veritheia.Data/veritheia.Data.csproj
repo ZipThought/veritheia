@@ -20,7 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\veritheia.Core\veritheia.Core.csproj" />
+    <ProjectReference Include="..\veritheia.Common\veritheia.Common.csproj" />
   </ItemGroup>
-
 
 </Project>

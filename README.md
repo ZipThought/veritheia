@@ -34,7 +34,27 @@ The key innovation: You write rules in plain English ("Papers are relevant if th
 
 **Veritheia follows strict specification-first development.** Complete specifications are written in `/docs` before any implementation. The implementation, which is majority AI-assisted, must follow the spec exactly—it cannot exceed or diverge from what is specified. This ensures architectural coherence and prevents feature creep.
 
-<img width="3840" height="2160" alt="Screenshot 2025-08-23 121320" src="https://github.com/user-attachments/assets/90753eb1-de9f-4374-9c30-08e5bc1fb7f7" />
+## Current Implementation Status
+
+**Architecture**: Specification defines composable component-based system with in-process communication
+- **ApiService**: Should be pure business logic library (Application Programming Interface, not HTTP REST)
+- **Web**: Should import ApiService directly for in-process communication
+- **ApiGateway**: HTTP API component for external integration
+- **MCPGateway**: AI agent integration via Model Context Protocol
+
+**Current State**: Core formation patterns implemented with user journey management
+- ✅ User authentication and data isolation
+- ✅ Journey creation and management
+- ✅ Persona-based intellectual frameworks
+- ✅ Database with PostgreSQL 17 + pgvector
+- ⚠️ **Architectural Divergence**: Implementation uses HTTP calls between Web and ApiService
+- 🎯 **Next**: Architectural refactoring to match specification, then process execution integration
+
+**Key Principle**: Users remain the authors of their intellectual work through direct engagement with documents, not AI-generated summaries.
+
+**Note**: The implementation currently diverges from the specification. The system is functional but uses HTTP communication instead of direct method calls. See [Development Progress](development/PROGRESS.md) for details on required architectural refactoring.
+
+<img width="3840" height="2160" alt="Screenshot 2025-08-26 121320" src="https://github.com/user-attachments/assets/90753eb1-de9f-4374-9c30-08e5bc1fb7f7" />
 
 ## Documentation
 
@@ -47,6 +67,9 @@ Comprehensive specifications (written before implementation) are available in th
 - [Implementation](docs/04-IMPLEMENTATION.md) - Technical details and development guide
 - [MVP Specification](docs/05-MVP-SPECIFICATION.md) - Feature requirements and functionality
 - [AI Agent Guide](docs/14-AI-AGENT-GUIDE.md) - Epistemic collaboration principles for AI agents
+- [Authentication System](docs/17-AUTHENTICATION-SYSTEM.md) - User identity and data isolation patterns
+- [Composable Extension Patterns](docs/18-COMPOSABLE-EXTENSION-PATTERNS.md) - Timeless specification patterns
+- [Project Architecture](docs/19-PROJECT-ARCHITECTURE.md) - System structure and communication patterns
 - [Foundational Papers](docs/papers/) - Research papers informing the architecture
 
 

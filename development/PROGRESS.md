@@ -2,7 +2,7 @@
 
 ## Current Status: UI Integration Complete, Process Execution Integration Next
 
-**Last Updated**: 2025-01-27  
+**Last Updated**: 2025-08-26  
 **Current Milestone**: UI Integration Complete - Process Execution Integration Next  
 **Overall Progress**: Major breakthrough - Full stack UI integration achieved
 
@@ -18,7 +18,7 @@
 
 ### 🏆 **UI Integration Achievement**
 **Status**: ✅ COMPLETE  
-**Date**: 2025-01-27  
+**Date**: 2025-08-26  
 
 **Key Breakthrough**: Successfully validated "formation through authorship" through working UI integration
 
@@ -39,6 +39,34 @@
 
 ## Implementation Status Update
 
+### ⚠️ **ARCHITECTURAL DIVERGENCE NOTICE**
+**Date**: 2025-08-26  
+**Status**: Implementation diverged from updated specification
+
+**Current Implementation vs. Updated Specification**:
+
+**Current Implementation (Outdated)**:
+- Web project makes HTTP calls to ApiService project
+- ApiService project contains HTTP controllers
+- Network-based communication between components
+- ApiService acts as an HTTP API service
+
+**Updated Specification (Target)**:
+- Composable architecture with direct method calls
+- ApiService as pure business logic library (no HTTP controllers)
+- Web project imports ApiService directly
+- In-process communication eliminating network overhead
+- MCPGateway component for AI agent integration
+
+**Required Updates**:
+1. Remove HTTP controllers from ApiService project
+2. Update Web project to import ApiService directly
+3. Replace HTTP calls with direct method calls
+4. Add MCPGateway component for future AI integration
+5. Update dependency injection and service registration
+
+**Impact**: Current implementation violates the composable architecture principle and creates unnecessary network overhead. The implementation needs to be refactored to match the updated specification.
+
 ### ✅ Foundation Layer - COMPLETE (Previous Sessions)
 - **Milestone 0**: Database Schema ✅
 - **Milestone 1**: Core Domain Entities ✅  
@@ -47,7 +75,7 @@
 
 ### ✅ NEW: Backend Services & UI Integration - COMPLETE
 **Status**: ✅ COMPLETE  
-**Date**: 2025-01-27  
+**Date**: 2025-08-26  
 
 **Backend Services Implemented**:
 - `JourneyService`: CRUD operations, statistics, user journey management

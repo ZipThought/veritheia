@@ -9,8 +9,34 @@
 
 ### Current Status
 - **Active Phase**: UI Integration Complete - Process Execution Integration Next
-- **Last Update**: 2025-01-27 - Major UI Integration Breakthrough
+- **Last Update**: 2025-08-26 - Major UI Integration Breakthrough
 - **Next Action**: Connect SystematicScreeningProcess to UI for real-time execution
+
+### ⚠️ **ARCHITECTURAL DIVERGENCE - IMMEDIATE ACTION REQUIRED**
+**Date**: 2025-08-26  
+**Priority**: HIGH - Implementation violates updated specification
+
+**Current Implementation (Outdated)**:
+- Web project makes HTTP calls to ApiService project
+- ApiService project contains HTTP controllers
+- Network-based communication between components
+- Violates composable architecture principle
+
+**Updated Specification (Target)**:
+- Composable architecture with direct method calls
+- ApiService as pure business logic library (no HTTP controllers)
+- Web project imports ApiService directly
+- In-process communication eliminating network overhead
+- MCPGateway component for AI agent integration
+
+**Required Refactoring**:
+1. Remove HTTP controllers from ApiService project
+2. Update Web project to import ApiService directly
+3. Replace HTTP calls with direct method calls
+4. Add MCPGateway component for future AI integration
+5. Update dependency injection and service registration
+
+**Impact**: Current implementation creates unnecessary network overhead and violates the composable architecture principle. Must be refactored before proceeding with process execution integration.
 
 ### Major Achievement: UI Integration vs Test-First Dialectical Resolution
 
@@ -55,7 +81,13 @@ curl -k https://localhost:7053  # Should return 200
 
 ### Current Architecture Status
 
-**✅ Working Components:**
+**⚠️ ARCHITECTURAL DIVERGENCE - REQUIRES REFACTORING**:
+- Current implementation uses HTTP-based communication between Web and ApiService
+- ApiService contains HTTP controllers (violates composable architecture)
+- Network overhead and unnecessary complexity
+- Must be refactored to match updated specification
+
+**✅ Working Components (Need Refactoring)**:
 - PostgreSQL 17 + pgvector database
 - User partition architecture with sovereignty
 - Journey-centric backend services (CRUD, statistics, management)
@@ -64,7 +96,14 @@ curl -k https://localhost:7053  # Should return 200
 - Journey creation and dashboard workflows
 - End-to-end integration testing
 
-**🎯 Next Integration:**
+**🎯 Required Architecture Changes**:
+- Convert ApiService to pure business logic library
+- Update Web project to import ApiService directly
+- Replace HTTP calls with direct method calls
+- Add MCPGateway component for AI integration
+- Update dependency injection patterns
+
+**🎯 Next Integration (After Refactoring)**:
 - SystematicScreeningProcess execution through UI
 - Real-time progress updates via Blazor Server
 - Process results display and interaction
@@ -100,14 +139,14 @@ veritheia.ApiService/Controllers/ ✅ All fixed to match services
 - **Aspire Orchestration**: Full stack running with proper service coordination
 
 ### Recovery After Context Switch
-1. **Current State**: Aspire running, UI integrated, backend services working
-2. **Immediate Task**: Debug connection string issue in Aspire configuration
+1. **Current State**: Aspire running, UI integrated, backend services working (but with wrong architecture)
+2. **Immediate Task**: **ARCHITECTURAL REFACTORING** - Convert to composable architecture
 3. **Next Major Task**: Process execution integration (SystematicScreeningProcess → UI)
 4. **Goal**: Complete journey workflow with real-time process execution
 
 ### Critical Notes
 - **Major Breakthrough**: UI integration validates core specification requirements
-- **Ready for Final Integration**: All foundation pieces working
-- **Connection Issue**: Minor Aspire configuration debugging needed
+- **⚠️ ARCHITECTURAL DIVERGENCE**: Implementation violates updated specification
+- **Immediate Priority**: Refactor to composable architecture before proceeding
 - **Test Coverage**: Both technical and experience specifications validated
 - **Methodology Established**: Clear approach for future specification-driven development

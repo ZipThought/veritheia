@@ -6,6 +6,22 @@ This directory contains the complete specification for Veritheia—a system wher
 
 **New to Veritheia?** Start with [01-VISION](./01-VISION.md) for the conceptual overview, or jump to [16-GLOSSARY](./16-GLOSSARY.md) if you encounter unfamiliar terms.
 
+**Note**: The current implementation diverges from this specification. See [Development Progress](../development/PROGRESS.md) for details on the architectural refactoring needed to match the specification.
+
+## Architectural Approach
+
+**Composable Component Architecture**: Veritheia uses a composable architecture where components can be combined in different configurations:
+- **ApiService**: Should be core business logic library (Application Programming Interface, not HTTP REST)
+- **Web**: Should import ApiService directly for in-process communication
+- **ApiGateway**: HTTP API component for external integration
+- **MCPGateway**: AI agent integration via Model Context Protocol
+
+**Key Principles**:
+- **User Agency**: Users remain the authors of their intellectual work
+- **Data Sovereignty**: All formation data belongs exclusively to users
+- **In-Process Communication**: Direct method calls eliminate network overhead
+- **Formation Through Authorship**: Understanding develops through engagement, not consumption
+
 ## Reading Order
 
 Documents are numbered to suggest a reading path:
@@ -38,10 +54,30 @@ Documents are numbered to suggest a reading path:
    - Core runtime components
    - Database as domain model
 
-**[05-MVP-SPECIFICATION.md](./05-MVP-SPECIFICATION.md)** - Features for formation
-   - Technologies that preserve the journey
-   - Workflows that maintain context
-   - Systems that protect formation
+**[05-MVP-SPECIFICATION.md](./05-MVP-SPECIFICATION.md)** - Core formation patterns and architecture
+   - Timeless architectural patterns for formation
+   - Composable extension points for functionality
+   - Configuration-driven system behavior
+
+### Architecture & System Design
+
+**[17-AUTHENTICATION-SYSTEM.md](./17-AUTHENTICATION-SYSTEM.md)** - User identity and data isolation patterns
+   - User sovereignty and data isolation principles
+   - Authentication patterns preserving user agency
+   - System integration patterns across components
+
+**[18-COMPOSABLE-EXTENSION-PATTERNS.md](./18-COMPOSABLE-EXTENSION-PATTERNS.md)** - Timeless specification patterns
+   - Specification-first development methodology
+   - Extension patterns and configuration schemas
+   - Superset architecture for progressive enhancement
+
+**[19-PROJECT-ARCHITECTURE.md](./19-PROJECT-ARCHITECTURE.md)** - System structure and communication patterns
+   - Composable component architecture
+   - In-process communication patterns
+   - Deployment scenarios and extension points
+   - MCPGateway and AI agent integration patterns
+
+### Domain & Implementation
 
 **[06-USER-MODEL.md](./06-USER-MODEL.md)** - User, journey, and journal architecture
    - How users engage with the system
@@ -84,6 +120,8 @@ Documents are numbered to suggest a reading path:
    - Context assembly and journey integrity tests
    - Extension testing guidelines
 
+### AI & Collaboration
+
 **[13-PROMPT-ENGINEERING.md](./13-PROMPT-ENGINEERING.md)** - Prompt patterns that maintain formation boundaries
    - Role constraints for AI assistance
    - Context assembly from journey and journals
@@ -94,6 +132,8 @@ Documents are numbered to suggest a reading path:
    - How AI agents work as instruments, not authors
    - The discipline of observation without interpretation
    - Preserving human sovereignty in development
+
+### Development & Maintenance
 
 **[15-DOCUMENTATION-GUIDE.md](./15-DOCUMENTATION-GUIDE.md)** - Meta-guide for maintaining documentation
    - Philosophy of specification-first development
@@ -107,20 +147,8 @@ Documents are numbered to suggest a reading path:
    - Technical implementation terms
    - Domain concepts explained
 
-**[17-AUTHENTICATION-SYSTEM.md](./17-AUTHENTICATION-SYSTEM.md)** - User authentication and session management
-   - Cookie-based authentication implementation
-   - User account creation and management
-   - Route protection and security considerations
-   - Integration with existing API services
-
 ### Research Papers
 
 - **[Papers Collection](./papers/)** - Academic references and research papers
 
-### Planned Documents
-- **DEPLOYMENT-GUIDE.md** - Production deployment procedures
-- **SECURITY-POLICIES.md** - Security boundaries and threat model
-
 ---
-
-_Changes will be automatically published via GitHub Pages._

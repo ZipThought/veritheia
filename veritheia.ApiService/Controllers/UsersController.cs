@@ -3,15 +3,16 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Veritheia.Data.Services;
 using Veritheia.Data.DTOs;
+using Veritheia.Common.Models;
 
 namespace Veritheia.ApiService.Controllers;
 
 /// <summary>
-/// User management API - MVP 4.1
+/// User management API - Implements Pattern A: Simple Identifier Authentication
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-public class UsersController : ControllerBase
+public class UsersController : BaseController
 {
     private readonly UserService _userService;
     
@@ -19,8 +20,6 @@ public class UsersController : ControllerBase
     {
         _userService = userService;
     }
-    
-
     
     /// <summary>
     /// Get user by ID
@@ -49,13 +48,32 @@ public class UsersController : ControllerBase
     }
     
     /// <summary>
-    /// Create or get user
+    /// Create or get user with optional display name
     /// </summary>
     [HttpPost]
     public async Task<IActionResult> CreateOrGetUser([FromBody] CreateUserRequest request)
     {
-        var user = await _userService.CreateOrGetUserAsync(request.Email, request.DisplayName);
+        var displayName = string.IsNullOrWhiteSpace(request.DisplayName) ? null : request.DisplayName;
+        var user = await _userService.CreateOrGetUserAsync(request.Email, displayName);
         return Ok(user);
+    }
+    
+    /// <summary>
+    /// Update user profile information
+    /// </summary>
+    [HttpPut("{userId}")]
+    public async Task<IActionResult> UpdateUser(Guid userId, [FromBody] UserUpdateRequest request)
+    {
+        try
+        {
+            var displayName = string.IsNullOrWhiteSpace(request.DisplayName) ? null : request.DisplayName;
+            await _userService.UpdateUserAsync(userId, displayName);
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(ex.Message);
+        }
     }
     
     /// <summary>
@@ -67,5 +85,4 @@ public class UsersController : ControllerBase
         await _userService.UpdateLastActiveAsync(userId);
         return NoContent();
     }
-
 }

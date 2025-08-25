@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text;
+using Microsoft.AspNetCore.Http;
 
 namespace veritheia.Web.Services;
 
@@ -9,11 +10,13 @@ namespace veritheia.Web.Services;
 public class ApiClient
 {
     private readonly HttpClient _httpClient;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly JsonSerializerOptions _jsonOptions;
 
-    public ApiClient(HttpClient httpClient)
+    public ApiClient(HttpClient httpClient, IHttpContextAccessor httpContextAccessor)
     {
         _httpClient = httpClient;
+        _httpContextAccessor = httpContextAccessor;
         _jsonOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -21,9 +24,31 @@ public class ApiClient
         };
     }
 
+    private void AddUserContext(HttpRequestMessage request)
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+        if (httpContext?.User?.Identity?.IsAuthenticated == true)
+        {
+            var userIdClaim = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!string.IsNullOrEmpty(userIdClaim))
+            {
+                request.Headers.Add("X-User-Id", userIdClaim);
+            }
+            
+            var userEmailClaim = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            if (!string.IsNullOrEmpty(userEmailClaim))
+            {
+                request.Headers.Add("X-User-Email", userEmailClaim);
+            }
+        }
+    }
+
     public async Task<T?> GetAsync<T>(string endpoint)
     {
-        var response = await _httpClient.GetAsync(endpoint);
+        var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
+        AddUserContext(request);
+        
+        var response = await _httpClient.SendAsync(request);
         
         if (!response.IsSuccessStatusCode)
         {
@@ -39,7 +64,10 @@ public class ApiClient
 
     public async Task<List<T>> GetListAsync<T>(string endpoint)
     {
-        var response = await _httpClient.GetAsync(endpoint);
+        var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
+        AddUserContext(request);
+        
+        var response = await _httpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();
 
         var json = await response.Content.ReadAsStringAsync();
@@ -50,8 +78,14 @@ public class ApiClient
     {
         var json = JsonSerializer.Serialize(data, _jsonOptions);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
+        
+        var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
+        {
+            Content = content
+        };
+        AddUserContext(request);
 
-        var response = await _httpClient.PostAsync(endpoint, content);
+        var response = await _httpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();
 
         var responseJson = await response.Content.ReadAsStringAsync();
@@ -62,8 +96,14 @@ public class ApiClient
     {
         var json = JsonSerializer.Serialize(data, _jsonOptions);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
+        
+        var request = new HttpRequestMessage(HttpMethod.Put, endpoint)
+        {
+            Content = content
+        };
+        AddUserContext(request);
 
-        var response = await _httpClient.PutAsync(endpoint, content);
+        var response = await _httpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();
 
         var responseJson = await response.Content.ReadAsStringAsync();
@@ -72,13 +112,19 @@ public class ApiClient
 
     public async Task DeleteAsync(string endpoint)
     {
-        var response = await _httpClient.DeleteAsync(endpoint);
+        var request = new HttpRequestMessage(HttpMethod.Delete, endpoint);
+        AddUserContext(request);
+        
+        var response = await _httpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();
     }
 
     public async Task PutAsync(string endpoint)
     {
-        var response = await _httpClient.PutAsync(endpoint, null);
+        var request = new HttpRequestMessage(HttpMethod.Put, endpoint);
+        AddUserContext(request);
+        
+        var response = await _httpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();
     }
 }

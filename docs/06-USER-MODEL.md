@@ -141,7 +141,7 @@ The default pattern where one user owns and controls the journey:
 - Individual formation
 - Complete ownership
 
-### Collaborative Journey (Future)
+### Collaborative Journey
 
 Multiple users contributing to shared understanding:
 - **Classroom**: Teacher guides, students participate
@@ -150,7 +150,7 @@ Multiple users contributing to shared understanding:
 
 Participants contribute to shared journals while maintaining individual voices.
 
-### Journey Templates (Future)
+### Journey Templates
 
 Structured journeys that can be instantiated:
 - **Curriculum**: Pre-designed learning paths
@@ -159,7 +159,7 @@ Structured journeys that can be instantiated:
 
 Templates provide structure while preserving individual journey.
 
-### Journey Observation (Future)
+### Journey Observation
 
 Supervised journeys for mentorship:
 - **Advisor-Student**: Guidance without control
@@ -168,7 +168,7 @@ Supervised journeys for mentorship:
 
 Observers can see without modifying the journey.
 
-## Journal Sharing (Post-MVP Future)
+## Journal Sharing
 
 While journeys and insights remain personal and non-transferable, journals can be shared as fragments of the journey—representations of the process, not the insights themselves:
 
@@ -276,7 +276,7 @@ Each process decides what to journal and when, maintaining the narrative flow.
 - Persona is never shared
 - Knowledge base respects document permissions
 
-### Future Sharing
+### Sharing Patterns
 - Explicit user consent required
 - Granular control (which journals, what parts)
 - Attribution maintained
@@ -287,7 +287,7 @@ Each process decides what to journal and when, maintaining the narrative flow.
 Extensions should:
 - Respect journey boundaries
 - Write meaningful journal entries
-- Consider future sharing in journal structure
+- Consider sharing patterns in journal structure
 - Contribute to persona evolution appropriately
 - Design for both individual and collaborative use
 
