@@ -46,6 +46,7 @@ public class VeritheiaDbContext : DbContext
     public DbSet<ProcessDefinition> ProcessDefinitions { get; set; } = null!;
     public DbSet<ProcessExecution> ProcessExecutions { get; set; } = null!;
     public DbSet<ProcessResult> ProcessResults { get; set; } = null!;
+    public DbSet<JourneyDocumentProcessingRecord> JourneyDocumentProcessingRecords { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -500,6 +501,52 @@ public class VeritheiaDbContext : DbContext
             entity.HasOne(e => e.Execution)
                 .WithOne(ex => ex.Result)
                 .HasForeignKey<ProcessResult>(e => new { e.UserId, e.ExecutionId })
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // JourneyDocumentProcessingRecord - Composite primary key for partition enforcement
+        modelBuilder.Entity<JourneyDocumentProcessingRecord>(entity =>
+        {
+            entity.ToTable("journey_document_processing_records");
+            // CORRECT: Composite primary key (UserId, Id)
+            entity.HasKey(e => new { e.UserId, e.Id });
+            
+            entity.Property(e => e.DocumentTitle).HasMaxLength(500).IsRequired();
+            entity.Property(e => e.DocumentIdentifier).HasMaxLength(255);
+            entity.Property(e => e.Authors).HasMaxLength(500);
+            entity.Property(e => e.Venue).HasMaxLength(255);
+            entity.Property(e => e.FailureStage).HasMaxLength(255);
+            entity.Property(e => e.FailureReason).HasMaxLength(1000);
+            entity.Property(e => e.FormationImpact).HasMaxLength(1000).IsRequired();
+            entity.Property(e => e.UserNotes).HasMaxLength(2000);
+            entity.Property(e => e.ProcessingResults).HasColumnType("jsonb");
+            entity.Property(e => e.AssessedResearchQuestions).HasColumnType("jsonb");
+            entity.Property(e => e.UnassessedResearchQuestions).HasColumnType("jsonb");
+            entity.Property(e => e.ExtractedTopics).HasColumnType("jsonb");
+            entity.Property(e => e.ExtractedEntities).HasColumnType("jsonb");
+            entity.Property(e => e.Keywords).HasColumnType("jsonb");
+            
+            // Partition-aware indexes for querying processing records
+            entity.HasIndex(e => new { e.UserId, e.JourneyId, e.ProcessExecutionId });
+            entity.HasIndex(e => new { e.UserId, e.JourneyId, e.WasProcessedSuccessfully });
+            entity.HasIndex(e => new { e.UserId, e.JourneyId, e.MustRead });
+            entity.HasIndex(e => new { e.UserId, e.IsReviewed });
+            
+            // Relationships with proper composite foreign keys
+            entity.HasOne(e => e.Journey)
+                .WithMany()
+                .HasForeignKey(e => new { e.UserId, e.JourneyId })
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            entity.HasOne(e => e.ProcessExecution)
+                .WithMany()
+                .HasForeignKey(e => new { e.UserId, e.ProcessExecutionId })
+                .OnDelete(DeleteBehavior.SetNull)
+                .IsRequired(false);
+                
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }

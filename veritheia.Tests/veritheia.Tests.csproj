@@ -6,6 +6,8 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <!-- Define compilation symbol to enable test doubles -->
+    <DefineConstants>TEST_BUILD</DefineConstants>
   </PropertyGroup>
 
 

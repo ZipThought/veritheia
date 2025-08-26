@@ -52,3 +52,7 @@ _site/
 .jekyll-cache/
 .jekyll-metadata
 vendor/
+
+# Temporary files and test data
+temp/
+/temp/

@@ -23,7 +23,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
 
 // Register ApiService business logic components directly
-builder.Services.AddApiServices(builder.Configuration);
+builder.Services.AddApiServices(builder.Configuration, builder.Environment);
 
 // Register AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));

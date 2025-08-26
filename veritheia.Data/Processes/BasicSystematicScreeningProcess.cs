@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Veritheia.Core.Interfaces;
 using Veritheia.Core.ValueObjects;
+using Veritheia.Core.Models;
 using Veritheia.Data.Entities;
 using Veritheia.Data.Services;
 
@@ -114,8 +115,12 @@ public class BasicSystematicScreeningProcess : IAnalyticalProcess
                 articles.Count, researchQuestions.Count);
 
             var screeningResults = new List<ScreeningResult>();
+            var failureSummary = new ProcessingFailureSummary
+            {
+                ProcessingStarted = DateTime.UtcNow
+            };
 
-            // Process each article
+            // Process each article with explicit failure tracking
             for (int articleIndex = 0; articleIndex < articles.Count; articleIndex++)
             {
                 if (cancellationToken.IsCancellationRequested)
@@ -126,53 +131,123 @@ public class BasicSystematicScreeningProcess : IAnalyticalProcess
                 _logger.LogInformation("Processing article {Index}/{Total}: {Title}", 
                     articleIndex + 1, articles.Count, article.Title);
 
-                // Phase 1: Extract key semantics (once per article)
-                var semantics = await semanticExtraction.ExtractSemanticsAsync(article.Abstract);
-
-                var screeningResult = new ScreeningResult
+                try
                 {
-                    Title = article.Title,
-                    Abstract = article.Abstract,
-                    Authors = article.Authors,
-                    Year = article.Year,
-                    Venue = article.Venue,
-                    DOI = article.DOI,
-                    Link = article.Link,
-                    Topics = semantics.Topics,
-                    Entities = semantics.Entities,
-                    Keywords = semantics.Keywords.Concat(article.Keywords.Split(';', StringSplitOptions.RemoveEmptyEntries)
-                        .Select(k => k.Trim())
-                        .Where(k => !string.IsNullOrWhiteSpace(k))).Distinct().ToList()
-                };
+                    // Phase 1: Extract key semantics (once per article)
+                    SemanticExtraction semantics;
+                    try
+                    {
+                        semantics = await semanticExtraction.ExtractSemanticsAsync(article.Abstract);
+                    }
+                    catch (Exception ex)
+                    {
+                        RecordDocumentFailure(failureSummary, articleIndex, article, "Semantic Extraction", null, ex);
+                        continue; // Skip to next document but continue processing
+                    }
 
-                // Phase 2: Assess relevance and contribution for each research question
-                for (int rqIndex = 0; rqIndex < researchQuestions.Count; rqIndex++)
-                {
-                    var researchQuestion = researchQuestions[rqIndex];
+                    var screeningResult = new ScreeningResult
+                    {
+                        Title = article.Title,
+                        Abstract = article.Abstract,
+                        Authors = article.Authors,
+                        Year = article.Year,
+                        Venue = article.Venue,
+                        DOI = article.DOI,
+                        Link = article.Link,
+                        Topics = semantics.Topics,
+                        Entities = semantics.Entities,
+                        Keywords = semantics.Keywords.Concat(article.Keywords.Split(';', StringSplitOptions.RemoveEmptyEntries)
+                            .Select(k => k.Trim())
+                            .Where(k => !string.IsNullOrWhiteSpace(k))).Distinct().ToList()
+                    };
+
+                    // Phase 2: Assess relevance and contribution for each research question
+                    bool hasAssessmentFailure = false;
+                    for (int rqIndex = 0; rqIndex < researchQuestions.Count; rqIndex++)
+                    {
+                        var researchQuestion = researchQuestions[rqIndex];
+                        
+                        try
+                        {
+                            var assessment = await AssessArticleForResearchQuestion(
+                                article, researchQuestion, cognitiveAdapter, rqIndex);
+                            
+                            screeningResult.RQAssessments.Add(assessment);
+                        }
+                        catch (Exception ex)
+                        {
+                            RecordDocumentFailure(failureSummary, articleIndex, article, 
+                                $"Research Question Assessment (RQ{rqIndex + 1})", rqIndex, ex);
+                            hasAssessmentFailure = true;
+                            
+                            // Continue with next RQ - partial assessment data is valuable
+                        }
+                    }
                     
-                    var assessment = await AssessArticleForResearchQuestion(
-                        article, researchQuestion, cognitiveAdapter, rqIndex);
-                    
-                    screeningResult.RQAssessments.Add(assessment);
+                    // Only include results if we have at least some assessment data
+                    if (screeningResult.RQAssessments.Any())
+                    {
+                        // Determine must-read (logical OR of all successful RQ indicators)
+                        screeningResult.MustRead = screeningResult.RQAssessments.Any(a => 
+                            a.RelevanceIndicator && a.ContributionIndicator);
+
+                        screeningResults.Add(screeningResult);
+                        failureSummary.SuccessfulCount++;
+                    }
+                    else if (hasAssessmentFailure)
+                    {
+                        // Document had semantic extraction but all assessments failed
+                        _logger.LogWarning("Document {Index} ({Title}) had complete assessment failure", 
+                            articleIndex + 1, article.Title);
+                    }
                 }
-
-                // Determine must-read (logical OR of all RQ indicators)
-                screeningResult.MustRead = screeningResult.RQAssessments.Any(a => 
-                    a.RelevanceIndicator && a.ContributionIndicator);
-
-                screeningResults.Add(screeningResult);
+                catch (Exception ex)
+                {
+                    // Unexpected error processing this document
+                    RecordDocumentFailure(failureSummary, articleIndex, article, "Document Processing", null, ex);
+                }
             }
+
+            // Finalize failure tracking
+            failureSummary.ProcessingFinished = DateTime.UtcNow;
+            failureSummary.BatchCompleted = true;
+            failureSummary.FailedCount = failureSummary.Failures.Count;
+            
+            // Generate failure type counts for summary
+            failureSummary.FailureTypeCounts = failureSummary.Failures
+                .GroupBy(f => f.ProcessingStage)
+                .ToDictionary(g => g.Key, g => g.Count());
 
             // Generate CSV output
             var csvOutput = csvWriter.WriteToCsv(screeningResults, researchQuestions);
 
-            // Create summary statistics
+            // Create summary statistics with transparent failure reporting
             var mustReadCount = screeningResults.Count(r => r.MustRead);
+            var totalArticlesAttempted = articles.Count;
+            
             var summary = new Dictionary<string, object>
             {
-                ["total_articles"] = screeningResults.Count,
+                ["total_articles_attempted"] = totalArticlesAttempted,
+                ["total_articles_processed"] = screeningResults.Count,
+                ["processing_success_count"] = failureSummary.SuccessfulCount,
+                ["processing_failure_count"] = failureSummary.FailedCount,
+                ["processing_success_rate"] = totalArticlesAttempted > 0 ? (double)failureSummary.SuccessfulCount / totalArticlesAttempted * 100 : 0,
                 ["must_read_count"] = mustReadCount,
                 ["must_read_percentage"] = screeningResults.Count > 0 ? (double)mustReadCount / screeningResults.Count * 100 : 0,
+                ["processing_summary_message"] = failureSummary.GenerateSummaryMessage(),
+                ["processing_duration_seconds"] = failureSummary.ProcessingDuration?.TotalSeconds ?? 0,
+                ["failure_breakdown"] = failureSummary.FailureTypeCounts,
+                ["detailed_failures"] = failureSummary.Failures.Select(f => new
+                {
+                    document_index = f.DocumentIndex,
+                    document_title = f.DocumentTitle,
+                    processing_stage = f.ProcessingStage,
+                    research_question_index = f.ResearchQuestionIndex,
+                    exception_type = f.ExceptionType,
+                    exception_message = f.ExceptionMessage,
+                    failed_at = f.FailedAt,
+                    formation_impact = f.FormationImpact
+                }).ToList(),
                 ["research_questions"] = researchQuestions,
                 ["csv_output"] = Convert.ToBase64String(csvOutput),
                 ["results"] = screeningResults.Select(r => new
@@ -325,6 +400,59 @@ Reasoning: [Your explanation of why this score was assigned]";
             ["supports_batch"] = true,
             ["supports_streaming"] = false,
             ["requires_llm"] = true
+        };
+    }
+    
+    /// <summary>
+    /// Record a document processing failure with complete context for transparency
+    /// </summary>
+    private void RecordDocumentFailure(
+        ProcessingFailureSummary failureSummary, 
+        int articleIndex, 
+        ArticleRecord article, 
+        string processingStage, 
+        int? researchQuestionIndex, 
+        Exception exception)
+    {
+        var failure = new DocumentProcessingFailure
+        {
+            DocumentIndex = articleIndex,
+            DocumentTitle = article.Title,
+            DocumentIdentifier = article.DOI,
+            ProcessingStage = processingStage,
+            ResearchQuestionIndex = researchQuestionIndex,
+            ExceptionType = exception.GetType().Name,
+            ExceptionMessage = exception.Message,
+            StackTrace = exception.StackTrace,
+            InnerExceptionDetails = exception.InnerException?.ToString(),
+            FormationImpact = GetFormationImpact(processingStage, exception),
+            Context = new Dictionary<string, object>
+            {
+                ["article_authors"] = article.Authors,
+                ["article_year"] = article.Year,
+                ["article_venue"] = article.Venue,
+                ["abstract_length"] = article.Abstract?.Length ?? 0
+            }
+        };
+        
+        failureSummary.Failures.Add(failure);
+        
+        _logger.LogError(exception, 
+            "Document processing failure: Article {Index} ({Title}) failed at {Stage}. Impact: {Impact}",
+            articleIndex + 1, article.Title, processingStage, failure.FormationImpact);
+    }
+    
+    /// <summary>
+    /// Determine the formation impact of a specific processing failure
+    /// </summary>
+    private string GetFormationImpact(string processingStage, Exception exception)
+    {
+        return processingStage switch
+        {
+            "Semantic Extraction" => "Document cannot be semantically analyzed. Topics, entities, and keywords unavailable for assessment. Document excluded from systematic screening.",
+            "Research Question Assessment" when processingStage.Contains("RQ") => "Research question assessment incomplete. Document may still be partially evaluated against other research questions.",
+            "Document Processing" => "Complete document processing failure. Document excluded from systematic screening results.",
+            _ => "Processing stage failed. Document may be partially processed or excluded depending on failure type."
         };
     }
 }

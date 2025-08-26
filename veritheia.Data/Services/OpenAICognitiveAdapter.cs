@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Veritheia.Core.Interfaces;
+using Veritheia.Core.Exceptions;
 
 namespace Veritheia.Data.Services;
 
@@ -57,8 +58,15 @@ public class OpenAICognitiveAdapter : ICognitiveAdapter
             
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogError("Embedding generation failed: {Status}", response.StatusCode);
-                return GenerateFallbackEmbedding(text);
+                var statusCode = response.StatusCode;
+                var reasonPhrase = response.ReasonPhrase ?? "Unknown error";
+                _logger.LogError("Embedding generation failed: {Status} - {Reason}", statusCode, reasonPhrase);
+                
+                throw new EmbeddingGenerationException(
+                    text,
+                    $"HTTP {(int)statusCode} {reasonPhrase}. LLM service returned error status.",
+                    innerException: new HttpRequestException($"HTTP {(int)statusCode} {reasonPhrase}")
+                );
             }
             
             var responseJson = await response.Content.ReadAsStringAsync();
@@ -80,12 +88,26 @@ public class OpenAICognitiveAdapter : ICognitiveAdapter
                 }
             }
             
-            return GenerateFallbackEmbedding(text);
+            throw new EmbeddingGenerationException(
+                text,
+                "Invalid response format from LLM service. Expected OpenAI-compatible embedding response format.",
+                innerException: new InvalidDataException("Missing 'data' array or 'embedding' property in response")
+            );
+        }
+        catch (EmbeddingGenerationException)
+        {
+            // Re-throw our specific exceptions to maintain formation context
+            throw;
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to generate embeddings, using fallback");
-            return GenerateFallbackEmbedding(text);
+            _logger.LogError(ex, "Unexpected error during embedding generation");
+            
+            throw new EmbeddingGenerationException(
+                text,
+                $"Unexpected error: {ex.Message}",
+                innerException: ex
+            );
         }
     }
     
@@ -123,9 +145,16 @@ public class OpenAICognitiveAdapter : ICognitiveAdapter
             
             if (!response.IsSuccessStatusCode)
             {
+                var statusCode = response.StatusCode;
+                var reasonPhrase = response.ReasonPhrase ?? "Unknown error";
                 var errorContent = await response.Content.ReadAsStringAsync();
-                _logger.LogError("LLM generation failed: {Status} - {Error}", response.StatusCode, errorContent);
-                return $"[LLM error - Status: {response.StatusCode}]\n{errorContent}";
+                _logger.LogError("LLM generation failed: {Status} - {Reason} - {Error}", statusCode, reasonPhrase, errorContent);
+                
+                throw new TextGenerationException(
+                    prompt,
+                    $"HTTP {(int)statusCode} {reasonPhrase}. LLM service error: {errorContent}",
+                    innerException: new HttpRequestException($"HTTP {(int)statusCode} {reasonPhrase}: {errorContent}")
+                );
             }
             
             var responseJson = await response.Content.ReadAsStringAsync();
@@ -139,40 +168,52 @@ public class OpenAICognitiveAdapter : ICognitiveAdapter
                 {
                     if (messageElement.TryGetProperty("content", out var contentElement))
                     {
-                        return contentElement.GetString() ?? "No response generated";
+                        return contentElement.GetString() ?? 
+                               throw new TextGenerationException(prompt, "LLM returned null content in response");
                     }
                 }
             }
             
-            return "Failed to parse LLM response";
+            throw new TextGenerationException(
+                prompt,
+                "Invalid response format from LLM service. Expected OpenAI-compatible chat completion response format.",
+                innerException: new InvalidDataException("Missing 'choices' array, 'message' object, or 'content' property in response")
+            );
+        }
+        catch (TextGenerationException)
+        {
+            // Re-throw our specific exceptions to maintain formation context
+            throw;
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "Cannot connect to LLM");
-            return $"[Cannot connect to LLM at {_baseUrl}]\n\nPlease ensure the LLM server is running on port 1234.";
+            _logger.LogError(ex, "Cannot connect to LLM at {BaseUrl}", _baseUrl);
+            
+            throw new TextGenerationException(
+                prompt,
+                $"Cannot connect to LLM service at {_baseUrl}. Service may be down or unreachable.",
+                innerException: ex
+            );
         }
         catch (TaskCanceledException ex)
         {
             _logger.LogError(ex, "LLM request timed out");
-            return "[Request timed out] The LLM took too long to respond. This might happen with complex prompts.";
+            
+            throw new TextGenerationException(
+                prompt,
+                "LLM request timed out. The service took too long to respond, which may happen with complex prompts.",
+                innerException: ex
+            );
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to generate text with LLM");
-            return $"Error: {ex.Message}";
+            _logger.LogError(ex, "Unexpected error during text generation");
+            
+            throw new TextGenerationException(
+                prompt,
+                $"Unexpected error during text generation: {ex.Message}",
+                innerException: ex
+            );
         }
-    }
-    
-    private float[] GenerateFallbackEmbedding(string text)
-    {
-        _logger.LogWarning("Using fallback embedding generation");
-        // Generate deterministic embeddings based on text hash
-        var embedding = new float[1536]; // OpenAI embedding dimension
-        var random = new Random(text.GetHashCode());
-        for (int i = 0; i < embedding.Length; i++)
-        {
-            embedding[i] = (float)(random.NextDouble() * 2 - 1);
-        }
-        return embedding;
     }
 }

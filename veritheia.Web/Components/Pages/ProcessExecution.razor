@@ -743,42 +743,6 @@
         }
     }
 
-    private async Task SimulateProcessing()
-    {
-        // Simulate processing for demo
-        var random = new Random();
-        var startTime = DateTime.Now;
-
-        for (int i = 1; i <= _totalCount; i++)
-        {
-            await Task.Delay(500); // Simulate processing time
-
-            _processedCount = i;
-            _currentProgress = (int)((double)i / _totalCount * 100);
-            _mustReadCount += random.NextDouble() > 0.7 ? 1 : 0; // ~30% must-read rate
-            _currentDocument = $"Processing paper {i} of {_totalCount}...";
-            
-            var elapsed = DateTime.Now - startTime;
-            _elapsedTime = FormatTimeSpan(elapsed);
-            
-            if (i < _totalCount)
-            {
-                var remaining = TimeSpan.FromTicks(elapsed.Ticks * (_totalCount - i) / i);
-                _remainingTime = FormatTimeSpan(remaining);
-            }
-
-            StateHasChanged();
-        }
-
-        // Complete processing
-        _isExecuting = false;
-        _isCompleted = true;
-        _totalProcessed = _totalCount;
-        _finalMustReadCount = _mustReadCount;
-        _completionTime = FormatTimeSpan(DateTime.Now - startTime);
-        StateHasChanged();
-    }
-
     private string FormatTimeSpan(TimeSpan timeSpan)
     {
         if (timeSpan.TotalHours >= 1)
