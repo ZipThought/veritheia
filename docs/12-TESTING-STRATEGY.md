@@ -382,6 +382,21 @@ The key principle for E2E testing is pragmatic boundary management. All internal
 
 For Veritheia, this means using real PostgreSQL, real Entity Framework operations, genuine process engines, and actual API controllers, while mocking the LLM services (OpenAI, Ollama), external search services, email providers, or any third-party APIs. The goal is to verify the complete system orchestration while controlling for external uncertainty.
 
+#### LLM Integration Tests (Manual Only)
+
+A special category of E2E tests uses real LLM services to validate the complete LLAssist algorithm with authentic data:
+
+- **Test Data**: MUST use provided `scopus_sample.csv` and `ieee_sample.csv` files
+- **Research Questions**: MUST use `cybersecurity_llm_rqs.txt` for realistic multi-question scenarios
+- **CI Exclusion**: Tests marked with `[Trait("RequiresLLM", "true")]` are skipped in CI
+- **Manual Execution**: Run with `dotnet test --filter "RequiresLLM=true"`
+
+These tests validate:
+- Compatibility with real Scopus/IEEE export formats
+- Correct parsing of complex CSV structures (quoted fields, multi-value keywords)
+- LLM integration for semantic extraction and assessment
+- Processing of actual academic abstracts, not synthetic data
+
 #### Complete User Journey Tests
 
 ```csharp

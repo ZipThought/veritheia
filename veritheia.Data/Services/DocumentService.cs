@@ -27,35 +27,48 @@ public class DocumentService
     }
     
     /// <summary>
-    /// Upload a document for a user
+    /// Upload full text for existing document or create new document with PDF
     /// </summary>
-    public async Task<Document> UploadDocumentAsync(
+    public async Task<Document> UploadFullTextAsync(
         Stream content,
         string fileName,
         string mimeType,
         Guid userId,
-        Guid? scopeId = null)
+        Guid? existingDocumentId = null,
+        string? title = null)
     {
+        Document document;
+        
+        if (existingDocumentId.HasValue)
+        {
+            // Attach full text to existing document
+            document = await _db.Documents
+                .FirstOrDefaultAsync(d => d.Id == existingDocumentId.Value && d.UserId == userId)
+                ?? throw new UnauthorizedAccessException("Document not found or access denied");
+        }
+        else
+        {
+            // Create new document from PDF
+            document = new Document
+            {
+                Id = Guid.CreateVersion7(),
+                UserId = userId,
+                Title = title ?? Path.GetFileNameWithoutExtension(fileName),
+                Source = "pdf_upload",
+                AddedToCorpus = DateTime.UtcNow
+            };
+            _db.Documents.Add(document);
+        }
+        
         // Store file content
         var storagePath = await _storage.StoreDocumentAsync(content, fileName, mimeType);
-        
-        // Get file metadata
         var metadata = await _storage.GetMetadataAsync(storagePath);
         
-        // Create database record
-        var document = new Document
-        {
-            Id = Guid.CreateVersion7(),
-            UserId = userId,
-            FileName = fileName,
-            MimeType = mimeType,
-            FilePath = storagePath,
-            FileSize = metadata.SizeInBytes,
-            UploadedAt = DateTime.UtcNow,
-            ScopeId = scopeId
-        };
+        // Update document with full text info
+        document.FullTextPath = storagePath;
+        document.FullTextMimeType = mimeType;
+        document.FullTextSize = metadata.SizeInBytes;
         
-        _db.Documents.Add(document);
         await _db.SaveChangesAsync();
         
         return document;
@@ -75,9 +88,9 @@ public class DocumentService
     }
     
     /// <summary>
-    /// Get document content
+    /// Get document full text content (if available)
     /// </summary>
-    public async Task<Stream> GetDocumentContentAsync(Guid documentId, Guid userId)
+    public async Task<Stream?> GetDocumentFullTextAsync(Guid documentId, Guid userId)
     {
         var document = await _db.Documents
             .FirstOrDefaultAsync(d => d.Id == documentId && d.UserId == userId);
@@ -85,7 +98,60 @@ public class DocumentService
         if (document == null)
             throw new UnauthorizedAccessException($"Document {documentId} not found or access denied");
         
-        return await _storage.GetDocumentContentAsync(document.FilePath);
+        if (string.IsNullOrEmpty(document.FullTextPath))
+            return null;  // No full text available
+            
+        return await _storage.GetDocumentContentAsync(document.FullTextPath);
+    }
+    
+    /// <summary>
+    /// Add document to corpus with deduplication by DOI
+    /// </summary>
+    public async Task<Document> AddDocumentToCorpusAsync(
+        Guid userId,
+        string title,
+        string? abstractText,
+        string? authors,
+        string? doi,
+        int? year,
+        string? venue,
+        string? keywords)
+    {
+        // Check for duplicate by DOI if provided
+        if (!string.IsNullOrWhiteSpace(doi))
+        {
+            var existing = await _db.Documents
+                .Where(d => d.UserId == userId)
+                .Where(d => d.DOI == doi)
+                .FirstOrDefaultAsync();
+                
+            if (existing != null)
+            {
+                // Document already exists, return existing
+                return existing;
+            }
+        }
+        
+        // Create new document in canonical schema
+        var document = new Document
+        {
+            Id = Guid.CreateVersion7(),
+            UserId = userId,
+            Title = title,
+            Abstract = abstractText,
+            Authors = authors,
+            Year = year,
+            DOI = doi,
+            Venue = venue,
+            Keywords = keywords,
+            Source = "csv_import",
+            AddedToCorpus = DateTime.UtcNow
+        };
+        
+        _db.Documents.Add(document);
+        await _db.SaveChangesAsync();
+        
+        return document;
     }
     
     /// <summary>
@@ -99,8 +165,9 @@ public class DocumentService
         if (document == null)
             throw new UnauthorizedAccessException($"Document {documentId} not found or access denied");
         
-        // Delete file content
-        await _storage.DeleteDocumentAsync(document.FilePath);
+        // Delete file content if exists
+        if (!string.IsNullOrEmpty(document.FullTextPath))
+            await _storage.DeleteDocumentAsync(document.FullTextPath);
         
         // Delete database record (cascade will handle related records)
         _db.Documents.Remove(document);

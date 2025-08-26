@@ -42,7 +42,7 @@ public class BasicSystematicScreeningProcess : IAnalyticalProcess
     {
         return new InputDefinition()
             .AddTextArea("research_questions", "Research questions (one per line)", true)
-            .AddTextArea("csv_content", "CSV file content (paste CSV data here)", true);
+            .AddTextArea("csv_upload", "Upload CSV to add documents to corpus (optional)", false);
     }
     
     public bool ValidateInputs(ProcessContext context)
@@ -53,11 +53,7 @@ public class BasicSystematicScreeningProcess : IAnalyticalProcess
             return false;
         }
         
-        if (!context.Inputs.ContainsKey("csv_content"))
-        {
-            _logger.LogError("Missing required input: csv_content");
-            return false;
-        }
+        // CSV file is optional - we process corpus documents
         
         return true;
     }
@@ -83,33 +79,65 @@ public class BasicSystematicScreeningProcess : IAnalyticalProcess
                 throw new InvalidOperationException("No research questions provided");
             }
 
-            // Get CSV content as string
-            var csvContentString = context.Inputs["csv_content"]?.ToString();
-            if (string.IsNullOrWhiteSpace(csvContentString))
-            {
-                throw new InvalidOperationException("CSV content is empty");
-            }
-
-            var csvFileContent = System.Text.Encoding.UTF8.GetBytes(csvContentString);
-
             // Get services
             using var scope = _serviceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<VeritheiaDbContext>();
+            var documentService = scope.ServiceProvider.GetRequiredService<DocumentService>();
             var csvParser = scope.ServiceProvider.GetRequiredService<CsvParserService>();
             var csvWriter = scope.ServiceProvider.GetRequiredService<CsvWriterService>();
             var semanticExtraction = scope.ServiceProvider.GetRequiredService<SemanticExtractionService>();
             var cognitiveAdapter = scope.ServiceProvider.GetRequiredService<ICognitiveAdapter>();
 
-            // Parse CSV to get articles
-            List<ArticleRecord> articles;
-            using (var csvStream = new MemoryStream(csvFileContent))
+            // Check if CSV was provided to add to corpus
+            if (context.Inputs.ContainsKey("csv_upload") && context.Inputs["csv_upload"] != null)
             {
-                articles = csvParser.ParseCsv(csvStream);
+                var csvContent = context.Inputs["csv_upload"].ToString();
+                if (!string.IsNullOrWhiteSpace(csvContent))
+                {
+                    _logger.LogInformation("Adding CSV documents to corpus");
+                    var csvBytes = System.Text.Encoding.UTF8.GetBytes(csvContent);
+                    using (var csvStream = new MemoryStream(csvBytes))
+                    {
+                        var csvArticles = csvParser.ParseCsv(csvStream);
+                        foreach (var article in csvArticles)
+                        {
+                            // Add to corpus with deduplication by DOI
+                            await documentService.AddDocumentToCorpusAsync(
+                                context.UserId,
+                                article.Title,
+                                article.Abstract,
+                                article.Authors,
+                                article.DOI,
+                                article.Year,
+                                article.Venue,
+                                article.Keywords);
+                        }
+                        _logger.LogInformation("Added {Count} documents to corpus", csvArticles.Count);
+                    }
+                }
             }
 
-            if (!articles.Any())
+            // Get all documents from user corpus
+            var corpusDocuments = await dbContext.Documents
+                .Where(d => d.UserId == context.UserId)
+                .Select(d => new ArticleRecord
+                {
+                    Title = d.Title,
+                    Abstract = d.Abstract ?? "",
+                    Authors = d.Authors ?? "",
+                    Year = d.Year,
+                    Venue = d.Venue ?? "",
+                    DOI = d.DOI ?? "",
+                    Keywords = d.Keywords ?? ""
+                })
+                .ToListAsync();
+
+            if (!corpusDocuments.Any())
             {
-                throw new InvalidOperationException("No articles found in CSV file");
+                throw new InvalidOperationException("No documents in corpus. Please add documents first.");
             }
+
+            var articles = corpusDocuments;
 
             _logger.LogInformation("Processing {Count} articles with {RQCount} research questions", 
                 articles.Count, researchQuestions.Count);
