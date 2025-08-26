@@ -18,7 +18,7 @@ public class EmbeddingService
     private readonly VeritheiaDbContext _db;
     private readonly ICognitiveAdapter? _cognitive;
     private readonly ILogger<EmbeddingService> _logger;
-
+    
     public EmbeddingService(
         VeritheiaDbContext dbContext,
         ILogger<EmbeddingService> logger,
@@ -28,7 +28,7 @@ public class EmbeddingService
         _logger = logger;
         _cognitive = cognitive;
     }
-
+    
     /// <summary>
     /// Generate embedding for a journey document segment
     /// </summary>
@@ -39,26 +39,26 @@ public class EmbeddingService
             _logger.LogWarning("No cognitive adapter configured, skipping embedding generation");
             return false;
         }
-
+        
         var segment = await _db.JourneyDocumentSegments
             .Include(s => s.Journey)
             .FirstOrDefaultAsync(s => s.Id == segmentId);
-
+        
         if (segment == null)
         {
             _logger.LogError("Segment {SegmentId} not found", segmentId);
             return false;
         }
-
+        
         try
         {
             // Generate embedding with journey context
             var contextualText = BuildContextualText(segment);
             var embedding = await _cognitive.CreateEmbedding(contextualText);
-
+            
             // Determine vector dimension
             var dimension = embedding.Length;
-
+            
             // Create search index entry
             var searchIndex = new SearchIndex
             {
@@ -66,9 +66,9 @@ public class EmbeddingService
                 SegmentId = segmentId,
                 VectorModel = _cognitive.GetType().Name
             };
-
+            
             _db.SearchIndexes.Add(searchIndex);
-
+            
             // Store in appropriate vector table based on dimension
             switch (dimension)
             {
@@ -80,7 +80,7 @@ public class EmbeddingService
                     };
                     _db.SearchVectors1536.Add(vector1536);
                     break;
-
+                    
                 case 768:
                     var vector768 = new SearchVector768
                     {
@@ -89,7 +89,7 @@ public class EmbeddingService
                     };
                     _db.SearchVectors768.Add(vector768);
                     break;
-
+                    
                 case 384:
                     var vector384 = new SearchVector384
                     {
@@ -98,17 +98,17 @@ public class EmbeddingService
                     };
                     _db.SearchVectors384.Add(vector384);
                     break;
-
+                    
                 default:
                     _logger.LogError("Unsupported embedding dimension: {Dimension}", dimension);
                     return false;
             }
-
+            
             await _db.SaveChangesAsync();
-
-            _logger.LogInformation("Generated {Dimension}-dim embedding for segment {SegmentId}",
+            
+            _logger.LogInformation("Generated {Dimension}-dim embedding for segment {SegmentId}", 
                 dimension, segmentId);
-
+            
             return true;
         }
         catch (Exception ex)
@@ -117,7 +117,7 @@ public class EmbeddingService
             return false;
         }
     }
-
+    
     /// <summary>
     /// Build contextual text including journey framework
     /// </summary>
@@ -127,10 +127,10 @@ public class EmbeddingService
         var context = $"Journey Purpose: {segment.Journey.Purpose}\n";
         context += $"Segment Type: {segment.SegmentType}\n";
         context += $"Content: {segment.SegmentContent}";
-
+        
         return context;
     }
-
+    
     /// <summary>
     /// Find similar segments using vector search
     /// </summary>
@@ -152,7 +152,7 @@ public class EmbeddingService
                 SimilarityScore = 0.95 // Would be calculated by pgvector
             })
             .ToArrayAsync();
-
+        
         return segments;
     }
 }

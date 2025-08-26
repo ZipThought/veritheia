@@ -1,5 +1,3 @@
-using Aspire.Hosting;
-
 var builder = DistributedApplication.CreateBuilder(args);
 
 // PostgreSQL 17 with pgvector for journey projection spaces
@@ -10,10 +8,13 @@ var postgres = builder.AddPostgres("postgres")
 
 var veritheiaDb = postgres.AddDatabase("veritheiadb");
 
-// Web component includes ApiService business logic directly
-builder.AddProject<Projects.veritheia_Web>("webfrontend")
-    .WithExternalHttpEndpoints()
+var apiService = builder.AddProject<Projects.veritheia_ApiService>("apiservice")
     .WithReference(veritheiaDb)
     .WaitFor(veritheiaDb);
+
+builder.AddProject<Projects.veritheia_Web>("webfrontend")
+    .WithExternalHttpEndpoints()
+    .WithReference(apiService)
+    .WaitFor(apiService);
 
 builder.Build().Run();

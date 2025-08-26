@@ -1,93 +1,82 @@
 using Veritheia.Data.DTOs;
-using Veritheia.Data.Services;
-using Veritheia.Data.Entities;
-using AutoMapper;
 
 namespace veritheia.Web.Services;
 
 /// <summary>
-/// Journey service wrapper for Web component
-/// Uses direct method calls to business logic services
+/// API service wrapper for journey operations
+/// Calls the API service instead of accessing database directly
 /// </summary>
 public class JourneyApiService
 {
-    private readonly JourneyService _journeyService;
-    private readonly IMapper _mapper;
+    private readonly ApiClient _apiClient;
 
-    public JourneyApiService(JourneyService journeyService, IMapper mapper)
+    public JourneyApiService(ApiClient apiClient)
     {
-        _journeyService = journeyService;
-        _mapper = mapper;
+        _apiClient = apiClient;
     }
 
     /// <summary>
     /// Get all journeys for user
     /// </summary>
-    public async Task<List<JourneyDto>> GetUserJourneysAsync(Guid userId)
+    public async Task<List<JourneyDto>> GetUserJourneysAsync(Guid? userId = null)
     {
-        if (userId == Guid.Empty)
-            throw new ArgumentException("UserId is required");
-
-        var journeys = await _journeyService.GetUserJourneysAsync(userId);
-        return _mapper.Map<List<JourneyDto>>(journeys);
+        var endpoint = userId.HasValue ? $"api/journeys?userId={userId}" : "api/journeys";
+        return await _apiClient.GetListAsync<JourneyDto>(endpoint);
     }
 
     /// <summary>
     /// Get journey by ID
     /// </summary>
-    public async Task<JourneyDto?> GetJourneyAsync(Guid userId, Guid journeyId)
+    public async Task<JourneyDto?> GetJourneyAsync(Guid journeyId, Guid? userId = null)
     {
-        if (userId == Guid.Empty)
-            throw new ArgumentException("UserId is required");
-
-        var journey = await _journeyService.GetJourneyAsync(userId, journeyId);
-        return journey != null ? _mapper.Map<JourneyDto>(journey) : null;
+        var endpoint = userId.HasValue ? $"api/journeys/{journeyId}?userId={userId}" : $"api/journeys/{journeyId}";
+        return await _apiClient.GetAsync<JourneyDto>(endpoint);
     }
 
     /// <summary>
     /// Create new journey
     /// </summary>
-    public async Task<JourneyDto> CreateJourneyAsync(Guid userId, string purpose, Guid personaId, string processType)
+    public async Task<JourneyDto> CreateJourneyAsync(string purpose, Guid personaId, string processType, Guid? userId = null)
     {
-        if (userId == Guid.Empty)
-            throw new ArgumentException("UserId is required");
-
-        var journey = await _journeyService.CreateJourneyAsync(userId, purpose, personaId, processType);
-        return _mapper.Map<JourneyDto>(journey);
+        var request = new CreateJourneyRequest
+        {
+            UserId = userId,
+            Purpose = purpose,
+            PersonaId = personaId,
+            ProcessType = processType
+        };
+        return await _apiClient.PostAsync<JourneyDto>("api/journeys", request);
     }
 
     /// <summary>
     /// Update journey
     /// </summary>
-    public async Task<JourneyDto> UpdateJourneyAsync(Guid userId, Guid journeyId, string? state = null, Dictionary<string, object>? context = null)
+    public async Task<JourneyDto> UpdateJourneyAsync(Guid journeyId, string? state = null, Dictionary<string, object>? context = null, Guid? userId = null)
     {
-        if (userId == Guid.Empty)
-            throw new ArgumentException("UserId is required");
-
-        var journey = await _journeyService.UpdateJourneyAsync(userId, journeyId, state, context);
-        return _mapper.Map<JourneyDto>(journey);
+        var request = new UpdateJourneyRequest
+        {
+            UserId = userId,
+            State = state,
+            Context = context
+        };
+        return await _apiClient.PutAsync<JourneyDto>($"api/journeys/{journeyId}", request);
     }
 
     /// <summary>
     /// Archive journey
     /// </summary>
-    public async Task ArchiveJourneyAsync(Guid userId, Guid journeyId)
+    public async Task ArchiveJourneyAsync(Guid journeyId, Guid? userId = null)
     {
-        if (userId == Guid.Empty)
-            throw new ArgumentException("UserId is required");
-
-        await _journeyService.ArchiveJourneyAsync(userId, journeyId);
+        var endpoint = userId.HasValue ? $"api/journeys/{journeyId}?userId={userId}" : $"api/journeys/{journeyId}";
+        await _apiClient.DeleteAsync(endpoint);
     }
 
     /// <summary>
     /// Get journey statistics for user
     /// </summary>
-    public async Task<JourneyStatisticsDto> GetJourneyStatisticsAsync(Guid userId)
+    public async Task<JourneyStatisticsDto> GetJourneyStatisticsAsync(Guid? userId = null)
     {
-        if (userId == Guid.Empty)
-            throw new ArgumentException("UserId is required");
-
-        var statistics = await _journeyService.GetJourneyStatisticsAsync(userId);
-        return _mapper.Map<JourneyStatisticsDto>(statistics);
+        var endpoint = userId.HasValue ? $"api/journeys/statistics?userId={userId}" : "api/journeys/statistics";
+        return await _apiClient.GetAsync<JourneyStatisticsDto>(endpoint) ?? new JourneyStatisticsDto();
     }
 }

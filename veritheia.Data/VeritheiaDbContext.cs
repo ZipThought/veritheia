@@ -19,42 +19,41 @@ public class VeritheiaDbContext : DbContext
     public DbSet<User> Users { get; set; } = null!;
     public DbSet<Persona> Personas { get; set; } = null!;
     public DbSet<ProcessCapability> ProcessCapabilities { get; set; } = null!;
-
+    
     // Journey Domain - The Core of Projection Spaces
     public DbSet<Journey> Journeys { get; set; } = null!;
     public DbSet<JourneyFramework> JourneyFrameworks { get; set; } = null!;
     public DbSet<Journal> Journals { get; set; } = null!;
     public DbSet<JournalEntry> JournalEntries { get; set; } = null!;
-
+    
     // Knowledge Domain
     public DbSet<Document> Documents { get; set; } = null!;
     public DbSet<DocumentMetadata> DocumentMetadata { get; set; } = null!;
     public DbSet<KnowledgeScope> KnowledgeScopes { get; set; } = null!;
-
+    
     // Journey Projection Entities
     public DbSet<JourneyDocumentSegment> JourneyDocumentSegments { get; set; } = null!;
     public DbSet<JourneySegmentAssessment> JourneySegmentAssessments { get; set; } = null!;
     public DbSet<JourneyFormation> JourneyFormations { get; set; } = null!;
-
+    
     // Search Infrastructure
     public DbSet<SearchIndex> SearchIndexes { get; set; } = null!;
     public DbSet<SearchVector1536> SearchVectors1536 { get; set; } = null!;
     public DbSet<SearchVector768> SearchVectors768 { get; set; } = null!;
     public DbSet<SearchVector384> SearchVectors384 { get; set; } = null!;
-
+    
     // Process Infrastructure
     public DbSet<ProcessDefinition> ProcessDefinitions { get; set; } = null!;
     public DbSet<ProcessExecution> ProcessExecutions { get; set; } = null!;
     public DbSet<ProcessResult> ProcessResults { get; set; } = null!;
-    public DbSet<JourneyDocumentProcessingRecord> JourneyDocumentProcessingRecords { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-
+        
         // Enable pgvector extension
         modelBuilder.HasPostgresExtension("vector");
-
+        
         // Configure all entities
         ConfigureUserDomain(modelBuilder);
         ConfigureJourneyDomain(modelBuilder);
@@ -84,17 +83,17 @@ public class VeritheiaDbContext : DbContext
             entity.HasKey(e => new { e.UserId, e.Id });
             entity.HasIndex(e => new { e.UserId, e.Domain }).IsUnique();
             entity.Property(e => e.Domain).HasMaxLength(100).IsRequired();
-
+            
             // Partition-aware indexes for locality
             entity.HasIndex(e => new { e.UserId, e.CreatedAt });
             entity.HasIndex(e => new { e.UserId, e.IsActive });
-
+            
             // JSONB columns
             entity.Property(e => e.ConceptualVocabulary).HasColumnType("jsonb");
             entity.Property(e => e.Patterns).HasColumnType("jsonb");
             entity.Property(e => e.MethodologicalPreferences).HasColumnType("jsonb");
             entity.Property(e => e.Markers).HasColumnType("jsonb");
-
+            
             // Relationships
             entity.HasOne(e => e.User)
                 .WithMany(u => u.Personas)
@@ -110,10 +109,10 @@ public class VeritheiaDbContext : DbContext
             entity.HasKey(e => new { e.UserId, e.Id });
             entity.HasIndex(e => new { e.UserId, e.ProcessType }).IsUnique();
             entity.Property(e => e.ProcessType).HasMaxLength(255).IsRequired();
-
+            
             // Partition-aware indexes
             entity.HasIndex(e => new { e.UserId, e.CreatedAt });
-
+            
             entity.HasOne(e => e.User)
                 .WithMany(u => u.ProcessCapabilities)
                 .HasForeignKey(e => e.UserId)
@@ -126,7 +125,7 @@ public class VeritheiaDbContext : DbContext
         // Journey - Composite primary key for partition enforcement
         modelBuilder.Entity<Journey>(entity =>
         {
-            entity.ToTable("journeys", t => t.HasCheckConstraint("CK_Journey_State",
+            entity.ToTable("journeys", t => t.HasCheckConstraint("CK_Journey_State", 
                 "\"State\" IN ('Active', 'Paused', 'Completed', 'Abandoned')"));
             // CORRECT: Composite primary key (UserId, Id)
             entity.HasKey(e => new { e.UserId, e.Id });
@@ -134,18 +133,18 @@ public class VeritheiaDbContext : DbContext
             entity.Property(e => e.Purpose).IsRequired();
             entity.Property(e => e.State).HasMaxLength(50).IsRequired();
             entity.Property(e => e.Context).HasColumnType("jsonb");
-
+            
             // Partition-aware indexes
             entity.HasIndex(e => new { e.UserId, e.CreatedAt });
             entity.HasIndex(e => new { e.UserId, e.State });
             entity.HasIndex(e => new { e.UserId, e.ProcessType });
-
+            
             // Relationships
             entity.HasOne(e => e.User)
                 .WithMany(u => u.Journeys)
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
-
+                
             entity.HasOne(e => e.Persona)
                 .WithMany(p => p.Journeys)
                 .HasForeignKey(e => new { e.UserId, e.PersonaId });
@@ -160,11 +159,11 @@ public class VeritheiaDbContext : DbContext
             entity.Property(e => e.JourneyType).HasMaxLength(100).IsRequired();
             entity.Property(e => e.FrameworkElements).HasColumnType("jsonb").IsRequired();
             entity.Property(e => e.ProjectionRules).HasColumnType("jsonb").IsRequired();
-
+            
             // Partition-aware indexes
             entity.HasIndex(e => new { e.UserId, e.CreatedAt });
             entity.HasIndex(e => new { e.UserId, e.JourneyType });
-
+            
             entity.HasOne(e => e.Journey)
                 .WithOne(j => j.Framework)
                 .HasForeignKey<JourneyFramework>(e => new { e.UserId, e.JourneyId })
@@ -179,11 +178,11 @@ public class VeritheiaDbContext : DbContext
             // CORRECT: Composite primary key (UserId, Id)
             entity.HasKey(e => new { e.UserId, e.Id });
             entity.Property(e => e.Type).HasMaxLength(50).IsRequired();
-
+            
             // Partition-aware indexes
             entity.HasIndex(e => new { e.UserId, e.CreatedAt });
             entity.HasIndex(e => new { e.UserId, e.Type });
-
+            
             entity.HasOne(e => e.Journey)
                 .WithMany(j => j.Journals)
                 .HasForeignKey(e => new { e.UserId, e.JourneyId })
@@ -201,11 +200,11 @@ public class VeritheiaDbContext : DbContext
             entity.Property(e => e.Significance).HasMaxLength(50).IsRequired();
             entity.Property(e => e.Tags).HasColumnType("text[]");
             entity.Property(e => e.Metadata).HasColumnType("jsonb");
-
+            
             // Partition-aware indexes
             entity.HasIndex(e => new { e.UserId, e.CreatedAt });
             entity.HasIndex(e => new { e.UserId, e.Significance });
-
+            
             entity.HasOne(e => e.Journal)
                 .WithMany(j => j.Entries)
                 .HasForeignKey(e => new { e.UserId, e.JournalId })
@@ -224,11 +223,11 @@ public class VeritheiaDbContext : DbContext
             entity.HasKey(e => new { e.UserId, e.Id });
             entity.Property(e => e.Name).HasMaxLength(255).IsRequired();
             entity.Property(e => e.Type).HasMaxLength(50).IsRequired();
-
+            
             // Partition-aware indexes
             entity.HasIndex(e => new { e.UserId, e.CreatedAt });
             entity.HasIndex(e => new { e.UserId, e.Type });
-
+            
             entity.HasOne(e => e.ParentScope)
                 .WithMany(p => p.ChildScopes)
                 .HasForeignKey(e => new { e.UserId, e.ParentScopeId })
@@ -244,17 +243,17 @@ public class VeritheiaDbContext : DbContext
             entity.Property(e => e.FileName).HasMaxLength(500).IsRequired();
             entity.Property(e => e.MimeType).HasMaxLength(100).IsRequired();
             entity.Property(e => e.FilePath).HasMaxLength(1000).IsRequired();
-
+            
             // Partition-aware indexes
             entity.HasIndex(e => new { e.UserId, e.CreatedAt });
             entity.HasIndex(e => new { e.UserId, e.MimeType });
             entity.HasIndex(e => new { e.UserId, e.FileName });
-
+            
             entity.HasOne(e => e.User)
                 .WithMany(u => u.Documents)
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
-
+                
             entity.HasOne(e => e.Scope)
                 .WithMany(s => s.Documents)
                 .HasForeignKey(e => new { e.UserId, e.ScopeId })
@@ -271,10 +270,10 @@ public class VeritheiaDbContext : DbContext
             entity.Property(e => e.Title).HasMaxLength(1000);
             entity.Property(e => e.Authors).HasColumnType("text[]");
             entity.Property(e => e.ExtendedMetadata).HasColumnType("jsonb");
-
+            
             // Partition-aware indexes
             entity.HasIndex(e => new { e.UserId, e.CreatedAt });
-
+            
             entity.HasOne(e => e.Document)
                 .WithOne(d => d.Metadata)
                 .HasForeignKey<DocumentMetadata>(e => new { e.UserId, e.DocumentId })
@@ -297,17 +296,17 @@ public class VeritheiaDbContext : DbContext
             entity.Property(e => e.ByteRange).HasColumnType("int4range");
             entity.Property(e => e.CreatedByRule).HasMaxLength(255);
             entity.Property(e => e.CreatedForQuestion).HasMaxLength(255);
-
+            
             // Partition-aware indexes
             entity.HasIndex(e => new { e.UserId, e.CreatedAt });
             entity.HasIndex(e => new { e.UserId, e.JourneyId });
             entity.HasIndex(e => new { e.UserId, e.DocumentId });
-
+            
             entity.HasOne(e => e.Journey)
                 .WithMany(j => j.DocumentSegments)
                 .HasForeignKey(e => new { e.UserId, e.JourneyId })
                 .OnDelete(DeleteBehavior.Cascade);
-
+                
             entity.HasOne(e => e.Document)
                 .WithMany(d => d.JourneySegments)
                 .HasForeignKey(e => new { e.UserId, e.DocumentId })
@@ -324,11 +323,11 @@ public class VeritheiaDbContext : DbContext
             entity.Property(e => e.RubricScores).HasColumnType("jsonb");
             entity.Property(e => e.ReasoningChain).HasColumnType("jsonb");
             entity.Property(e => e.AssessedByModel).HasMaxLength(100);
-
+            
             // Partition-aware indexes
             entity.HasIndex(e => new { e.UserId, e.CreatedAt });
             entity.HasIndex(e => new { e.UserId, e.AssessmentType });
-
+            
             entity.HasOne(e => e.Segment)
                 .WithMany(s => s.Assessments)
                 .HasForeignKey(e => new { e.UserId, e.SegmentId })
@@ -345,11 +344,11 @@ public class VeritheiaDbContext : DbContext
             entity.Property(e => e.InsightContent).IsRequired();
             entity.Property(e => e.FormedFromSegments).HasColumnType("jsonb");
             entity.Property(e => e.FormedThroughQuestions).HasColumnType("jsonb");
-
+            
             // Partition-aware indexes
             entity.HasIndex(e => new { e.UserId, e.CreatedAt });
             entity.HasIndex(e => new { e.UserId, e.InsightType });
-
+            
             entity.HasOne(e => e.Journey)
                 .WithMany(j => j.Formations)
                 .HasForeignKey(e => new { e.UserId, e.JourneyId })
@@ -367,10 +366,10 @@ public class VeritheiaDbContext : DbContext
             entity.HasKey(e => new { e.UserId, e.Id });
             entity.HasIndex(e => new { e.UserId, e.SegmentId, e.VectorModel }).IsUnique();
             entity.Property(e => e.VectorModel).HasMaxLength(100).IsRequired();
-
+            
             // Partition-aware indexes
             entity.HasIndex(e => new { e.UserId, e.CreatedAt });
-
+            
             entity.HasOne(e => e.Segment)
                 .WithMany(s => s.SearchIndexes)
                 .HasForeignKey(e => new { e.UserId, e.SegmentId })
@@ -386,15 +385,15 @@ public class VeritheiaDbContext : DbContext
             entity.Property(e => e.Embedding)
                 .HasColumnType("vector(1536)")
                 .IsRequired();
-
+            
             // Partition-aware indexes
             entity.HasIndex(e => new { e.UserId, e.CreatedAt });
-
+            
             entity.HasOne(e => e.Index)
                 .WithOne()
                 .HasForeignKey<SearchVector1536>(e => new { e.UserId, e.IndexId })
                 .OnDelete(DeleteBehavior.Cascade);
-
+                
             // HNSW index will be created in migration with raw SQL
         });
 
@@ -407,10 +406,10 @@ public class VeritheiaDbContext : DbContext
             entity.Property(e => e.Embedding)
                 .HasColumnType("vector(768)")
                 .IsRequired();
-
+            
             // Partition-aware indexes
             entity.HasIndex(e => new { e.UserId, e.CreatedAt });
-
+            
             entity.HasOne(e => e.Index)
                 .WithOne()
                 .HasForeignKey<SearchVector768>(e => new { e.UserId, e.IndexId })
@@ -426,10 +425,10 @@ public class VeritheiaDbContext : DbContext
             entity.Property(e => e.Embedding)
                 .HasColumnType("vector(384)")
                 .IsRequired();
-
+            
             // Partition-aware indexes
             entity.HasIndex(e => new { e.UserId, e.CreatedAt });
-
+            
             entity.HasOne(e => e.Index)
                 .WithOne()
                 .HasForeignKey<SearchVector384>(e => new { e.UserId, e.IndexId })
@@ -442,8 +441,7 @@ public class VeritheiaDbContext : DbContext
         // ProcessDefinition - Composite primary key for partition enforcement
         modelBuilder.Entity<ProcessDefinition>(entity =>
         {
-            entity.ToTable("process_definitions", t =>
-            {
+            entity.ToTable("process_definitions", t => {
                 t.HasCheckConstraint("CK_ProcessDefinition_Category",
                     "\"Category\" IN ('Methodological', 'Developmental', 'Analytical', 'Compositional', 'Reflective')");
                 t.HasCheckConstraint("CK_ProcessDefinition_Trigger",
@@ -458,7 +456,7 @@ public class VeritheiaDbContext : DbContext
             entity.Property(e => e.TriggerType).HasMaxLength(50).IsRequired();
             entity.Property(e => e.Inputs).HasColumnType("jsonb").IsRequired();
             entity.Property(e => e.Configuration).HasColumnType("jsonb");
-
+            
             // Partition-aware indexes
             entity.HasIndex(e => new { e.UserId, e.CreatedAt });
             entity.HasIndex(e => new { e.UserId, e.Category });
@@ -474,11 +472,11 @@ public class VeritheiaDbContext : DbContext
             entity.Property(e => e.ProcessType).HasMaxLength(255).IsRequired();
             entity.Property(e => e.State).HasMaxLength(50).IsRequired();
             entity.Property(e => e.Inputs).HasColumnType("jsonb").IsRequired();
-
+            
             // Partition-aware indexes
             entity.HasIndex(e => new { e.UserId, e.CreatedAt });
             entity.HasIndex(e => new { e.UserId, e.State });
-
+            
             entity.HasOne(e => e.Journey)
                 .WithMany(j => j.ProcessExecutions)
                 .HasForeignKey(e => new { e.UserId, e.JourneyId })
@@ -495,59 +493,13 @@ public class VeritheiaDbContext : DbContext
             entity.Property(e => e.ProcessType).HasMaxLength(255).IsRequired();
             entity.Property(e => e.Data).HasColumnType("jsonb").IsRequired();
             entity.Property(e => e.Metadata).HasColumnType("jsonb");
-
+            
             // Partition-aware indexes
             entity.HasIndex(e => new { e.UserId, e.CreatedAt });
-
+            
             entity.HasOne(e => e.Execution)
                 .WithOne(ex => ex.Result)
                 .HasForeignKey<ProcessResult>(e => new { e.UserId, e.ExecutionId })
-                .OnDelete(DeleteBehavior.Cascade);
-        });
-
-        // JourneyDocumentProcessingRecord - Composite primary key for partition enforcement
-        modelBuilder.Entity<JourneyDocumentProcessingRecord>(entity =>
-        {
-            entity.ToTable("journey_document_processing_records");
-            // CORRECT: Composite primary key (UserId, Id)
-            entity.HasKey(e => new { e.UserId, e.Id });
-
-            entity.Property(e => e.DocumentTitle).HasMaxLength(500).IsRequired();
-            entity.Property(e => e.DocumentIdentifier).HasMaxLength(255);
-            entity.Property(e => e.Authors).HasMaxLength(500);
-            entity.Property(e => e.Venue).HasMaxLength(255);
-            entity.Property(e => e.FailureStage).HasMaxLength(255);
-            entity.Property(e => e.FailureReason).HasMaxLength(1000);
-            entity.Property(e => e.FormationImpact).HasMaxLength(1000).IsRequired();
-            entity.Property(e => e.UserNotes).HasMaxLength(2000);
-            entity.Property(e => e.ProcessingResults).HasColumnType("jsonb");
-            entity.Property(e => e.AssessedResearchQuestions).HasColumnType("jsonb");
-            entity.Property(e => e.UnassessedResearchQuestions).HasColumnType("jsonb");
-            entity.Property(e => e.ExtractedTopics).HasColumnType("jsonb");
-            entity.Property(e => e.ExtractedEntities).HasColumnType("jsonb");
-            entity.Property(e => e.Keywords).HasColumnType("jsonb");
-
-            // Partition-aware indexes for querying processing records
-            entity.HasIndex(e => new { e.UserId, e.JourneyId, e.ProcessExecutionId });
-            entity.HasIndex(e => new { e.UserId, e.JourneyId, e.WasProcessedSuccessfully });
-            entity.HasIndex(e => new { e.UserId, e.JourneyId, e.MustRead });
-            entity.HasIndex(e => new { e.UserId, e.IsReviewed });
-
-            // Relationships with proper composite foreign keys
-            entity.HasOne(e => e.Journey)
-                .WithMany()
-                .HasForeignKey(e => new { e.UserId, e.JourneyId })
-                .OnDelete(DeleteBehavior.Cascade);
-
-            entity.HasOne(e => e.ProcessExecution)
-                .WithMany()
-                .HasForeignKey(e => new { e.UserId, e.ProcessExecutionId })
-                .OnDelete(DeleteBehavior.SetNull)
-                .IsRequired(false);
-
-            entity.HasOne(e => e.User)
-                .WithMany()
-                .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }

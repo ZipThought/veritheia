@@ -21,39 +21,39 @@ namespace veritheia.Tests.Integration.Services;
 public class ProcessEngineTests : DatabaseTestBase
 {
     public ProcessEngineTests(DatabaseFixture fixture) : base(fixture) { }
-
+    
     [Fact]
     public void ProcessEngine_CanBeCreated()
     {
         // Arrange
         var mockServiceProvider = new Mock<IServiceProvider>();
         var mockLogger = new Mock<ILogger<ProcessEngine>>();
-
+        
         // Act
         var engine = new ProcessEngine(
             Context,
             mockServiceProvider.Object,
             mockLogger.Object);
-
+        
         // Assert
         Assert.NotNull(engine);
     }
-
+    
     [Fact]
     public void ProcessEngine_GetAvailableProcesses_ReturnsEmptyList()
     {
         // Arrange
         var mockServiceProvider = new Mock<IServiceProvider>();
         var mockLogger = new Mock<ILogger<ProcessEngine>>();
-
+        
         var engine = new ProcessEngine(
             Context,
             mockServiceProvider.Object,
             mockLogger.Object);
-
+        
         // Act
         var processes = engine.GetAvailableProcesses();
-
+        
         // Assert
         Assert.NotNull(processes);
         Assert.Empty(processes);

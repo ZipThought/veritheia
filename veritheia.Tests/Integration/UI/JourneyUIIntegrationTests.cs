@@ -45,7 +45,7 @@ public class JourneyUIIntegrationTests : DatabaseTestBase
 
         // Act 1: User visits dashboard (creates demo user)
         var user = await userService.CreateOrGetUserAsync(userEmail, userName);
-
+        
         // Assert: User should be created with default personas
         Assert.NotNull(user);
         Assert.Equal(userEmail, user.Email);
@@ -113,9 +113,9 @@ public class JourneyUIIntegrationTests : DatabaseTestBase
         };
 
         var updatedJourney = await journeyService.UpdateJourneyAsync(
-            user.Id,
-            journey.Id,
-            "Active",
+            user.Id, 
+            journey.Id, 
+            "Active", 
             updatedContext);
 
         // Assert: Journey should be updated

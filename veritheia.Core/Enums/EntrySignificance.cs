@@ -9,17 +9,17 @@ public enum EntrySignificance
     /// Regular progress entry
     /// </summary>
     Routine,
-
+    
     /// <summary>
     /// Worth highlighting for future reference
     /// </summary>
     Notable,
-
+    
     /// <summary>
     /// Key decision or insight
     /// </summary>
     Critical,
-
+    
     /// <summary>
     /// Major achievement or breakthrough
     /// </summary>

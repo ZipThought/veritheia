@@ -17,13 +17,13 @@ public class JournalService
 {
     private readonly VeritheiaDbContext _db;
     private readonly ILogger<JournalService> _logger;
-
+    
     public JournalService(VeritheiaDbContext dbContext, ILogger<JournalService> logger)
     {
         _db = dbContext;
         _logger = logger;
     }
-
+    
     /// <summary>
     /// Create a new journal within a journey
     /// </summary>
@@ -33,7 +33,7 @@ public class JournalService
         var validTypes = new[] { "Research", "Method", "Decision", "Reflection" };
         if (!validTypes.Contains(type))
             throw new ArgumentException($"Invalid journal type: {type}");
-
+        
         var journal = new Journal
         {
             Id = Guid.CreateVersion7(),
@@ -42,15 +42,15 @@ public class JournalService
             IsShareable = false, // Default to private
             CreatedAt = DateTime.UtcNow
         };
-
+        
         _db.Journals.Add(journal);
         await _db.SaveChangesAsync();
-
+        
         _logger.LogInformation("Created {Type} journal for journey {JourneyId}", type, journeyId);
-
+        
         return journal;
     }
-
+    
     /// <summary>
     /// Add entry to journal
     /// </summary>
@@ -71,15 +71,15 @@ public class JournalService
             Metadata = metadata ?? new Dictionary<string, object>(),
             CreatedAt = DateTime.UtcNow
         };
-
+        
         _db.JournalEntries.Add(entry);
         await _db.SaveChangesAsync();
-
+        
         _logger.LogInformation("Added {Significance} entry to journal {JournalId}", significance, journalId);
-
+        
         return entry;
     }
-
+    
     /// <summary>
     /// Get journals for a journey
     /// </summary>
@@ -91,7 +91,7 @@ public class JournalService
             .OrderBy(j => j.CreatedAt)
             .ToListAsync();
     }
-
+    
     /// <summary>
     /// Get journal with all entries
     /// </summary>
@@ -103,7 +103,7 @@ public class JournalService
                 .ThenInclude(j => j.User)
             .FirstOrDefaultAsync(j => j.Id == journalId);
     }
-
+    
     /// <summary>
     /// Record method decision in Method journal
     /// </summary>
@@ -116,23 +116,23 @@ public class JournalService
         // Find or create Method journal
         var journal = await _db.Journals
             .FirstOrDefaultAsync(j => j.JourneyId == journeyId && j.Type == "Method");
-
+        
         if (journal == null)
         {
             journal = await CreateJournalAsync(journeyId, "Method");
         }
-
+        
         var metadata = new Dictionary<string, object>
         {
             ["method"] = methodName,
             ["timestamp"] = DateTime.UtcNow
         };
-
+        
         if (parameters != null)
         {
             metadata["parameters"] = parameters;
         }
-
+        
         return await AddJournalEntryAsync(
             journal.Id,
             $"Selected method: {methodName}\n\nRationale: {rationale}",
@@ -141,7 +141,7 @@ public class JournalService
             metadata
         );
     }
-
+    
     /// <summary>
     /// Record research insight
     /// </summary>
@@ -154,22 +154,22 @@ public class JournalService
         // Find or create Research journal
         var journal = await _db.Journals
             .FirstOrDefaultAsync(j => j.JourneyId == journeyId && j.Type == "Research");
-
+        
         if (journal == null)
         {
             journal = await CreateJournalAsync(journeyId, "Research");
         }
-
+        
         var metadata = new Dictionary<string, object>
         {
             ["timestamp"] = DateTime.UtcNow
         };
-
+        
         if (!string.IsNullOrEmpty(source))
         {
             metadata["source"] = source;
         }
-
+        
         return await AddJournalEntryAsync(
             journal.Id,
             insight,
@@ -178,7 +178,7 @@ public class JournalService
             metadata
         );
     }
-
+    
     /// <summary>
     /// Record critical decision
     /// </summary>
@@ -191,30 +191,30 @@ public class JournalService
         // Find or create Decision journal
         var journal = await _db.Journals
             .FirstOrDefaultAsync(j => j.JourneyId == journeyId && j.Type == "Decision");
-
+        
         if (journal == null)
         {
             journal = await CreateJournalAsync(journeyId, "Decision");
         }
-
+        
         var content = $"Decision: {decision}\n\nReasoning: {reasoning}";
-
+        
         if (alternatives != null && alternatives.Any())
         {
             content += $"\n\nConsidered alternatives:\n- {string.Join("\n- ", alternatives)}";
         }
-
+        
         var metadata = new Dictionary<string, object>
         {
             ["timestamp"] = DateTime.UtcNow,
             ["decision"] = decision
         };
-
+        
         if (alternatives != null)
         {
             metadata["alternatives"] = alternatives;
         }
-
+        
         return await AddJournalEntryAsync(
             journal.Id,
             content,
@@ -223,7 +223,7 @@ public class JournalService
             metadata
         );
     }
-
+    
     /// <summary>
     /// Add reflection entry
     /// </summary>
@@ -235,18 +235,18 @@ public class JournalService
         // Find or create Reflection journal
         var journal = await _db.Journals
             .FirstOrDefaultAsync(j => j.JourneyId == journeyId && j.Type == "Reflection");
-
+        
         if (journal == null)
         {
             journal = await CreateJournalAsync(journeyId, "Reflection");
         }
-
+        
         var tags = new List<string> { "reflection" };
         if (!string.IsNullOrEmpty(topic))
         {
             tags.Add(topic);
         }
-
+        
         return await AddJournalEntryAsync(
             journal.Id,
             reflection,
@@ -255,7 +255,7 @@ public class JournalService
             new Dictionary<string, object> { ["timestamp"] = DateTime.UtcNow }
         );
     }
-
+    
     /// <summary>
     /// Search journal entries across a journey
     /// </summary>
@@ -268,27 +268,27 @@ public class JournalService
         var query = _db.JournalEntries
             .Include(e => e.Journal)
             .Where(e => e.Journal.JourneyId == journeyId);
-
+        
         if (!string.IsNullOrEmpty(searchText))
         {
             query = query.Where(e => e.Content.Contains(searchText));
         }
-
+        
         if (!string.IsNullOrEmpty(significance))
         {
             query = query.Where(e => e.Significance == significance);
         }
-
+        
         if (!string.IsNullOrEmpty(journalType))
         {
             query = query.Where(e => e.Journal.Type == journalType);
         }
-
+        
         return await query
             .OrderByDescending(e => e.CreatedAt)
             .ToListAsync();
     }
-
+    
     /// <summary>
     /// Get milestone entries (Critical or Milestone significance)
     /// </summary>
@@ -301,7 +301,7 @@ public class JournalService
             .OrderBy(e => e.CreatedAt)
             .ToListAsync();
     }
-
+    
     /// <summary>
     /// Mark journal as shareable
     /// </summary>
@@ -310,13 +310,13 @@ public class JournalService
         var journal = await _db.Journals.FindAsync(journalId);
         if (journal == null)
             throw new InvalidOperationException($"Journal {journalId} not found");
-
+        
         journal.IsShareable = isShareable;
         journal.UpdatedAt = DateTime.UtcNow;
-
+        
         await _db.SaveChangesAsync();
-
-        _logger.LogInformation("Set journal {JournalId} shareability to {IsShareable}",
+        
+        _logger.LogInformation("Set journal {JournalId} shareability to {IsShareable}", 
             journalId, isShareable);
     }
 }

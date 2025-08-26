@@ -9,17 +9,17 @@ public enum ScopeType
     /// Project-based organization
     /// </summary>
     Project,
-
+    
     /// <summary>
     /// Topic-based organization
     /// </summary>
     Topic,
-
+    
     /// <summary>
     /// Subject area organization
     /// </summary>
     Subject,
-
+    
     /// <summary>
     /// User-defined organization
     /// </summary>

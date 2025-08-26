@@ -26,7 +26,7 @@ public class JourneyService
     public async Task<List<Journey>> GetUserJourneysAsync(Guid userId)
     {
         _logger.LogInformation("Retrieving journeys for user {UserId}", userId);
-
+        
         return await _context.Journeys
             .Where(j => j.UserId == userId)
             .Include(j => j.Persona)
@@ -41,7 +41,7 @@ public class JourneyService
     public async Task<Journey?> GetJourneyAsync(Guid userId, Guid journeyId)
     {
         _logger.LogInformation("Retrieving journey {JourneyId} for user {UserId}", journeyId, userId);
-
+        
         return await _context.Journeys
             .Where(j => j.UserId == userId && j.Id == journeyId)
             .Include(j => j.Persona)
@@ -60,7 +60,7 @@ public class JourneyService
         // Verify persona belongs to user
         var persona = await _context.Personas
             .FirstOrDefaultAsync(p => p.UserId == userId && p.Id == personaId);
-
+        
         if (persona == null)
         {
             throw new ArgumentException($"Persona {personaId} not found for user {userId}");

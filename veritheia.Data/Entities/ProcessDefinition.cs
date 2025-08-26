@@ -9,7 +9,7 @@ public class ProcessDefinition : BaseEntity, IUserOwned
 {
     // Partition key - required for composite primary key (UserId, Id)
     public Guid UserId { get; set; }
-
+    
     public string ProcessType { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string Category { get; set; } = string.Empty; // Methodological, Developmental, Analytical, Compositional, Reflective

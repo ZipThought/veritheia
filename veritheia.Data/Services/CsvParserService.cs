@@ -43,7 +43,7 @@ public class CsvParserService
         csv.Read();
         csv.ReadHeader();
         var headers = csv.HeaderRecord?.ToList() ?? new List<string>();
-
+        
         var format = DetectFormat(headers);
         _logger.LogInformation("Detected CSV format: {Format}", format);
 
@@ -176,7 +176,7 @@ public class CsvParserService
     {
         foreach (var candidate in candidates)
         {
-            var match = headers.FirstOrDefault(h =>
+            var match = headers.FirstOrDefault(h => 
                 h.Equals(candidate, StringComparison.OrdinalIgnoreCase));
             if (match != null)
                 return match;

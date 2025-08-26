@@ -9,17 +9,17 @@ public enum JourneyState
     /// Journey is actively being worked on
     /// </summary>
     Active,
-
+    
     /// <summary>
     /// Journey temporarily suspended
     /// </summary>
     Paused,
-
+    
     /// <summary>
     /// Journey finished successfully
     /// </summary>
     Completed,
-
+    
     /// <summary>
     /// Journey discontinued by user
     /// </summary>

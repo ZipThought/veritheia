@@ -10,7 +10,7 @@ public class JourneyDocumentSegment : BaseEntity, IUserOwned
 {
     // Partition key - required for composite primary key (UserId, Id)
     public Guid UserId { get; set; }
-
+    
     public Guid JourneyId { get; set; }
     public Guid DocumentId { get; set; }
     public int SequenceIndex { get; set; }
@@ -20,7 +20,7 @@ public class JourneyDocumentSegment : BaseEntity, IUserOwned
     public NpgsqlTypes.NpgsqlRange<int>? ByteRange { get; set; }
     public string? CreatedByRule { get; set; }
     public string? CreatedForQuestion { get; set; }
-
+    
     // Navigation properties
     public Journey Journey { get; set; } = null!;
     public Document Document { get; set; } = null!;

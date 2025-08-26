@@ -20,7 +20,7 @@ public class OllamaCognitiveAdapter : ICognitiveAdapter
     private readonly string _ollamaUrl;
     private readonly string _embeddingModel;
     private readonly string _chatModel;
-
+    
     public OllamaCognitiveAdapter(
         HttpClient httpClient,
         IConfiguration configuration,
@@ -32,7 +32,7 @@ public class OllamaCognitiveAdapter : ICognitiveAdapter
         _embeddingModel = configuration["Ollama:EmbeddingModel"] ?? "nomic-embed-text";
         _chatModel = configuration["Ollama:ChatModel"] ?? "llama3.2";
     }
-
+    
     /// <summary>
     /// Generate embeddings using Ollama
     /// </summary>
@@ -45,22 +45,22 @@ public class OllamaCognitiveAdapter : ICognitiveAdapter
                 model = _embeddingModel,
                 prompt = text
             };
-
+            
             var json = JsonSerializer.Serialize(request);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-
+            
             var response = await _httpClient.PostAsync($"{_ollamaUrl}/api/embeddings", content);
-
+            
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogError("Ollama embedding failed: {Status}", response.StatusCode);
                 // Fallback to random embeddings if Ollama not available
                 return GenerateFallbackEmbedding(text);
             }
-
+            
             var responseJson = await response.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(responseJson);
-
+            
             if (doc.RootElement.TryGetProperty("embedding", out var embeddingElement))
             {
                 var embeddings = new float[embeddingElement.GetArrayLength()];
@@ -71,7 +71,7 @@ public class OllamaCognitiveAdapter : ICognitiveAdapter
                 }
                 return embeddings;
             }
-
+            
             return GenerateFallbackEmbedding(text);
         }
         catch (Exception ex)
@@ -80,7 +80,7 @@ public class OllamaCognitiveAdapter : ICognitiveAdapter
             return GenerateFallbackEmbedding(text);
         }
     }
-
+    
     /// <summary>
     /// Generate text using Ollama
     /// </summary>
@@ -88,36 +88,36 @@ public class OllamaCognitiveAdapter : ICognitiveAdapter
     {
         try
         {
-            var fullPrompt = string.IsNullOrEmpty(systemPrompt)
-                ? prompt
+            var fullPrompt = string.IsNullOrEmpty(systemPrompt) 
+                ? prompt 
                 : $"{systemPrompt}\n\n{prompt}";
-
+            
             var request = new
             {
                 model = _chatModel,
                 prompt = fullPrompt,
                 stream = false
             };
-
+            
             var json = JsonSerializer.Serialize(request);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-
+            
             var response = await _httpClient.PostAsync($"{_ollamaUrl}/api/generate", content);
-
+            
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogError("Ollama generation failed: {Status}", response.StatusCode);
                 return $"[Ollama not available - Status: {response.StatusCode}]\n\nPlease ensure Ollama is running locally with model '{_chatModel}' installed.\nRun: ollama pull {_chatModel}";
             }
-
+            
             var responseJson = await response.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(responseJson);
-
+            
             if (doc.RootElement.TryGetProperty("response", out var responseElement))
             {
                 return responseElement.GetString() ?? "No response generated";
             }
-
+            
             return "Failed to parse Ollama response";
         }
         catch (HttpRequestException ex)
@@ -131,7 +131,7 @@ public class OllamaCognitiveAdapter : ICognitiveAdapter
             return $"Error: {ex.Message}";
         }
     }
-
+    
     private float[] GenerateFallbackEmbedding(string text)
     {
         _logger.LogWarning("Using fallback embedding generation");

@@ -11,7 +11,7 @@ namespace veritheia.Tests.Unit.Enums;
 public class EnumSerializationTests : DatabaseTestBase
 {
     public EnumSerializationTests(DatabaseFixture fixture) : base(fixture) { }
-
+    
     [Fact]
     public async Task JourneyState_Enum_Serializes_As_String()
     {
@@ -24,7 +24,7 @@ public class EnumSerializationTests : DatabaseTestBase
             LastActiveAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow
         };
-
+        
         var persona = new Persona
         {
             Id = Guid.CreateVersion7(),
@@ -33,7 +33,7 @@ public class EnumSerializationTests : DatabaseTestBase
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
-
+        
         var activeJourney = new Journey
         {
             Id = Guid.CreateVersion7(),
@@ -43,7 +43,7 @@ public class EnumSerializationTests : DatabaseTestBase
             State = JourneyState.Active.ToString(),
             CreatedAt = DateTime.UtcNow
         };
-
+        
         var pausedJourney = new Journey
         {
             Id = Guid.CreateVersion7(),
@@ -53,23 +53,23 @@ public class EnumSerializationTests : DatabaseTestBase
             State = JourneyState.Paused.ToString(),
             CreatedAt = DateTime.UtcNow
         };
-
+        
         // Act
         Context.Users.Add(user);
         Context.Personas.Add(persona);
         Context.Journeys.AddRange(activeJourney, pausedJourney);
         await Context.SaveChangesAsync();
-
+        
         // Assert - Check raw database values
         var journeys = await Context.Journeys
             .Where(j => j.UserId == user.Id)
             .ToListAsync();
-
+            
         Assert.Equal(2, journeys.Count);
         Assert.Contains(journeys, j => j.State == "Active");
         Assert.Contains(journeys, j => j.State == "Paused");
     }
-
+    
     [Fact]
     public async Task ProcessState_Enum_Works_With_ProcessExecution()
     {
@@ -83,7 +83,7 @@ public class EnumSerializationTests : DatabaseTestBase
             TriggerType = "Manual",  // Required by database constraint
             CreatedAt = DateTime.UtcNow
         };
-
+        
         var user = new User
         {
             Id = Guid.CreateVersion7(),
@@ -92,7 +92,7 @@ public class EnumSerializationTests : DatabaseTestBase
             LastActiveAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow
         };
-
+        
         var persona = new Persona
         {
             Id = Guid.CreateVersion7(),
@@ -101,7 +101,7 @@ public class EnumSerializationTests : DatabaseTestBase
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
-
+        
         var journey = new Journey
         {
             Id = Guid.CreateVersion7(),
@@ -111,7 +111,7 @@ public class EnumSerializationTests : DatabaseTestBase
             State = JourneyState.Active.ToString(),
             CreatedAt = DateTime.UtcNow
         };
-
+        
         var execution = new ProcessExecution
         {
             Id = Guid.CreateVersion7(),
@@ -123,7 +123,7 @@ public class EnumSerializationTests : DatabaseTestBase
             StartedAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow
         };
-
+        
         // Act
         Context.ProcessDefinitions.Add(processDefinition);
         Context.Users.Add(user);
@@ -131,21 +131,21 @@ public class EnumSerializationTests : DatabaseTestBase
         Context.Journeys.Add(journey);
         Context.ProcessExecutions.Add(execution);
         await Context.SaveChangesAsync();
-
+        
         // Update state
         execution.State = ProcessState.Completed.ToString();
         execution.CompletedAt = DateTime.UtcNow;
         await Context.SaveChangesAsync();
-
+        
         // Assert
         var savedExecution = await Context.ProcessExecutions
             .FirstOrDefaultAsync(e => e.Id == execution.Id);
-
+            
         Assert.NotNull(savedExecution);
         Assert.Equal("Completed", savedExecution.State);
         Assert.Equal("manual", savedExecution.Inputs["trigger"]);
     }
-
+    
     [Fact]
     public async Task JournalType_Enum_Works_With_Journal()
     {
@@ -158,7 +158,7 @@ public class EnumSerializationTests : DatabaseTestBase
             LastActiveAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow
         };
-
+        
         var persona = new Persona
         {
             Id = Guid.CreateVersion7(),
@@ -167,7 +167,7 @@ public class EnumSerializationTests : DatabaseTestBase
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
-
+        
         var journey = new Journey
         {
             Id = Guid.CreateVersion7(),
@@ -177,7 +177,7 @@ public class EnumSerializationTests : DatabaseTestBase
             State = JourneyState.Active.ToString(),
             CreatedAt = DateTime.UtcNow
         };
-
+        
         var researchJournal = new Journal
         {
             Id = Guid.CreateVersion7(),
@@ -186,7 +186,7 @@ public class EnumSerializationTests : DatabaseTestBase
             Type = JournalType.Research.ToString(),
             CreatedAt = DateTime.UtcNow
         };
-
+        
         var methodJournal = new Journal
         {
             Id = Guid.CreateVersion7(),
@@ -195,7 +195,7 @@ public class EnumSerializationTests : DatabaseTestBase
             Type = JournalType.Method.ToString(),
             CreatedAt = DateTime.UtcNow
         };
-
+        
         var decisionJournal = new Journal
         {
             Id = Guid.CreateVersion7(),
@@ -204,7 +204,7 @@ public class EnumSerializationTests : DatabaseTestBase
             Type = JournalType.Decision.ToString(),
             CreatedAt = DateTime.UtcNow
         };
-
+        
         var reflectionJournal = new Journal
         {
             Id = Guid.CreateVersion7(),
@@ -213,27 +213,27 @@ public class EnumSerializationTests : DatabaseTestBase
             Type = JournalType.Reflection.ToString(),
             CreatedAt = DateTime.UtcNow
         };
-
+        
         // Act
         Context.Users.Add(user);
         Context.Personas.Add(persona);
         Context.Journeys.Add(journey);
         Context.Journals.AddRange(researchJournal, methodJournal, decisionJournal, reflectionJournal);
         await Context.SaveChangesAsync();
-
+        
         // Assert
         var journals = await Context.Journals
             .Where(j => j.JourneyId == journey.Id)
             .Select(j => j.Type)
             .ToListAsync();
-
+            
         Assert.Equal(4, journals.Count);
         Assert.Contains("Research", journals);
         Assert.Contains("Method", journals);
         Assert.Contains("Decision", journals);
         Assert.Contains("Reflection", journals);
     }
-
+    
     [Fact]
     public async Task EntrySignificance_Enum_Works_With_JournalEntry()
     {
@@ -246,7 +246,7 @@ public class EnumSerializationTests : DatabaseTestBase
             LastActiveAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow
         };
-
+        
         var persona = new Persona
         {
             Id = Guid.CreateVersion7(),
@@ -255,7 +255,7 @@ public class EnumSerializationTests : DatabaseTestBase
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
-
+        
         var journey = new Journey
         {
             Id = Guid.CreateVersion7(),
@@ -265,7 +265,7 @@ public class EnumSerializationTests : DatabaseTestBase
             State = JourneyState.Active.ToString(),
             CreatedAt = DateTime.UtcNow
         };
-
+        
         var journal = new Journal
         {
             Id = Guid.CreateVersion7(),
@@ -274,7 +274,7 @@ public class EnumSerializationTests : DatabaseTestBase
             Type = JournalType.Research.ToString(),
             CreatedAt = DateTime.UtcNow
         };
-
+        
         var criticalEntry = new JournalEntry
         {
             Id = Guid.CreateVersion7(),
@@ -284,7 +284,7 @@ public class EnumSerializationTests : DatabaseTestBase
             Significance = EntrySignificance.Critical.ToString(),
             CreatedAt = DateTime.UtcNow
         };
-
+        
         var routineEntry = new JournalEntry
         {
             Id = Guid.CreateVersion7(),
@@ -294,7 +294,7 @@ public class EnumSerializationTests : DatabaseTestBase
             Significance = EntrySignificance.Routine.ToString(),
             CreatedAt = DateTime.UtcNow
         };
-
+        
         // Act
         Context.Users.Add(user);
         Context.Personas.Add(persona);
@@ -302,17 +302,17 @@ public class EnumSerializationTests : DatabaseTestBase
         Context.Journals.Add(journal);
         Context.JournalEntries.AddRange(criticalEntry, routineEntry);
         await Context.SaveChangesAsync();
-
+        
         // Assert
         var entries = await Context.JournalEntries
             .Where(e => e.JournalId == journal.Id)
             .ToListAsync();
-
+            
         Assert.Equal(2, entries.Count);
         Assert.Contains(entries, e => e.Significance == "Critical");
         Assert.Contains(entries, e => e.Significance == "Routine");
     }
-
+    
     [Fact]
     public async Task ScopeType_Enum_Works_With_KnowledgeScope()
     {
@@ -324,7 +324,7 @@ public class EnumSerializationTests : DatabaseTestBase
             Type = ScopeType.Topic.ToString(),
             CreatedAt = DateTime.UtcNow
         };
-
+        
         var projectScope = new KnowledgeScope
         {
             Id = Guid.CreateVersion7(),
@@ -332,7 +332,7 @@ public class EnumSerializationTests : DatabaseTestBase
             Type = ScopeType.Project.ToString(),
             CreatedAt = DateTime.UtcNow
         };
-
+        
         var customScope = new KnowledgeScope
         {
             Id = Guid.CreateVersion7(),
@@ -340,11 +340,11 @@ public class EnumSerializationTests : DatabaseTestBase
             Type = ScopeType.Custom.ToString(),
             CreatedAt = DateTime.UtcNow
         };
-
+        
         // Act
         Context.KnowledgeScopes.AddRange(topicScope, projectScope, customScope);
         await Context.SaveChangesAsync();
-
+        
         // Assert
         var scopes = await Context.KnowledgeScopes.ToListAsync();
         Assert.Equal(3, scopes.Count);

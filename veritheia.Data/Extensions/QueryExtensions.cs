@@ -13,12 +13,12 @@ public static class QueryExtensions
     /// Enforces user partition boundary - all queries must scope to a specific user
     /// </summary>
     public static IQueryable<T> ForUser<T>(
-        this IQueryable<T> query,
+        this IQueryable<T> query, 
         Guid userId) where T : class, IUserOwned
     {
         return query.Where(e => e.UserId == userId);
     }
-
+    
     /// <summary>
     /// Scopes journey document segments to a specific journey within user partition
     /// </summary>
@@ -31,7 +31,7 @@ public static class QueryExtensions
             .Where(s => s.UserId == userId)
             .Where(s => s.JourneyId == journeyId);
     }
-
+    
     /// <summary>
     /// Includes assessments for journey document segments
     /// </summary>
@@ -40,7 +40,7 @@ public static class QueryExtensions
     {
         return segments.Include(s => s.Assessments);
     }
-
+    
     /// <summary>
     /// Includes search indexes for journey document segments
     /// </summary>
@@ -49,7 +49,7 @@ public static class QueryExtensions
     {
         return segments.Include(s => s.SearchIndexes);
     }
-
+    
     /// <summary>
     /// Scopes journals to a specific journey within user partition
     /// </summary>
@@ -62,7 +62,7 @@ public static class QueryExtensions
             .Where(j => j.UserId == userId)
             .Where(j => j.JourneyId == journeyId);
     }
-
+    
     /// <summary>
     /// Includes journal entries for journals
     /// </summary>
@@ -71,7 +71,7 @@ public static class QueryExtensions
     {
         return journals.Include(j => j.Entries);
     }
-
+    
     /// <summary>
     /// Scopes formations to a specific journey within user partition
     /// </summary>
@@ -84,7 +84,7 @@ public static class QueryExtensions
             .Where(f => f.UserId == userId)
             .Where(f => f.JourneyId == journeyId);
     }
-
+    
     /// <summary>
     /// Scopes process executions to a specific journey within user partition
     /// </summary>
@@ -97,7 +97,7 @@ public static class QueryExtensions
             .Where(e => e.UserId == userId)
             .Where(e => e.JourneyId == journeyId);
     }
-
+    
     /// <summary>
     /// Includes process result for process executions
     /// </summary>
@@ -106,7 +106,7 @@ public static class QueryExtensions
     {
         return executions.Include(e => e.Result);
     }
-
+    
     /// <summary>
     /// Scopes documents to a specific scope within user partition
     /// </summary>
@@ -116,15 +116,15 @@ public static class QueryExtensions
         Guid? scopeId)
     {
         var query = documents.Where(d => d.UserId == userId);
-
+        
         if (scopeId.HasValue)
         {
             query = query.Where(d => d.ScopeId == scopeId.Value);
         }
-
+        
         return query;
     }
-
+    
     /// <summary>
     /// Includes metadata for documents
     /// </summary>
@@ -133,7 +133,7 @@ public static class QueryExtensions
     {
         return documents.Include(d => d.Metadata);
     }
-
+    
     /// <summary>
     /// Includes journey segments for documents
     /// </summary>
@@ -142,7 +142,7 @@ public static class QueryExtensions
     {
         return documents.Include(d => d.JourneySegments);
     }
-
+    
     /// <summary>
     /// Orders entities by creation time (newest first)
     /// </summary>
@@ -151,7 +151,7 @@ public static class QueryExtensions
     {
         return query.OrderByDescending(e => e.CreatedAt);
     }
-
+    
     /// <summary>
     /// Orders entities by creation time (oldest first)
     /// </summary>

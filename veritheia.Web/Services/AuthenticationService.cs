@@ -28,7 +28,7 @@ public class AuthenticationService : IAuthenticationProvider
         // Create or get user from API (display name is optional)
         var displayName = request.AdditionalData?.GetValueOrDefault("displayName")?.ToString();
         var user = await _userApiService.CreateOrGetUserAsync(request.Identifier, displayName);
-
+        
         // Create claims
         var claims = new List<Claim>
         {
@@ -117,7 +117,7 @@ public class AuthenticationService : IAuthenticationProvider
             Identifier = email,
             AdditionalData = new Dictionary<string, object> { ["displayName"] = displayName }
         };
-
+        
         await AuthenticateAsync(request);
         return true;
     }

@@ -9,7 +9,7 @@ public class DocumentMetadata : BaseEntity, IUserOwned
 {
     // Partition key - required for composite primary key (UserId, Id)
     public Guid UserId { get; set; }
-
+    
     public Guid DocumentId { get; set; }
     public string? Title { get; set; }
     public string[]? Authors { get; set; }
@@ -19,8 +19,7 @@ public class DocumentMetadata : BaseEntity, IUserOwned
     public string? Publisher { get; set; }
     public string? DOI { get; set; }
     public Dictionary<string, object>? ExtendedMetadata { get; set; }
-
+    
     // Navigation properties
-    public User User { get; set; } = null!;
     public Document Document { get; set; } = null!;
 }
