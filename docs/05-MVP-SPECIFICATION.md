@@ -146,7 +146,7 @@ Projection rules might include segmentation strategies, embedding contexts, asse
 
 *Extension Requirements*: New processes must enable formation through authorship within journey projection spaces
 
-**Process Input/Output Patterns**: Processes accept researcher frameworks and produce assessments for user evaluation. SystematicScreeningProcess: researchers upload CSV datasets (title, abstract, authors, venue, keywords), define research questions, optionally provide screening questions. Process generates outputs with scores (0-1), binary decisions, and reasoning chains. Enables processing thousands of documents while maintaining user control through evaluation of measurements, not consumption of insights.
+**Process Input/Output Patterns**: Processes accept researcher frameworks and produce assessments for user evaluation. SystematicScreeningProcess: processes documents from user corpus based on defined research questions and optional screening criteria. Documents are added to corpus via CSV import (title, abstract, authors, venue, keywords) or other methods. Process generates outputs with scores (0-1), binary decisions, and reasoning chains. Enables processing thousands of documents while maintaining user control through evaluation of measurements, not consumption of insights.
 
 **Input/Output Formats**: CSV input requires columns: title, abstract, authors, publication_venue, keywords. Research questions as plain text, one per line. JSON output contains per-article: extracted semantics (topics, entities, keywords arrays), scores (relevance_score, contribution_score as floats 0.0-1.0), binary decisions (is_relevant, is_contributing), reasoning chains, must-read determination (logical OR of decisions).
 

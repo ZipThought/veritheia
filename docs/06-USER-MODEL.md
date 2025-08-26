@@ -14,7 +14,7 @@ The User represents an individual engaging with the epistemic infrastructure:
 
 - **Identity**: Authentication and basic profile
 - **Personas**: Multiple evolving representations for different domains (Student, Researcher, Entrepreneur)
-- **Knowledge Base**: Their corpus of documents (shared across all personas and journeys)
+- **Corpus**: Their document library containing all uploaded/imported documents (shared across all personas and journeys)
 - **Capabilities**: Which processes they can access
 
 The User is the constant—their journeys and personas may vary, but their identity and growing understanding persist.
@@ -47,6 +47,17 @@ A Persona represents a domain-specific intellectual context:
 - **Active State**: Whether currently in use
 
 Users naturally develop different vocabularies and approaches in different contexts. A student learning statistics uses different language than when they're running their startup.
+
+### Corpus
+
+The Corpus is the user's document library—a collection of all documents they have imported or uploaded:
+
+- **Document Sources**: Documents can be added via CSV import (from library databases), individual file upload, or manual entry
+- **Deduplication**: Documents with the same DOI are automatically detected as duplicates
+- **Persistence**: Documents remain in the corpus independent of any journey
+- **Shared Resource**: All journeys process documents from the same corpus
+
+The corpus serves as the user's canonical research library. Documents are added once and can be processed through multiple journeys with different frameworks.
 
 ### 2.4 Journal
 
