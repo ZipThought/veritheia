@@ -46,6 +46,9 @@ artifacts/
 # Local environment
 appsettings.Local.json
 
+# Temporary files
+temp/
+
 # Jekyll / GitHub Pages
 _site/
 .sass-cache/
