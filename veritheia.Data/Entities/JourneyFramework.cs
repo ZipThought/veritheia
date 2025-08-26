@@ -9,12 +9,12 @@ public class JourneyFramework : BaseEntity, IUserOwned
 {
     // Partition key - required for composite primary key (UserId, Id)
     public Guid UserId { get; set; }
-    
+
     public Guid JourneyId { get; set; }
     public string JourneyType { get; set; } = string.Empty;
     public Dictionary<string, object> FrameworkElements { get; set; } = new();
     public Dictionary<string, object> ProjectionRules { get; set; } = new();
-    
+
     // Navigation properties
     public Journey Journey { get; set; } = null!;
 }

@@ -11,29 +11,29 @@ public abstract class CognitiveServiceException : Exception
     /// The user ID associated with the formation process that failed
     /// </summary>
     public Guid? UserId { get; }
-    
+
     /// <summary>
     /// The journey ID where the failure occurred, if applicable
     /// </summary>
     public Guid? JourneyId { get; }
-    
+
     /// <summary>
     /// The specific operation that failed
     /// </summary>
     public string Operation { get; }
-    
+
     /// <summary>
     /// Impact on formation process
     /// </summary>
     public string FormationImpact { get; }
-    
+
     protected CognitiveServiceException(
-        string message, 
+        string message,
         string operation,
         string formationImpact,
-        Guid? userId = null, 
-        Guid? journeyId = null, 
-        Exception? innerException = null) 
+        Guid? userId = null,
+        Guid? journeyId = null,
+        Exception? innerException = null)
         : base(message, innerException)
     {
         Operation = operation;

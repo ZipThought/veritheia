@@ -21,7 +21,7 @@ public class OpenAICognitiveAdapter : ICognitiveAdapter
     private readonly ILogger<OpenAICognitiveAdapter> _logger;
     private readonly string _baseUrl;
     private readonly string _model;
-    
+
     public OpenAICognitiveAdapter(
         HttpClient httpClient,
         IConfiguration configuration,
@@ -29,15 +29,15 @@ public class OpenAICognitiveAdapter : ICognitiveAdapter
     {
         _httpClient = httpClient;
         _logger = logger;
-        
+
         // Get configuration for OpenAI-compatible endpoint
         _baseUrl = configuration["LLM:Url"] ?? "http://localhost:1234/v1";
         _model = configuration["LLM:Model"] ?? "local-model";
-        
+
         // Set timeout for long-running LLM operations
         _httpClient.Timeout = TimeSpan.FromMinutes(5);
     }
-    
+
     /// <summary>
     /// Generate embeddings using OpenAI-compatible endpoint
     /// </summary>
@@ -50,28 +50,28 @@ public class OpenAICognitiveAdapter : ICognitiveAdapter
                 model = _model,
                 input = text
             };
-            
+
             var json = JsonSerializer.Serialize(request);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            
+
             var response = await _httpClient.PostAsync($"{_baseUrl}/embeddings", content);
-            
+
             if (!response.IsSuccessStatusCode)
             {
                 var statusCode = response.StatusCode;
                 var reasonPhrase = response.ReasonPhrase ?? "Unknown error";
                 _logger.LogError("Embedding generation failed: {Status} - {Reason}", statusCode, reasonPhrase);
-                
+
                 throw new EmbeddingGenerationException(
                     text,
                     $"HTTP {(int)statusCode} {reasonPhrase}. LLM service returned error status.",
                     innerException: new HttpRequestException($"HTTP {(int)statusCode} {reasonPhrase}")
                 );
             }
-            
+
             var responseJson = await response.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(responseJson);
-            
+
             // Parse OpenAI-format response
             if (doc.RootElement.TryGetProperty("data", out var dataElement))
             {
@@ -87,7 +87,7 @@ public class OpenAICognitiveAdapter : ICognitiveAdapter
                     return embeddings;
                 }
             }
-            
+
             throw new EmbeddingGenerationException(
                 text,
                 "Invalid response format from LLM service. Expected OpenAI-compatible embedding response format.",
@@ -102,7 +102,7 @@ public class OpenAICognitiveAdapter : ICognitiveAdapter
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error during embedding generation");
-            
+
             throw new EmbeddingGenerationException(
                 text,
                 $"Unexpected error: {ex.Message}",
@@ -110,7 +110,7 @@ public class OpenAICognitiveAdapter : ICognitiveAdapter
             );
         }
     }
-    
+
     /// <summary>
     /// Generate text using OpenAI-compatible chat completions endpoint
     /// </summary>
@@ -119,14 +119,14 @@ public class OpenAICognitiveAdapter : ICognitiveAdapter
         try
         {
             var messages = new List<object>();
-            
+
             if (!string.IsNullOrEmpty(systemPrompt))
             {
                 messages.Add(new { role = "system", content = systemPrompt });
             }
-            
+
             messages.Add(new { role = "user", content = prompt });
-            
+
             var request = new
             {
                 model = _model,
@@ -135,31 +135,31 @@ public class OpenAICognitiveAdapter : ICognitiveAdapter
                 max_tokens = 2000,
                 stream = false
             };
-            
+
             var json = JsonSerializer.Serialize(request);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            
+
             _logger.LogInformation("Sending request to LLM at {Url}", $"{_baseUrl}/chat/completions");
-            
+
             var response = await _httpClient.PostAsync($"{_baseUrl}/chat/completions", content);
-            
+
             if (!response.IsSuccessStatusCode)
             {
                 var statusCode = response.StatusCode;
                 var reasonPhrase = response.ReasonPhrase ?? "Unknown error";
                 var errorContent = await response.Content.ReadAsStringAsync();
                 _logger.LogError("LLM generation failed: {Status} - {Reason} - {Error}", statusCode, reasonPhrase, errorContent);
-                
+
                 throw new TextGenerationException(
                     prompt,
                     $"HTTP {(int)statusCode} {reasonPhrase}. LLM service error: {errorContent}",
                     innerException: new HttpRequestException($"HTTP {(int)statusCode} {reasonPhrase}: {errorContent}")
                 );
             }
-            
+
             var responseJson = await response.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(responseJson);
-            
+
             // Parse OpenAI-format response
             if (doc.RootElement.TryGetProperty("choices", out var choicesElement))
             {
@@ -168,12 +168,12 @@ public class OpenAICognitiveAdapter : ICognitiveAdapter
                 {
                     if (messageElement.TryGetProperty("content", out var contentElement))
                     {
-                        return contentElement.GetString() ?? 
+                        return contentElement.GetString() ??
                                throw new TextGenerationException(prompt, "LLM returned null content in response");
                     }
                 }
             }
-            
+
             throw new TextGenerationException(
                 prompt,
                 "Invalid response format from LLM service. Expected OpenAI-compatible chat completion response format.",
@@ -188,7 +188,7 @@ public class OpenAICognitiveAdapter : ICognitiveAdapter
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "Cannot connect to LLM at {BaseUrl}", _baseUrl);
-            
+
             throw new TextGenerationException(
                 prompt,
                 $"Cannot connect to LLM service at {_baseUrl}. Service may be down or unreachable.",
@@ -198,7 +198,7 @@ public class OpenAICognitiveAdapter : ICognitiveAdapter
         catch (TaskCanceledException ex)
         {
             _logger.LogError(ex, "LLM request timed out");
-            
+
             throw new TextGenerationException(
                 prompt,
                 "LLM request timed out. The service took too long to respond, which may happen with complex prompts.",
@@ -208,7 +208,7 @@ public class OpenAICognitiveAdapter : ICognitiveAdapter
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error during text generation");
-            
+
             throw new TextGenerationException(
                 prompt,
                 $"Unexpected error during text generation: {ex.Message}",

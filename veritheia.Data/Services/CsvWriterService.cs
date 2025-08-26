@@ -95,7 +95,7 @@ public class CsvWriterService
         for (int i = 0; i < researchQuestions.Count; i++)
         {
             var rqAssessment = result.RQAssessments.FirstOrDefault(a => a.QuestionIndex == i);
-            
+
             if (rqAssessment != null)
             {
                 csv.WriteField(researchQuestions[i]); // RQ text
@@ -135,15 +135,15 @@ public class ScreeningResult
     public string Venue { get; set; } = string.Empty;
     public string DOI { get; set; } = string.Empty;
     public string Link { get; set; } = string.Empty;
-    
+
     // Extracted semantics
     public List<string> Topics { get; set; } = new();
     public List<string> Entities { get; set; } = new();
     public List<string> Keywords { get; set; } = new();
-    
+
     // Overall decision
     public bool MustRead { get; set; }
-    
+
     // Per-RQ assessments
     public List<RQAssessment> RQAssessments { get; set; } = new();
 }

@@ -9,17 +9,17 @@ public enum JournalType
     /// Findings and discoveries during research
     /// </summary>
     Research,
-    
+
     /// <summary>
     /// Approaches and techniques used
     /// </summary>
     Method,
-    
+
     /// <summary>
     /// Choices made and their rationales
     /// </summary>
     Decision,
-    
+
     /// <summary>
     /// Insights and understanding developed
     /// </summary>

@@ -15,13 +15,13 @@ public interface ITestCognitiveAdapter : ICognitiveAdapter
     /// All generated data is clearly marked as fake for test purposes only.
     /// </summary>
     void SetDeterministicMode(bool enabled);
-    
+
     /// <summary>
     /// Sets a seed for deterministic fake data generation in tests.
     /// This enables repeatable test scenarios without neural processing.
     /// </summary>
     void SetTestSeed(int seed);
-    
+
     /// <summary>
     /// Configures whether to simulate failures for error handling tests.
     /// Enables testing of exception paths without actual service failures.

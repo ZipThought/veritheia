@@ -12,7 +12,7 @@ public interface ICognitiveAdapter
     /// Generate embeddings for text
     /// </summary>
     Task<float[]> CreateEmbedding(string text);
-    
+
     /// <summary>
     /// Generate text completion
     /// </summary>

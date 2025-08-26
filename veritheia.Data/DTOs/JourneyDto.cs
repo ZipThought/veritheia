@@ -15,7 +15,7 @@ public class JourneyDto
     public Dictionary<string, object> Context { get; set; } = new();
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
-    
+
     // Navigation properties
     public PersonaDto? Persona { get; set; }
     public List<ProcessExecutionDto> ProcessExecutions { get; set; } = new();

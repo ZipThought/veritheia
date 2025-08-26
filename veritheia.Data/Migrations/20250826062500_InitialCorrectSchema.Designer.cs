@@ -15,8 +15,8 @@ using Veritheia.Data;
 namespace veritheia.Data.Migrations
 {
     [DbContext(typeof(VeritheiaDbContext))]
-    [Migration("20250820070909_CompositePrimaryKeys")]
-    partial class CompositePrimaryKeys
+    [Migration("20250826062500_InitialCorrectSchema")]
+    partial class InitialCorrectSchema
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -266,6 +266,117 @@ namespace veritheia.Data.Migrations
                         {
                             t.HasCheckConstraint("CK_Journey_State", "\"State\" IN ('Active', 'Paused', 'Completed', 'Abandoned')");
                         });
+                });
+
+            modelBuilder.Entity("Veritheia.Data.Entities.JourneyDocumentProcessingRecord", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.PrimitiveCollection<List<int>>("AssessedResearchQuestions")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("Authors")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DocumentIdentifier")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<int>("DocumentIndex")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("DocumentTitle")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.PrimitiveCollection<List<string>>("ExtractedEntities")
+                        .HasColumnType("jsonb");
+
+                    b.PrimitiveCollection<List<string>>("ExtractedTopics")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("FailureReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("FailureStage")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("FormationImpact")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<bool>("IsReviewed")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("JourneyId")
+                        .HasColumnType("uuid");
+
+                    b.PrimitiveCollection<List<string>>("Keywords")
+                        .HasColumnType("jsonb");
+
+                    b.Property<bool?>("MustRead")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("ProcessExecutionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ProcessingCompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Dictionary<string, object>>("ProcessingResults")
+                        .HasColumnType("jsonb");
+
+                    b.Property<DateTime>("ProcessingStartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.PrimitiveCollection<List<int>>("UnassessedResearchQuestions")
+                        .HasColumnType("jsonb");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserNotes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("Venue")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<bool>("WasProcessedSuccessfully")
+                        .HasColumnType("boolean");
+
+                    b.Property<int?>("Year")
+                        .HasColumnType("integer");
+
+                    b.HasKey("UserId", "Id");
+
+                    b.HasIndex("UserId", "IsReviewed");
+
+                    b.HasIndex("UserId", "ProcessExecutionId");
+
+                    b.HasIndex("UserId", "JourneyId", "MustRead");
+
+                    b.HasIndex("UserId", "JourneyId", "ProcessExecutionId");
+
+                    b.HasIndex("UserId", "JourneyId", "WasProcessedSuccessfully");
+
+                    b.ToTable("journey_document_processing_records", (string)null);
                 });
 
             modelBuilder.Entity("Veritheia.Data.Entities.JourneyDocumentSegment", b =>
@@ -909,6 +1020,12 @@ namespace veritheia.Data.Migrations
 
             modelBuilder.Entity("Veritheia.Data.Entities.DocumentMetadata", b =>
                 {
+                    b.HasOne("Veritheia.Data.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Veritheia.Data.Entities.Document", "Document")
                         .WithOne("Metadata")
                         .HasForeignKey("Veritheia.Data.Entities.DocumentMetadata", "UserId", "DocumentId")
@@ -916,6 +1033,8 @@ namespace veritheia.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Document");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Veritheia.Data.Entities.Journal", b =>
@@ -955,6 +1074,32 @@ namespace veritheia.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Persona");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Veritheia.Data.Entities.JourneyDocumentProcessingRecord", b =>
+                {
+                    b.HasOne("Veritheia.Data.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Veritheia.Data.Entities.Journey", "Journey")
+                        .WithMany()
+                        .HasForeignKey("UserId", "JourneyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Veritheia.Data.Entities.ProcessExecution", "ProcessExecution")
+                        .WithMany()
+                        .HasForeignKey("UserId", "ProcessExecutionId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Journey");
+
+                    b.Navigation("ProcessExecution");
 
                     b.Navigation("User");
                 });

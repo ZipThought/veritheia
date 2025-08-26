@@ -56,9 +56,9 @@ public class DatabaseSchemaValidationTests : DatabaseTestBase
             .Where(pe => pe.UserId != Guid.Empty)
             .Select(pe => new { pe.UserId, pe.Id, pe.State })
             .Take(0);
-            
+
         var result = await query.ToListAsync();
-        
+
         // If we reach here without exception, the schema is correct
         Assert.NotNull(result);
     }
@@ -105,7 +105,7 @@ public class DatabaseSchemaValidationTests : DatabaseTestBase
             .OrderBy(pe => pe.CreatedAt)
             .Take(10)
             .ToListAsync();
-            
+
         // Should not throw - validates the schema matches the query expectations
         Assert.NotNull(pendingExecutions);
     }

@@ -23,7 +23,7 @@ public class DocumentIngestionService
     private readonly TextExtractionService _textExtraction;
     private readonly EmbeddingService _embedding;
     private readonly ILogger<DocumentIngestionService> _logger;
-    
+
     public DocumentIngestionService(
         VeritheiaDbContext dbContext,
         DocumentService documentService,
@@ -37,7 +37,7 @@ public class DocumentIngestionService
         _embedding = embedding;
         _logger = logger;
     }
-    
+
     /// <summary>
     /// Ingest a document into a journey's projection space
     /// </summary>
@@ -50,32 +50,40 @@ public class DocumentIngestionService
         IngestionOptions? options = null)
     {
         options ??= new IngestionOptions();
-        
-        _logger.LogInformation("Starting ingestion of {FileName} for journey {JourneyId}", 
+
+        _logger.LogInformation("Starting ingestion of {FileName} for journey {JourneyId}",
             fileName, journeyId);
-        
-        // Upload document
-        var document = await _documentService.UploadDocumentAsync(
-            content, fileName, mimeType, userId, options.ScopeId);
-        
+
+        // Add document to corpus (for now, just create a basic entry)
+        // TODO: This needs proper implementation for full text upload
+        var document = await _documentService.AddDocumentToCorpusAsync(
+            userId,
+            title: fileName,
+            abstractText: "Document pending processing",
+            authors: string.Empty,
+            doi: string.Empty,
+            year: null,
+            venue: string.Empty,
+            keywords: string.Empty);
+
         // Extract text
         content.Position = 0;
         var extractedText = await _textExtraction.ExtractTextAsync(content, mimeType);
-        
+
         if (string.IsNullOrEmpty(extractedText))
         {
             _logger.LogWarning("No text extracted from {FileName}", fileName);
-            return new IngestionResult 
-            { 
-                DocumentId = document.Id, 
-                Success = false, 
-                Error = "No text content extracted" 
+            return new IngestionResult
+            {
+                DocumentId = document.Id,
+                Success = false,
+                Error = "No text content extracted"
             };
         }
-        
+
         // Extract metadata
         var metadata = ExtractMetadata(extractedText, fileName);
-        
+
         // Store metadata
         var documentMetadata = new DocumentMetadata
         {
@@ -84,19 +92,19 @@ public class DocumentIngestionService
             Title = metadata.Title,
             Authors = new string[] { metadata.Author },
             PublicationDate = metadata.PublicationDate,
-            ExtendedMetadata = new Dictionary<string, object> 
-            { 
+            ExtendedMetadata = new Dictionary<string, object>
+            {
                 ["abstract"] = metadata.Abstract,
                 ["keywords"] = metadata.Keywords
             },
             CreatedAt = DateTime.UtcNow
         };
-        
+
         _db.DocumentMetadata.Add(documentMetadata);
-        
+
         // Chunk document for journey
         var chunks = ChunkDocument(extractedText, options);
-        
+
         // Create journey segments
         var segments = new List<JourneyDocumentSegment>();
         for (int i = 0; i < chunks.Count; i++)
@@ -111,19 +119,19 @@ public class DocumentIngestionService
                 SequenceIndex = i,
                 CreatedAt = DateTime.UtcNow
             };
-            
+
             segments.Add(segment);
             _db.JourneyDocumentSegments.Add(segment);
         }
-        
+
         await _db.SaveChangesAsync();
-        
+
         // Generate embeddings (async, don't block)
         _ = Task.Run(async () => await GenerateEmbeddingsAsync(segments));
-        
-        _logger.LogInformation("Ingested {FileName} with {SegmentCount} segments", 
+
+        _logger.LogInformation("Ingested {FileName} with {SegmentCount} segments",
             fileName, segments.Count);
-        
+
         return new IngestionResult
         {
             DocumentId = document.Id,
@@ -132,12 +140,12 @@ public class DocumentIngestionService
             Metadata = metadata
         };
     }
-    
+
     private MetadataInfo ExtractMetadata(string text, string fileName)
     {
         // Simple metadata extraction (would be enhanced with AI)
         var lines = text.Split('\n').Take(50).ToArray();
-        
+
         return new MetadataInfo
         {
             Title = ExtractTitle(lines, fileName),
@@ -146,27 +154,27 @@ public class DocumentIngestionService
             Keywords = ExtractKeywords(text)
         };
     }
-    
+
     private string ExtractTitle(string[] lines, string fallback)
     {
         // Look for title patterns
-        var titleLine = lines.FirstOrDefault(l => 
-            l.Length > 10 && l.Length < 200 && 
+        var titleLine = lines.FirstOrDefault(l =>
+            l.Length > 10 && l.Length < 200 &&
             !l.StartsWith("by", StringComparison.OrdinalIgnoreCase));
-        
+
         return titleLine ?? Path.GetFileNameWithoutExtension(fallback);
     }
-    
+
     private string ExtractAuthor(string[] lines)
     {
         // Look for author patterns
-        var authorLine = lines.FirstOrDefault(l => 
+        var authorLine = lines.FirstOrDefault(l =>
             l.StartsWith("by", StringComparison.OrdinalIgnoreCase) ||
             l.Contains("Author:", StringComparison.OrdinalIgnoreCase));
-        
+
         return authorLine?.Replace("by", "", StringComparison.OrdinalIgnoreCase).Trim() ?? "Unknown";
     }
-    
+
     private string ExtractAbstract(string text)
     {
         // Look for abstract section
@@ -176,16 +184,16 @@ public class DocumentIngestionService
             var abstractText = text.Substring(abstractIndex, Math.Min(1000, text.Length - abstractIndex));
             return abstractText.Split('\n').Skip(1).FirstOrDefault()?.Trim() ?? "";
         }
-        
+
         // Fallback to first paragraph
         return text.Split("\n\n").FirstOrDefault()?.Trim() ?? "";
     }
-    
+
     private string[] ExtractKeywords(string text)
     {
         // Simple keyword extraction (would be enhanced with AI)
         var commonWords = new HashSet<string> { "the", "and", "or", "but", "in", "on", "at", "to", "for" };
-        
+
         var words = text.Split(' ', StringSplitOptions.RemoveEmptyEntries)
             .Where(w => w.Length > 4 && !commonWords.Contains(w.ToLower()))
             .GroupBy(w => w.ToLower())
@@ -193,28 +201,28 @@ public class DocumentIngestionService
             .Take(10)
             .Select(g => g.Key)
             .ToArray();
-        
+
         return words;
     }
-    
+
     private List<DocumentChunk> ChunkDocument(string text, IngestionOptions options)
     {
         var chunks = new List<DocumentChunk>();
-        
+
         // Simple paragraph-based chunking
         var paragraphs = text.Split("\n\n", StringSplitOptions.RemoveEmptyEntries);
-        
+
         foreach (var para in paragraphs)
         {
             if (para.Length < options.MinChunkSize)
                 continue;
-            
+
             if (para.Length > options.MaxChunkSize)
             {
                 // Split large paragraphs
                 var sentences = para.Split(". ");
                 var currentChunk = new StringBuilder();
-                
+
                 foreach (var sentence in sentences)
                 {
                     if (currentChunk.Length + sentence.Length > options.MaxChunkSize)
@@ -228,7 +236,7 @@ public class DocumentIngestionService
                     }
                     currentChunk.Append(sentence).Append(". ");
                 }
-                
+
                 if (currentChunk.Length > 0)
                 {
                     chunks.Add(new DocumentChunk
@@ -247,10 +255,10 @@ public class DocumentIngestionService
                 });
             }
         }
-        
+
         return chunks;
     }
-    
+
     private async Task GenerateEmbeddingsAsync(List<JourneyDocumentSegment> segments)
     {
         foreach (var segment in segments)

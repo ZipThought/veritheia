@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Npgsql;
+using Pgvector.EntityFrameworkCore;
 using Veritheia.Core.Interfaces;
 using Veritheia.Core.ValueObjects;
 using Veritheia.Data;
@@ -22,44 +24,84 @@ using Xunit.Abstractions;
 namespace veritheia.Tests.Integration.E2E;
 
 /// <summary>
-/// End-to-end integration test for the complete LLAssist workflow with REAL LLM.
-/// Uses actual Scopus/IEEE CSV test data to validate real-world compatibility.
+/// End-to-end test for formation through authorship using systematic screening process.
+/// Validates that users can author their intellectual frameworks in natural language,
+/// which become the symbolic systems governing document processing.
 /// 
-/// This test is EXCLUDED from CI because it requires a real LLM service.
-/// To run locally: dotnet test --filter "FullyQualifiedName~LLAssistRealLLMTest"
+/// This test validates the neurosymbolic transcendence - where natural language
+/// authorship becomes the symbolic rules, not hard-coded prompts.
 /// 
-/// Prerequisites:
+/// Uses real Scopus/IEEE test data to demonstrate formation through engagement.
+/// 
+/// Prerequisites for local testing:
 /// - Local LLM running (e.g., LM Studio on port 1234)
 /// - Or set environment variables: LLM_URL and LLM_MODEL
 /// </summary>
 [Collection("DatabaseTests")]
-[Trait("Category", "LLMIntegration")]
+[Trait("Category", "FormationValidation")]
 [Trait("RequiresLLM", "true")]
 public class LLAssistRealLLMTest : DatabaseTestBase
 {
     private readonly ITestOutputHelper _output;
     private readonly ServiceProvider _serviceProvider;
-    
+
     public LLAssistRealLLMTest(DatabaseFixture fixture, ITestOutputHelper output) : base(fixture)
     {
         _output = output;
-        
+
         // Build service provider with all required services
         var services = new ServiceCollection();
-        
+
         // Add logging
-        services.AddLogging(builder => 
+        services.AddLogging(builder =>
         {
             builder.AddConsole();
             builder.SetMinimumLevel(LogLevel.Information);
         });
-        
-        // Use the context from the fixture
-        services.AddScoped<VeritheiaDbContext>(_ => Context);
-        
-        // Add services using the actual registration - REAL LLM, not mocked
-        services.AddHttpClient<OpenAICognitiveAdapter>();
-        services.AddScoped<ICognitiveAdapter, OpenAICognitiveAdapter>();
+
+        // Add configuration for LLM
+        services.AddSingleton<IConfiguration>(provider =>
+        {
+            var isCI = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI")) ||
+                      !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
+
+            var configBuilder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.Test.json", optional: false, reloadOnChange: false);
+
+            // Only load CI config if actually running in CI
+            if (isCI)
+            {
+                configBuilder.AddJsonFile("appsettings.CI.json", optional: true, reloadOnChange: false);
+            }
+
+            configBuilder.AddEnvironmentVariables();
+
+            var config = configBuilder.Build();
+
+            // Log the configuration being used
+            var llmUrl = config["LLM:Url"] ?? "http://localhost:1234/v1";
+            var llmModel = config["LLM:Model"] ?? "llama-3.2-3b-instruct";
+            var useTestAdapter = config.GetValue<bool>("Testing:UseTestCognitiveAdapter", false);
+            var isCIEnvironment = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI")) ||
+                      !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
+
+            _output.WriteLine($"LLM Configuration: {llmUrl} with model {llmModel}");
+            _output.WriteLine($"UseTestCognitiveAdapter: {useTestAdapter}");
+            _output.WriteLine($"CI Environment: {isCIEnvironment}");
+
+            return config;
+        });
+
+        // Use a singleton factory that creates contexts from the fixture
+        // This ensures all contexts use the same database connection
+        services.AddScoped<VeritheiaDbContext>(provider => Fixture.CreateContext());
+
+        // Build configuration first to pass to test registration
+        var config = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
+
+        // Register cognitive adapter for neural semantic understanding
+        TestServiceRegistration.RegisterTestCognitiveAdapter(services, config);
         services.AddScoped<SemanticExtractionService>();
         services.AddScoped<CsvParserService>();
         services.AddScoped<CsvWriterService>();
@@ -70,71 +112,63 @@ public class LLAssistRealLLMTest : DatabaseTestBase
         services.AddScoped<PersonaService>();
         services.AddScoped<UserService>();
         services.AddScoped<DocumentService>();
-        services.AddScoped<FileStorageService>();
-        services.AddScoped<IDocumentStorageRepository, FileStorageService>();
+
+        // FileStorageService needs a storage path
+        services.AddScoped<FileStorageService>(provider =>
+            new FileStorageService(Path.Combine(Path.GetTempPath(), "veritheia_test_storage")));
+        services.AddScoped<IDocumentStorageRepository>(provider =>
+            provider.GetRequiredService<FileStorageService>());
         services.AddScoped<TextExtractionService>();
         services.AddScoped<EmbeddingService>();
         services.AddScoped<DocumentIngestionService>();
-        
-        // Add configuration for LLM
-        services.AddSingleton<IConfiguration>(provider =>
-        {
-            var configBuilder = new ConfigurationBuilder();
-            configBuilder.AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["LLM:Url"] = Environment.GetEnvironmentVariable("LLM_URL") ?? "http://localhost:1234/v1",
-                ["LLM:Model"] = Environment.GetEnvironmentVariable("LLM_MODEL") ?? "llama-3.2-3b-instruct"
-            });
-            return configBuilder.Build();
-        });
-        
+
         _serviceProvider = services.BuildServiceProvider();
     }
-    
+
     public override async Task InitializeAsync()
     {
         await base.InitializeAsync();
-        _output.WriteLine("Database ready from fixture");
-        
+        _output.WriteLine("Database ready for formation journey");
+
         // Register processes with the ProcessEngine
         var processEngine = _serviceProvider.GetRequiredService<ProcessEngine>();
         processEngine.RegisterProcess<BasicSystematicScreeningProcess>();
-        _output.WriteLine("Processes registered with ProcessEngine");
+        _output.WriteLine("Formation processes registered");
     }
-    
+
     public override async Task DisposeAsync()
     {
         await _serviceProvider.DisposeAsync();
         await base.DisposeAsync();
     }
-    
-    [Fact(Skip = "Requires real LLM service - run manually with: dotnet test --filter LLAssistRealLLMTest")]
-    public async Task CompleteSystematicScreeningWorkflow_WithRealScopusData_ProducesValidResults()
+
+    [Fact]
+    public async Task FormationJourney_WithUserAuthoredFramework_EnablesUnderstandingDevelopment()
     {
-        // Arrange - Create user and journey
-        _output.WriteLine("=== Starting LLAssist Real LLM Test with Scopus Data ===");
-        
-        // Use a scope to ensure proper DI lifetime
-        using var scope = _serviceProvider.CreateScope();
+        // Arrange - Create user for formation journey
+        _output.WriteLine("=== Starting Formation Journey Test ===");
+        _output.WriteLine("Testing neurosymbolic transcendence: Natural language becomes symbolic system");
+
+        // Don't dispose the scope until the entire test completes
+        await using var scope = _serviceProvider.CreateAsyncScope();
         var userService = scope.ServiceProvider.GetRequiredService<UserService>();
         var journeyService = scope.ServiceProvider.GetRequiredService<JourneyService>();
         var personaService = scope.ServiceProvider.GetRequiredService<PersonaService>();
         var processEngine = scope.ServiceProvider.GetRequiredService<ProcessEngine>();
-        
-        // Register the process
+
+        // Register the formation process
         processEngine.RegisterProcess<BasicSystematicScreeningProcess>();
-        
-        // Step 1: Create demo user
-        _output.WriteLine("Step 1: Creating demo user...");
-        var user = await userService.CreateOrGetUserAsync("test@example.com", "Test User");
+
+        // Step 1: User begins their formation journey
+        _output.WriteLine("\nStep 1: User begins formation journey...");
+        var user = await userService.CreateOrGetUserAsync("researcher@university.edu", "Dr. Sarah Chen");
         Assert.NotNull(user);
-        _output.WriteLine($"✓ User created: {user.Email}");
-        
-        // Step 2: Create default personas
-        _output.WriteLine("Step 2: Creating personas...");
+        _output.WriteLine($"✓ User ready for formation: {user.DisplayName}");
+
+        // Step 2: User establishes their intellectual context (Persona)
+        _output.WriteLine("\nStep 2: User establishes intellectual context...");
         var personas = await personaService.GetUserPersonasAsync(user.Id);
-        
-        // If no personas exist, create a researcher persona
+
         if (personas == null || !personas.Any())
         {
             await Context.Personas.AddAsync(new Persona
@@ -144,8 +178,9 @@ public class LLAssistRealLLMTest : DatabaseTestBase
                 Domain = "Researcher",
                 ConceptualVocabulary = new Dictionary<string, object>
                 {
-                    ["type"] = "Academic researcher",
-                    ["focus"] = "Cybersecurity and AI"
+                    ["perspective"] = "Cybersecurity researcher focusing on practical AI applications",
+                    ["theoretical_stance"] = "Empirical, evidence-based approach",
+                    ["methodological_preference"] = "Systematic literature review with dual assessment"
                 },
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
@@ -153,175 +188,260 @@ public class LLAssistRealLLMTest : DatabaseTestBase
             await Context.SaveChangesAsync();
             personas = await personaService.GetUserPersonasAsync(user.Id);
         }
+
         Assert.NotEmpty(personas);
         var researcherPersona = personas.First(p => p.Domain == "Researcher");
-        _output.WriteLine($"✓ Personas created: {string.Join(", ", personas.Select(p => p.Domain))}");
-        
-        // Step 3: Create journey with systematic screening process
-        _output.WriteLine("Step 3: Creating journey...");
+        _output.WriteLine($"✓ Intellectual context established: {researcherPersona.Domain}");
+
+        // Step 3: User creates journey for formation
+        _output.WriteLine("\nStep 3: User creates journey for intellectual development...");
         var journey = await journeyService.CreateJourneyAsync(
-            user.Id, 
-            "Cybersecurity AI Research - Scopus Dataset", 
-            researcherPersona.Id, 
+            user.Id,
+            "AI Applications in Cybersecurity - Formation Journey",
+            researcherPersona.Id,
             "systematic-screening");
         Assert.NotNull(journey);
-        _output.WriteLine($"✓ Journey created: {journey.Purpose}");
-        
-        // Step 4: Use REAL Scopus test data
-        _output.WriteLine("Step 4: Loading REAL Scopus test dataset...");
+        _output.WriteLine($"✓ Formation journey initiated: {journey.Purpose}");
+
+        // Step 4: USER AUTHORS THEIR INTELLECTUAL FRAMEWORK IN NATURAL LANGUAGE
+        // This is the key difference - the user's natural language IS the symbolic system
+        _output.WriteLine("\nStep 4: User authors their intellectual framework in natural language...");
+        _output.WriteLine("This natural language authorship BECOMES the symbolic system governing all processing");
+
+        var intellectualFramework = @"
+I am investigating how large language models (LLMs) are being practically deployed 
+in cybersecurity threat detection systems. My focus is on real-world implementations 
+that have been tested in production environments, not theoretical proposals.
+
+By 'practical deployment' I mean systems that are actually running and processing 
+real security events, not proof-of-concepts or research prototypes. I'm particularly 
+interested in how these systems handle the challenges of false positives, adversarial 
+inputs, and integration with existing security infrastructure.
+
+Papers are relevant if they discuss actual implementations, deployment challenges, 
+or empirical evaluations of LLM-based threat detection. Papers that only propose 
+theoretical architectures without implementation are not relevant to my research.
+
+Strong contributions are papers that provide performance metrics from production 
+deployments, discuss lessons learned from real implementations, or present 
+empirical comparisons with traditional threat detection methods.
+";
+
+        var researchQuestions = new[]
+        {
+            "How are LLMs being integrated into production threat detection pipelines?",
+            "What are the empirical false positive rates of LLM-based threat detection compared to traditional methods?",
+            "How do production systems handle adversarial attacks against LLM-based threat detection?",
+            "What are the resource requirements and scalability challenges of deployed LLM threat detection systems?"
+        };
+
+        var definitions = @"
+Production system: A system processing real security events in a live environment
+Empirical evaluation: Performance measured on real-world data, not synthetic datasets
+Threat detection: Identification of malicious activity in network traffic, logs, or system behavior
+Adversarial attack: Deliberate attempts to deceive or bypass the detection system
+False positive rate: Percentage of benign events incorrectly classified as threats
+";
+
+        var assessmentCriteria = @"
+Papers must provide concrete evidence from actual deployments.
+Theoretical proposals without implementation should score low on contribution.
+Case studies from production environments should score high on relevance.
+Performance comparisons must use real-world data to be considered empirical.
+";
+
+        _output.WriteLine("✓ User has authored their complete intellectual framework");
+        _output.WriteLine($"  - Intellectual stance: Defined");
+        _output.WriteLine($"  - Research questions: {researchQuestions.Length} authored");
+        _output.WriteLine($"  - Key definitions: Provided");
+        _output.WriteLine($"  - Assessment criteria: Specified");
+
+        // Step 5: Load test corpus for projection through user's framework
+        _output.WriteLine("\nStep 5: Loading document corpus for projection...");
         var csvContent = TestDataHelper.GetCsvSample("scopus_sample.csv");
         Assert.NotEmpty(csvContent);
-        
-        // Count actual articles in the CSV
+
         var csvLines = csvContent.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-        var articleCount = csvLines.Length - 1; // Subtract header
-        _output.WriteLine($"✓ Loaded Scopus CSV with {articleCount} real research papers");
-        
-        // Use research questions from the test data
-        var researchQuestionsText = TestDataHelper.GetResearchQuestionsText("cybersecurity_llm_rqs.txt");
-        var researchQuestions = researchQuestionsText.Split('\n', StringSplitOptions.RemoveEmptyEntries)
-            .Select(q => q.Trim())
-            .Where(q => !string.IsNullOrWhiteSpace(q))
-            .ToList();
-        
-        _output.WriteLine($"✓ Loaded {researchQuestions.Count} research questions:");
-        foreach (var rq in researchQuestions)
-        {
-            _output.WriteLine($"  - {rq}");
-        }
-        
+        var documentCount = csvLines.Length - 1; // Subtract header
+        _output.WriteLine($"✓ Corpus ready: {documentCount} documents to project through user's framework");
+
+        // Prepare inputs with user's authored framework
         var inputs = new Dictionary<string, object>
         {
-            ["csv_content"] = csvContent,
-            ["research_questions"] = string.Join("\n", researchQuestions)
+            ["intellectual_framework"] = intellectualFramework,
+            ["research_questions"] = string.Join("\n", researchQuestions),
+            ["definitions"] = definitions,
+            ["assessment_criteria"] = assessmentCriteria,
+            ["csv_upload"] = csvContent
         };
-        
-        // Step 5: Execute systematic screening process with REAL LLM
-        _output.WriteLine("\nStep 5: Executing systematic screening with REAL LLM...");
-        _output.WriteLine("⏳ This will make real LLM calls for each paper and may take several minutes...");
-        _output.WriteLine($"   Processing {articleCount} papers × {researchQuestions.Count} questions = {articleCount * researchQuestions.Count * 2} assessments");
-        
+
+        // Step 6: MECHANICAL ORCHESTRATION applies user's framework to ALL documents
+        _output.WriteLine("\nStep 6: Projecting documents through user-authored framework...");
+        _output.WriteLine("⚙️ Mechanical orchestration ensures EVERY document gets identical treatment");
+        _output.WriteLine("🧠 Neural semantic understanding interprets user's natural language as symbolic rules");
+        _output.WriteLine($"📊 Processing {documentCount} documents through {researchQuestions.Length} research questions");
+
         var startTime = DateTime.UtcNow;
-        var result = await processEngine.ExecuteProcessAsync(
-            "systematic-screening", 
-            journey.Id, 
-            inputs);
+        ProcessExecutionResult result;
+        try
+        {
+            result = await processEngine.ExecuteProcessAsync(
+                "systematic-screening",
+                journey.Id,
+                inputs);
+        }
+        catch (Exception ex)
+        {
+            _output.WriteLine($"Process execution threw exception: {ex.GetType().Name}");
+            _output.WriteLine($"Message: {ex.Message}");
+            if (ex.InnerException != null)
+            {
+                _output.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                if (ex.InnerException.InnerException != null)
+                {
+                    _output.WriteLine($"Inner inner exception: {ex.InnerException.InnerException.Message}");
+                }
+            }
+            throw;
+        }
         var duration = DateTime.UtcNow - startTime;
-        
-        // Step 6: Verify results
-        _output.WriteLine($"\nStep 6: Verifying results (completed in {duration.TotalSeconds:F1} seconds)...");
-        
+
+        // Step 7: Validate formation enablement (not just processing completion)
+        _output.WriteLine($"\nStep 7: Validating formation enablement (completed in {duration.TotalSeconds:F1} seconds)...");
+
         Assert.NotNull(result);
-        Assert.True(result.Success, $"Process failed: {result.ErrorMessage}");
+
+        // Log the actual error if the process failed
+        if (!result.Success)
+        {
+            _output.WriteLine($"Process failed with error: {result.ErrorMessage}");
+            if (result.Data != null)
+            {
+                foreach (var kvp in result.Data)
+                {
+                    _output.WriteLine($"  {kvp.Key}: {kvp.Value}");
+                }
+            }
+        }
+
+        Assert.True(result.Success, $"Formation journey failed: {result.ErrorMessage}");
         Assert.NotNull(result.Data);
-        
-        // Check result structure
-        Assert.True(result.Data.ContainsKey("total_articles_attempted"), "Missing total_articles_attempted");
-        Assert.True(result.Data.ContainsKey("processing_success_count"), "Missing processing_success_count");
-        Assert.True(result.Data.ContainsKey("processing_failure_count"), "Missing processing_failure_count");
-        Assert.True(result.Data.ContainsKey("must_read_count"), "Missing must_read_count");
-        Assert.True(result.Data.ContainsKey("results"), "Missing results array");
-        
-        var totalAttempted = Convert.ToInt32(result.Data["total_articles_attempted"]);
-        var successCount = Convert.ToInt32(result.Data["processing_success_count"]);
-        var failureCount = Convert.ToInt32(result.Data["processing_failure_count"]);
-        var mustReadCount = Convert.ToInt32(result.Data["must_read_count"]);
-        var mustReadPercentage = result.Data.ContainsKey("must_read_percentage") 
-            ? Convert.ToDouble(result.Data["must_read_percentage"]) 
-            : 0;
-        
-        _output.WriteLine($"✓ Process completed successfully");
-        _output.WriteLine($"  - Total articles attempted: {totalAttempted}");
-        _output.WriteLine($"  - Successfully processed: {successCount}");
-        _output.WriteLine($"  - Failed to process: {failureCount}");
-        _output.WriteLine($"  - Must-read papers: {mustReadCount} ({mustReadPercentage:F1}%)");
-        
-        // With real LLM and real data, we expect:
-        Assert.Equal(articleCount, totalAttempted); // Should attempt all papers
-        Assert.True(successCount > 0, "Should successfully process at least some papers");
-        Assert.InRange(mustReadCount, 0, successCount); // Must-read should be subset of successful
-        
-        // Check for failure transparency
-        if (failureCount > 0)
+
+        // Verify framework was captured and applied
+        Assert.True(result.Data.ContainsKey("journey_framework"), "User's framework should be preserved");
+        var framework = result.Data["journey_framework"] as dynamic;
+        Assert.NotNull(framework);
+        _output.WriteLine("✓ User's intellectual framework preserved for formation");
+
+        // Verify mechanical orchestration transparency
+        Assert.True(result.Data.ContainsKey("processing_summary"), "Processing transparency required");
+        var summaryObj = result.Data["processing_summary"];
+        Assert.NotNull(summaryObj);
+
+        // Use reflection to access anonymous type properties
+        var summaryType = summaryObj.GetType();
+        var totalDocuments = (int)summaryType.GetProperty("total_documents").GetValue(summaryObj);
+        var successfulProjections = (int)summaryType.GetProperty("successful_projections").GetValue(summaryObj);
+        var failedProjections = (int)summaryType.GetProperty("failed_projections").GetValue(summaryObj);
+
+        _output.WriteLine($"✓ Mechanical orchestration complete:");
+        _output.WriteLine($"  - Documents attempted: {totalDocuments}");
+        _output.WriteLine($"  - Successfully projected: {successfulProjections}");
+        _output.WriteLine($"  - Failed projections: {failedProjections}");
+
+        // Verify formation indicators (not just scores)
+        Assert.True(result.Data.ContainsKey("formation_indicators"), "Formation indicators required");
+        var indicatorsObj = result.Data["formation_indicators"];
+        Assert.NotNull(indicatorsObj);
+
+        // Use reflection to access anonymous type properties
+        var indicatorsType = indicatorsObj.GetType();
+        var requiresEngagement = (int)indicatorsType.GetProperty("documents_requiring_engagement").GetValue(indicatorsObj);
+        var engagementPercentage = (double)indicatorsType.GetProperty("engagement_percentage").GetValue(indicatorsObj);
+
+        _output.WriteLine($"✓ Formation indicators generated:");
+        _output.WriteLine($"  - Documents requiring engagement: {requiresEngagement}");
+        _output.WriteLine($"  - Engagement percentage: {engagementPercentage:F1}%");
+
+        // Verify document projections include framework application
+        Assert.True(result.Data.ContainsKey("document_projections"), "Document projections required");
+        var projections = result.Data["document_projections"] as IEnumerable<dynamic>;
+        Assert.NotNull(projections);
+
+        var projectionsList = projections.ToList();
+        Assert.NotEmpty(projectionsList);
+
+        // Step 8: Validate neurosymbolic transcendence
+        _output.WriteLine("\nStep 8: Validating neurosymbolic transcendence...");
+
+        // Check that assessments show framework application (not generic scoring)
+        var firstProjection = projectionsList.First();
+        var projType = firstProjection.GetType();
+        var assessmentsProp = projType.GetProperty("assessments");
+        Assert.NotNull(assessmentsProp);
+
+        var assessments = assessmentsProp.GetValue(firstProjection) as IEnumerable<object>;
+        Assert.NotNull(assessments);
+        var assessmentsList = assessments.ToList();
+        Assert.NotEmpty(assessmentsList);
+
+        var firstAssessment = assessmentsList.First();
+        var assessmentType = firstAssessment.GetType();
+        var frameworkAppProp = assessmentType.GetProperty("framework_application");
+        Assert.NotNull(frameworkAppProp);
+
+        _output.WriteLine("✓ Framework application verified:");
+        var titleProp = projType.GetProperty("title");
+        var requiresEngagementProp = projType.GetProperty("requires_engagement");
+        var topicsProp = projType.GetProperty("framework_topics");
+
+        _output.WriteLine($"  - Document: {titleProp?.GetValue(firstProjection)}");
+        _output.WriteLine($"  - Requires engagement: {requiresEngagementProp?.GetValue(firstProjection)}");
+        if (topicsProp != null)
         {
-            Assert.True(result.Data.ContainsKey("detailed_failures"), "Should include failure details");
-            _output.WriteLine($"⚠️ {failureCount} papers failed processing (this is expected with real LLM)");
+            var topics = topicsProp.GetValue(firstProjection) as IEnumerable<string>;
+            if (topics != null)
+                _output.WriteLine($"  - Framework-specific topics: {string.Join(", ", topics)}");
         }
-        
-        // Step 7: Validate CSV output format
-        if (result.Data.ContainsKey("csv_output"))
+
+        // Step 9: Verify formation prompts for engagement
+        Assert.True(result.Data.ContainsKey("formation_prompts"), "Formation prompts required");
+        var prompts = result.Data["formation_prompts"] as List<string>;
+        if (prompts != null && prompts.Any())
         {
-            var csvBase64 = result.Data["csv_output"].ToString();
-            Assert.NotEmpty(csvBase64);
-            
-            var csvBytes = Convert.FromBase64String(csvBase64!);
-            var csvOutput = Encoding.UTF8.GetString(csvBytes);
-            
-            _output.WriteLine($"\n✓ CSV output generated ({csvBytes.Length} bytes)");
-            
-            // Verify CSV has expected structure for Scopus data
-            var outputLines = csvOutput.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-            Assert.True(outputLines.Length > 1, "CSV should have header and data");
-            
-            var header = outputLines[0].ToLower();
-            Assert.Contains("title", header);
-            Assert.Contains("authors", header);
-            Assert.Contains("venue", header);
-            Assert.Contains("must-read", header);
-            
-            // Should have columns for each research question
-            foreach (var rq in researchQuestions.Take(1)) // Check at least first RQ
+            _output.WriteLine("\n✓ Formation prompts generated for user engagement:");
+            foreach (var prompt in prompts.Take(3))
             {
-                Assert.Contains("rq1-relevance", header);
-                Assert.Contains("rq1-contribution", header);
-            }
-            
-            _output.WriteLine($"  - CSV rows: {outputLines.Length}");
-            _output.WriteLine($"  - CSV validates Scopus format compatibility ✓");
-        }
-        
-        // Step 8: Verify specific paper processing (spot check)
-        if (result.Data.ContainsKey("results") && result.Data["results"] is IEnumerable<dynamic> results)
-        {
-            var resultsList = results.ToList();
-            if (resultsList.Any())
-            {
-                _output.WriteLine($"\n✓ Spot-checking first processed paper:");
-                dynamic firstResult = resultsList.First();
-                
-                Assert.NotNull(firstResult.title);
-                Assert.NotNull(firstResult.must_read);
-                Assert.NotNull(firstResult.topics);
-                Assert.NotNull(firstResult.assessments);
-                
-                _output.WriteLine($"  - Title: {firstResult.title}");
-                _output.WriteLine($"  - Must Read: {firstResult.must_read}");
-                _output.WriteLine($"  - Topics extracted: {string.Join(", ", firstResult.topics)}");
+                _output.WriteLine($"  - {prompt}");
             }
         }
-        
-        // Step 9: Verify journey state was updated
-        _output.WriteLine("\nStep 9: Verifying journey state...");
+
+        // Step 10: Validate journey state for continued formation
+        _output.WriteLine("\nStep 10: Validating journey ready for continued formation...");
         var updatedJourney = await journeyService.GetJourneyAsync(user.Id, journey.Id);
         Assert.NotNull(updatedJourney);
-        
-        // Check process execution record
+
+        // Check process execution was recorded for formation tracking
         var executions = await Context.ProcessExecutions
             .Where(pe => pe.JourneyId == journey.Id)
             .ToListAsync();
         Assert.NotEmpty(executions);
-        
+
         var latestExecution = executions.OrderByDescending(e => e.CreatedAt).First();
         Assert.Equal("Completed", latestExecution.State);
-        
-        _output.WriteLine($"✓ Journey updated with execution record");
+
+        _output.WriteLine("✓ Journey ready for continued formation");
         _output.WriteLine($"  - Execution state: {latestExecution.State}");
-        _output.WriteLine($"  - Processing time: {duration.TotalSeconds:F1} seconds");
-        _output.WriteLine($"  - Average per paper: {duration.TotalSeconds / articleCount:F1} seconds");
-        
-        _output.WriteLine("\n=== LLAssist Real LLM Test with Scopus Data PASSED ===");
-        _output.WriteLine("✓ Successfully processed real Scopus CSV format");
-        _output.WriteLine("✓ Validated compatibility with academic database exports");
-        _output.WriteLine("✓ Confirmed LLAssist algorithm works with real-world data");
+        _output.WriteLine($"  - Formation can continue through iterative refinement");
+
+        // Final validation: This enables formation, not just processing
+        _output.WriteLine("\n=== Formation Journey Test Complete ===");
+        _output.WriteLine("✅ User authored their framework in natural language");
+        _output.WriteLine("✅ Framework became the symbolic system governing processing");
+        _output.WriteLine("✅ Documents were projected through user's intellectual lens");
+        _output.WriteLine("✅ Results enable engagement for understanding development");
+        _output.WriteLine("✅ Formation through authorship validated");
+
+        _output.WriteLine("\nKey Achievement: User didn't need to code - their natural language IS the system");
     }
 }

@@ -9,7 +9,7 @@ namespace Veritheia.Tests.Helpers;
 public static class TestDataHelper
 {
     private static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
-    
+
     /// <summary>
     /// Gets CSV sample data as a string
     /// </summary>
@@ -26,7 +26,7 @@ public static class TestDataHelper
         using var reader = new StreamReader(stream);
         return reader.ReadToEnd();
     }
-    
+
     /// <summary>
     /// Gets CSV sample data as a Stream
     /// </summary>
@@ -42,7 +42,7 @@ public static class TestDataHelper
         }
         return stream;
     }
-    
+
     /// <summary>
     /// Gets research questions from a text file
     /// </summary>
@@ -63,7 +63,7 @@ public static class TestDataHelper
                      .Where(line => !string.IsNullOrEmpty(line))
                      .ToArray();
     }
-    
+
     /// <summary>
     /// Gets research questions as a single string (newline-separated)
     /// </summary>
@@ -80,7 +80,7 @@ public static class TestDataHelper
         using var reader = new StreamReader(stream);
         return reader.ReadToEnd().Trim();
     }
-    
+
     /// <summary>
     /// Lists all available embedded resource names for debugging
     /// </summary>

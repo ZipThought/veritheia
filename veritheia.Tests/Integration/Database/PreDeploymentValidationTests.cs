@@ -22,7 +22,7 @@ public class PreDeploymentValidationTests : DatabaseTestBase
     {
         // These are the exact queries that caused the production failure
         // They must work for the application to function
-        
+
         // 1. ProcessWorkerService query that was failing
         var pendingProcesses = await Context.ProcessExecutions
             .Where(pe => pe.State == "Pending")
@@ -31,7 +31,7 @@ public class PreDeploymentValidationTests : DatabaseTestBase
             .Select(pe => new { pe.UserId, pe.Id, pe.ProcessType, pe.State })
             .ToListAsync();
         Assert.NotNull(pendingProcesses);
-        
+
         // 2. All user-partitioned queries must work
         var userQueries = new Func<Task>[]
         {
@@ -40,12 +40,12 @@ public class PreDeploymentValidationTests : DatabaseTestBase
             () => Context.ProcessResults.Where(pr => pr.UserId != Guid.Empty).Take(1).ToListAsync(),
             () => Context.Personas.Where(p => p.UserId != Guid.Empty).Take(1).ToListAsync()
         };
-        
+
         foreach (var query in userQueries)
         {
             await query(); // Must not throw
         }
-        
+
         // 3. Composite key queries must work
         var compositeKeyQueries = new Func<Task>[]
         {
@@ -53,7 +53,7 @@ public class PreDeploymentValidationTests : DatabaseTestBase
             () => Context.Personas.Where(p => p.UserId == Guid.NewGuid() && p.Id == Guid.NewGuid()).ToListAsync(),
             () => Context.ProcessResults.Where(pr => pr.UserId == Guid.NewGuid() && pr.Id == Guid.NewGuid()).ToListAsync()
         };
-        
+
         foreach (var query in compositeKeyQueries)
         {
             await query(); // Must not throw
@@ -66,7 +66,7 @@ public class PreDeploymentValidationTests : DatabaseTestBase
         // Validate that the database model can be created without errors
         var model = Context.Model;
         Assert.NotNull(model);
-        
+
         // Check critical entity types exist in the model
         var criticalEntities = new[]
         {
@@ -76,12 +76,12 @@ public class PreDeploymentValidationTests : DatabaseTestBase
             typeof(Veritheia.Data.Entities.User),
             typeof(Veritheia.Data.Entities.Persona)
         };
-        
+
         foreach (var entityType in criticalEntities)
         {
             var entityTypeModel = model.FindEntityType(entityType);
             Assert.NotNull(entityTypeModel);
-            
+
             // For user-owned entities, ensure UserId property exists
             if (typeof(Veritheia.Data.Interfaces.IUserOwned).IsAssignableFrom(entityType))
             {
@@ -97,10 +97,10 @@ public class PreDeploymentValidationTests : DatabaseTestBase
         // Ensure all migrations have been applied
         var appliedMigrations = Context.Database.GetAppliedMigrations().ToList();
         Assert.NotEmpty(appliedMigrations);
-        
+
         // Check that the latest migration includes the composite primary keys
         Assert.Contains("20250820070909_CompositePrimaryKeys", appliedMigrations);
-        
+
         // Ensure no pending migrations
         var pendingMigrations = Context.Database.GetPendingMigrations().ToList();
         Assert.Empty(pendingMigrations);
@@ -119,7 +119,7 @@ public class PreDeploymentValidationTests : DatabaseTestBase
         {
             Assert.Fail($"pgvector is not properly configured: {ex.Message}");
         }
-        
+
         // Test vector table queries
         var vectorTables = new Func<Task>[]
         {
@@ -127,7 +127,7 @@ public class PreDeploymentValidationTests : DatabaseTestBase
             () => Context.SearchVectors768.Take(0).ToListAsync(),
             () => Context.SearchVectors384.Take(0).ToListAsync()
         };
-        
+
         foreach (var query in vectorTables)
         {
             await query(); // Must not throw

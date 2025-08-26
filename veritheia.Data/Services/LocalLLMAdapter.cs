@@ -21,7 +21,7 @@ public class LocalLLMAdapter : ICognitiveAdapter
     private readonly ILogger<LocalLLMAdapter> _logger;
     private readonly string _llmUrl;
     private readonly string _model;
-    
+
     public LocalLLMAdapter(
         HttpClient httpClient,
         IConfiguration configuration,
@@ -32,7 +32,7 @@ public class LocalLLMAdapter : ICognitiveAdapter
         _llmUrl = configuration["LocalLLM:Url"] ?? "http://localhost:1234";
         _model = configuration["LocalLLM:Model"] ?? "gemma-3-12b-it";
     }
-    
+
     /// <summary>
     /// Generate embeddings - fallback to deterministic for now
     /// Most local LLMs don't have embedding endpoints
@@ -47,17 +47,17 @@ public class LocalLLMAdapter : ICognitiveAdapter
                 model = _model,
                 input = text
             };
-            
+
             var json = JsonSerializer.Serialize(request);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            
+
             var response = await _httpClient.PostAsync($"{_llmUrl}/v1/embeddings", content);
-            
+
             if (response.IsSuccessStatusCode)
             {
                 var responseJson = await response.Content.ReadAsStringAsync();
                 using var doc = JsonDocument.Parse(responseJson);
-                
+
                 if (doc.RootElement.TryGetProperty("data", out var dataElement))
                 {
                     var firstEmbedding = dataElement.EnumerateArray().FirstOrDefault();
@@ -78,11 +78,11 @@ public class LocalLLMAdapter : ICognitiveAdapter
         {
             _logger.LogWarning(ex, "Embeddings endpoint not available, using fallback");
         }
-        
+
         // Fallback to deterministic embeddings
         return GenerateFallbackEmbedding(text);
     }
-    
+
     /// <summary>
     /// Generate text using OpenAI-compatible chat completions API
     /// </summary>
@@ -91,14 +91,14 @@ public class LocalLLMAdapter : ICognitiveAdapter
         try
         {
             var messages = new List<object>();
-            
+
             if (!string.IsNullOrEmpty(systemPrompt))
             {
                 messages.Add(new { role = "system", content = systemPrompt });
             }
-            
+
             messages.Add(new { role = "user", content = prompt });
-            
+
             var request = new
             {
                 model = _model,
@@ -107,21 +107,21 @@ public class LocalLLMAdapter : ICognitiveAdapter
                 max_tokens = -1,
                 stream = false
             };
-            
+
             var json = JsonSerializer.Serialize(request);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            
+
             var response = await _httpClient.PostAsync($"{_llmUrl}/v1/chat/completions", content);
-            
+
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogError("LLM generation failed: {Status}", response.StatusCode);
                 return $"[LLM Error - Status: {response.StatusCode}]\n\nPlease check that the LLM server is running at {_llmUrl}";
             }
-            
+
             var responseJson = await response.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(responseJson);
-            
+
             if (doc.RootElement.TryGetProperty("choices", out var choicesElement))
             {
                 var firstChoice = choicesElement.EnumerateArray().FirstOrDefault();
@@ -133,7 +133,7 @@ public class LocalLLMAdapter : ICognitiveAdapter
                     }
                 }
             }
-            
+
             return "Failed to parse LLM response";
         }
         catch (HttpRequestException ex)
@@ -147,7 +147,7 @@ public class LocalLLMAdapter : ICognitiveAdapter
             return $"Error: {ex.Message}";
         }
     }
-    
+
     private float[] GenerateFallbackEmbedding(string text)
     {
         _logger.LogDebug("Using fallback embedding generation");

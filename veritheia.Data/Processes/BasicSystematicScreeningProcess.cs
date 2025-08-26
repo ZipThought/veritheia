@@ -17,14 +17,19 @@ using Veritheia.Data.Services;
 namespace Veritheia.Data.Processes;
 
 /// <summary>
-/// Systematic Screening Process implementing LLAssist methodology
-/// Dual-phase assessment: semantic extraction + per-RQ relevance/contribution evaluation
+/// Systematic Screening Process implementing neurosymbolic transcendence for formation through authorship.
+/// Enables researchers to author their intellectual frameworks in natural language, which become
+/// the symbolic systems governing document processing. Formation accumulates through engagement
+/// with documents projected through these user-authored frameworks.
+/// 
+/// Based on LLAssist methodology (arXiv:2407.13993v3) but transcended to enable ANY researcher
+/// to achieve systematic screening without coding - their natural language IS the symbolic system.
 /// </summary>
 public class BasicSystematicScreeningProcess : IAnalyticalProcess
 {
     private readonly ILogger<BasicSystematicScreeningProcess> _logger;
     private readonly IServiceProvider _serviceProvider;
-    
+
     public BasicSystematicScreeningProcess(
         ILogger<BasicSystematicScreeningProcess> logger,
         IServiceProvider serviceProvider)
@@ -32,455 +37,779 @@ public class BasicSystematicScreeningProcess : IAnalyticalProcess
         _logger = logger;
         _serviceProvider = serviceProvider;
     }
-    
+
     public string ProcessId => "systematic-screening";
     public string Name => "Systematic Literature Screening";
-    public string Description => "LLAssist methodology for systematic literature review with dual assessment";
+    public string Description => "Formation through systematic engagement with documents projected through your authored framework";
     public string Category => "Research";
-    
+
     public InputDefinition GetInputDefinition()
     {
         return new InputDefinition()
-            .AddTextArea("research_questions", "Research questions (one per line)", true)
+            .AddTextArea("intellectual_framework", "Your complete intellectual framework (research questions, definitions, criteria)", true)
+            .AddTextArea("research_questions", "Specific research questions (one per line)", true)
+            .AddTextArea("definitions", "Your theoretical definitions and vocabulary (optional)", false)
+            .AddTextArea("assessment_criteria", "Your assessment criteria and methodology (optional)", false)
             .AddTextArea("csv_upload", "Upload CSV to add documents to corpus (optional)", false);
     }
-    
+
     public bool ValidateInputs(ProcessContext context)
     {
-        if (!context.Inputs.ContainsKey("research_questions"))
+        // User must author their framework - this becomes the symbolic system
+        if (!context.Inputs.ContainsKey("intellectual_framework") &&
+            !context.Inputs.ContainsKey("research_questions"))
         {
-            _logger.LogError("Missing required input: research_questions");
+            _logger.LogError("Missing user-authored framework - cannot create symbolic system");
             return false;
         }
-        
-        // CSV file is optional - we process corpus documents
-        
+
         return true;
     }
-    
+
     public async Task<AnalyticalProcessResult> ExecuteAsync(
         ProcessContext context,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Executing LLAssist systematic screening for journey {JourneyId}", 
+        _logger.LogInformation("Initiating formation journey {JourneyId} through user-authored framework",
             context.JourneyId);
-        
+
         try
         {
-            // Parse research questions
-            var questionsText = context.Inputs["research_questions"].ToString();
-            var researchQuestions = questionsText?.Split('\n', StringSplitOptions.RemoveEmptyEntries)
-                .Select(q => q.Trim())
-                .Where(q => !string.IsNullOrWhiteSpace(q))
-                .ToList() ?? new List<string>();
+            // Step 1: Construct the user's authored symbolic framework
+            var framework = ConstructUserFramework(context);
 
-            if (!researchQuestions.Any())
-            {
-                throw new InvalidOperationException("No research questions provided");
-            }
+            _logger.LogInformation("User-authored framework established with {Count} research questions",
+                framework.ResearchQuestions.Count);
 
-            // Get services
+            // Get services for mechanical orchestration
             using var scope = _serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<VeritheiaDbContext>();
             var documentService = scope.ServiceProvider.GetRequiredService<DocumentService>();
             var csvParser = scope.ServiceProvider.GetRequiredService<CsvParserService>();
             var csvWriter = scope.ServiceProvider.GetRequiredService<CsvWriterService>();
-            var semanticExtraction = scope.ServiceProvider.GetRequiredService<SemanticExtractionService>();
             var cognitiveAdapter = scope.ServiceProvider.GetRequiredService<ICognitiveAdapter>();
 
-            // Check if CSV was provided to add to corpus
-            if (context.Inputs.ContainsKey("csv_upload") && context.Inputs["csv_upload"] != null)
+            // Step 2: Ensure documents exist in user's corpus for projection
+            await EnsureCorpusDocuments(context, csvParser, documentService);
+
+            // Step 3: Load documents from user's corpus for journey projection
+            var corpusMetadata = await dbContext.DocumentMetadata
+                .Where(dm => dm.UserId == context.UserId)
+                .ToListAsync(cancellationToken);
+
+            if (!corpusMetadata.Any())
             {
-                var csvContent = context.Inputs["csv_upload"].ToString();
-                if (!string.IsNullOrWhiteSpace(csvContent))
-                {
-                    _logger.LogInformation("Adding CSV documents to corpus");
-                    var csvBytes = System.Text.Encoding.UTF8.GetBytes(csvContent);
-                    using (var csvStream = new MemoryStream(csvBytes))
-                    {
-                        var csvArticles = csvParser.ParseCsv(csvStream);
-                        foreach (var article in csvArticles)
-                        {
-                            // Add to corpus with deduplication by DOI
-                            await documentService.AddDocumentToCorpusAsync(
-                                context.UserId,
-                                article.Title,
-                                article.Abstract,
-                                article.Authors,
-                                article.DOI,
-                                article.Year,
-                                article.Venue,
-                                article.Keywords);
-                        }
-                        _logger.LogInformation("Added {Count} documents to corpus", csvArticles.Count);
-                    }
-                }
+                throw new InvalidOperationException(
+                    "No documents in corpus. Please add documents to begin your formation journey.");
             }
 
-            // Get all documents from user corpus
-            var corpusDocuments = await dbContext.Documents
-                .Where(d => d.UserId == context.UserId)
-                .Select(d => new ArticleRecord
-                {
-                    Title = d.Title,
-                    Abstract = d.Abstract ?? "",
-                    Authors = d.Authors ?? "",
-                    Year = d.Year,
-                    Venue = d.Venue ?? "",
-                    DOI = d.DOI ?? "",
-                    Keywords = d.Keywords ?? ""
-                })
-                .ToListAsync();
-
-            if (!corpusDocuments.Any())
+            var documents = corpusMetadata.Select(dm => new ProjectableDocument
             {
-                throw new InvalidOperationException("No documents in corpus. Please add documents first.");
-            }
+                Id = dm.Id,
+                Title = dm.Title ?? "",
+                Abstract = dm.Abstract ?? "",
+                Authors = dm.Authors != null ? string.Join(", ", dm.Authors) : "",
+                Year = dm.PublicationDate?.Year,
+                Venue = dm.ExtendedMetadata?.ContainsKey("venue") == true
+                    ? dm.ExtendedMetadata["venue"]?.ToString() ?? ""
+                    : "",
+                DOI = dm.DOI ?? "",
+                Keywords = dm.Keywords != null ? string.Join(", ", dm.Keywords) : ""
+            }).ToList();
 
-            var articles = corpusDocuments;
+            _logger.LogInformation("Projecting {Count} documents through user-authored framework",
+                documents.Count);
 
-            _logger.LogInformation("Processing {Count} articles with {RQCount} research questions", 
-                articles.Count, researchQuestions.Count);
-
-            var screeningResults = new List<ScreeningResult>();
-            var failureSummary = new ProcessingFailureSummary
+            // Step 4: Mechanical orchestration - EVERY document gets identical treatment
+            var formationResults = new FormationResults
             {
-                ProcessingStarted = DateTime.UtcNow
+                ProcessingStarted = DateTime.UtcNow,
+                TotalDocuments = documents.Count,
+                Framework = framework
             };
 
-            // Process each article with explicit failure tracking
-            for (int articleIndex = 0; articleIndex < articles.Count; articleIndex++)
+            // Process each document through the user's authored framework
+            for (int docIndex = 0; docIndex < documents.Count; docIndex++)
             {
                 if (cancellationToken.IsCancellationRequested)
                     break;
 
-                var article = articles[articleIndex];
-                
-                _logger.LogInformation("Processing article {Index}/{Total}: {Title}", 
-                    articleIndex + 1, articles.Count, article.Title);
+                var document = documents[docIndex];
+
+                _logger.LogInformation("Projecting document {Index}/{Total} through user framework: {Title}",
+                    docIndex + 1, documents.Count, document.Title);
 
                 try
                 {
-                    // Phase 1: Extract key semantics (once per article)
-                    SemanticExtraction semantics;
-                    try
-                    {
-                        semantics = await semanticExtraction.ExtractSemanticsAsync(article.Abstract);
-                    }
-                    catch (Exception ex)
-                    {
-                        RecordDocumentFailure(failureSummary, articleIndex, article, "Semantic Extraction", null, ex);
-                        continue; // Skip to next document but continue processing
-                    }
+                    // Project this document through the user's authored framework
+                    var projection = await ProjectDocumentThroughFramework(
+                        document, framework, cognitiveAdapter, docIndex);
 
-                    var screeningResult = new ScreeningResult
-                    {
-                        Title = article.Title,
-                        Abstract = article.Abstract,
-                        Authors = article.Authors,
-                        Year = article.Year,
-                        Venue = article.Venue,
-                        DOI = article.DOI,
-                        Link = article.Link,
-                        Topics = semantics.Topics,
-                        Entities = semantics.Entities,
-                        Keywords = semantics.Keywords.Concat(article.Keywords.Split(';', StringSplitOptions.RemoveEmptyEntries)
-                            .Select(k => k.Trim())
-                            .Where(k => !string.IsNullOrWhiteSpace(k))).Distinct().ToList()
-                    };
-
-                    // Phase 2: Assess relevance and contribution for each research question
-                    bool hasAssessmentFailure = false;
-                    for (int rqIndex = 0; rqIndex < researchQuestions.Count; rqIndex++)
-                    {
-                        var researchQuestion = researchQuestions[rqIndex];
-                        
-                        try
-                        {
-                            var assessment = await AssessArticleForResearchQuestion(
-                                article, researchQuestion, cognitiveAdapter, rqIndex);
-                            
-                            screeningResult.RQAssessments.Add(assessment);
-                        }
-                        catch (Exception ex)
-                        {
-                            RecordDocumentFailure(failureSummary, articleIndex, article, 
-                                $"Research Question Assessment (RQ{rqIndex + 1})", rqIndex, ex);
-                            hasAssessmentFailure = true;
-                            
-                            // Continue with next RQ - partial assessment data is valuable
-                        }
-                    }
-                    
-                    // Only include results if we have at least some assessment data
-                    if (screeningResult.RQAssessments.Any())
-                    {
-                        // Determine must-read (logical OR of all successful RQ indicators)
-                        screeningResult.MustRead = screeningResult.RQAssessments.Any(a => 
-                            a.RelevanceIndicator && a.ContributionIndicator);
-
-                        screeningResults.Add(screeningResult);
-                        failureSummary.SuccessfulCount++;
-                    }
-                    else if (hasAssessmentFailure)
-                    {
-                        // Document had semantic extraction but all assessments failed
-                        _logger.LogWarning("Document {Index} ({Title}) had complete assessment failure", 
-                            articleIndex + 1, article.Title);
-                    }
+                    formationResults.DocumentProjections.Add(projection);
+                    formationResults.SuccessfulProjections++;
                 }
                 catch (Exception ex)
                 {
-                    // Unexpected error processing this document
-                    RecordDocumentFailure(failureSummary, articleIndex, article, "Document Processing", null, ex);
+                    // Transparent failure tracking - continue processing
+                    RecordProjectionFailure(formationResults, docIndex, document, ex);
                 }
             }
 
-            // Finalize failure tracking
-            failureSummary.ProcessingFinished = DateTime.UtcNow;
-            failureSummary.BatchCompleted = true;
-            failureSummary.FailedCount = failureSummary.Failures.Count;
-            
-            // Generate failure type counts for summary
-            failureSummary.FailureTypeCounts = failureSummary.Failures
-                .GroupBy(f => f.ProcessingStage)
-                .ToDictionary(g => g.Key, g => g.Count());
+            formationResults.ProcessingCompleted = DateTime.UtcNow;
 
-            // Generate CSV output
-            var csvOutput = csvWriter.WriteToCsv(screeningResults, researchQuestions);
+            // Step 5: Generate outputs that enable formation through engagement
+            var formationOutput = GenerateFormationOutput(formationResults, framework, csvWriter);
 
-            // Create summary statistics with transparent failure reporting
-            var mustReadCount = screeningResults.Count(r => r.MustRead);
-            var totalArticlesAttempted = articles.Count;
-            
-            var summary = new Dictionary<string, object>
-            {
-                ["total_articles_attempted"] = totalArticlesAttempted,
-                ["total_articles_processed"] = screeningResults.Count,
-                ["processing_success_count"] = failureSummary.SuccessfulCount,
-                ["processing_failure_count"] = failureSummary.FailedCount,
-                ["processing_success_rate"] = totalArticlesAttempted > 0 ? (double)failureSummary.SuccessfulCount / totalArticlesAttempted * 100 : 0,
-                ["must_read_count"] = mustReadCount,
-                ["must_read_percentage"] = screeningResults.Count > 0 ? (double)mustReadCount / screeningResults.Count * 100 : 0,
-                ["processing_summary_message"] = failureSummary.GenerateSummaryMessage(),
-                ["processing_duration_seconds"] = failureSummary.ProcessingDuration?.TotalSeconds ?? 0,
-                ["failure_breakdown"] = failureSummary.FailureTypeCounts,
-                ["detailed_failures"] = failureSummary.Failures.Select(f => new
-                {
-                    document_index = f.DocumentIndex,
-                    document_title = f.DocumentTitle,
-                    processing_stage = f.ProcessingStage,
-                    research_question_index = f.ResearchQuestionIndex,
-                    exception_type = f.ExceptionType,
-                    exception_message = f.ExceptionMessage,
-                    failed_at = f.FailedAt,
-                    formation_impact = f.FormationImpact
-                }).ToList(),
-                ["research_questions"] = researchQuestions,
-                ["csv_output"] = Convert.ToBase64String(csvOutput),
-                ["results"] = screeningResults.Select(r => new
-                {
-                    title = r.Title,
-                    authors = r.Authors,
-                    year = r.Year,
-                    must_read = r.MustRead,
-                    topics = r.Topics,
-                    entities = r.Entities,
-                    keywords = r.Keywords,
-                    assessments = r.RQAssessments.Select(a => new
-                    {
-                        question_index = a.QuestionIndex,
-                        relevance_score = a.RelevanceScore,
-                        contribution_score = a.ContributionScore,
-                        relevance_indicator = a.RelevanceIndicator,
-                        contribution_indicator = a.ContributionIndicator,
-                        relevance_reasoning = a.RelevanceReasoning,
-                        contribution_reasoning = a.ContributionReasoning
-                    }).ToList()
-                }).ToList()
-            };
-
-            _logger.LogInformation("Completed screening: {Total} articles, {MustRead} must-read ({Percentage:F1}%)", 
-                screeningResults.Count, mustReadCount, (double)mustReadCount / screeningResults.Count * 100);
+            _logger.LogInformation(
+                "Formation journey prepared: {Success}/{Total} documents projected. User engagement can now begin.",
+                formationResults.SuccessfulProjections, formationResults.TotalDocuments);
 
             return new AnalyticalProcessResult
             {
                 Success = true,
-                Data = summary,
+                Data = formationOutput,
                 ErrorMessage = null
             };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "LLAssist systematic screening failed");
+            _logger.LogError(ex, "Formation journey failed - framework could not be applied");
+
+            // Capture more details about the error
+            var errorDetails = new Dictionary<string, object>
+            {
+                ["exception_type"] = ex.GetType().Name,
+                ["message"] = ex.Message,
+                ["stack_trace"] = ex.StackTrace ?? ""
+            };
+
+            if (ex.InnerException != null)
+            {
+                errorDetails["inner_exception"] = ex.InnerException.Message;
+                errorDetails["inner_type"] = ex.InnerException.GetType().Name;
+            }
+
             return new AnalyticalProcessResult
             {
                 Success = false,
-                Data = new Dictionary<string, object>(),
-                ErrorMessage = ex.Message
+                Data = errorDetails,
+                ErrorMessage = $"Formation journey could not begin: {ex.Message}"
             };
         }
     }
 
-    private async Task<RQAssessment> AssessArticleForResearchQuestion(
-        ArticleRecord article, 
-        string researchQuestion, 
-        ICognitiveAdapter cognitiveAdapter, 
-        int questionIndex)
+    /// <summary>
+    /// Construct the user's intellectual framework from their natural language authorship.
+    /// This becomes the symbolic system governing all document processing.
+    /// </summary>
+    private JourneyFramework ConstructUserFramework(ProcessContext context)
     {
-        // Create dual assessment prompts
-        var relevancePrompt = CreateRelevancePrompt(article, researchQuestion);
-        var contributionPrompt = CreateContributionPrompt(article, researchQuestion);
+        var framework = new JourneyFramework();
 
-        // Get assessments
-        var relevanceResponse = await cognitiveAdapter.GenerateTextAsync(relevancePrompt);
-        var contributionResponse = await cognitiveAdapter.GenerateTextAsync(contributionPrompt);
-
-        // Parse responses
-        var relevanceAssessment = ParseAssessmentResponse(relevanceResponse);
-        var contributionAssessment = ParseAssessmentResponse(contributionResponse);
-
-        return new RQAssessment
+        // The user's complete intellectual stance (if provided)
+        if (context.Inputs.ContainsKey("intellectual_framework"))
         {
-            QuestionIndex = questionIndex,
-            RelevanceScore = relevanceAssessment.Score,
-            ContributionScore = contributionAssessment.Score,
-            RelevanceIndicator = relevanceAssessment.Score >= 0.7f,
-            ContributionIndicator = contributionAssessment.Score >= 0.7f,
-            RelevanceReasoning = relevanceAssessment.Reasoning,
-            ContributionReasoning = contributionAssessment.Reasoning
+            framework.IntellectualStance = context.Inputs["intellectual_framework"].ToString() ?? "";
+        }
+
+        // Parse research questions - these are the core of the symbolic system
+        var questionsText = context.Inputs["research_questions"]?.ToString() ?? "";
+        framework.ResearchQuestions = questionsText
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .Select(q => q.Trim())
+            .Where(q => !string.IsNullOrWhiteSpace(q))
+            .ToList();
+
+        // User's definitions become part of the symbolic vocabulary
+        if (context.Inputs.ContainsKey("definitions"))
+        {
+            var definitionsText = context.Inputs["definitions"].ToString() ?? "";
+            framework.Definitions = ParseDefinitions(definitionsText);
+        }
+
+        // User's assessment criteria shape the evaluation lens
+        if (context.Inputs.ContainsKey("assessment_criteria"))
+        {
+            framework.AssessmentCriteria = context.Inputs["assessment_criteria"].ToString() ?? "";
+        }
+
+        // Construct the complete framework narrative that will guide neural understanding
+        framework.CompleteFrameworkNarrative = ConstructFrameworkNarrative(framework);
+
+        return framework;
+    }
+
+    /// <summary>
+    /// Project a document through the user's authored framework.
+    /// The framework acts as the symbolic system, applied through neural semantic understanding.
+    /// </summary>
+    private async Task<DocumentProjection> ProjectDocumentThroughFramework(
+        ProjectableDocument document,
+        JourneyFramework framework,
+        ICognitiveAdapter cognitiveAdapter,
+        int documentIndex)
+    {
+        var projection = new DocumentProjection
+        {
+            DocumentId = document.Id,
+            Title = document.Title,
+            Authors = document.Authors,
+            Year = document.Year,
+            Venue = document.Venue,
+            DOI = document.DOI
         };
-    }
 
-    private string CreateRelevancePrompt(ArticleRecord article, string researchQuestion)
-    {
-        return $@"Assess the RELEVANCE of this research paper to the research question. 
-Relevance means: Does this paper discuss topics related to the research question?
+        // Phase 1: Semantic extraction THROUGH the user's framework lens
+        var extractionPrompt = $@"
+You are applying this researcher's intellectual framework to analyze a document.
 
-Research Question: {researchQuestion}
+RESEARCHER'S FRAMEWORK:
+{framework.CompleteFrameworkNarrative}
 
-Paper Title: {article.Title}
-Abstract: {article.Abstract}
+DOCUMENT TO ANALYZE:
+Title: {document.Title}
+Abstract: {document.Abstract}
 
-Provide your assessment as a score from 0.0 to 1.0 and reasoning:
-- 0.0-0.3: Not relevant - paper does not discuss related topics
-- 0.4-0.6: Somewhat relevant - paper mentions related concepts
-- 0.7-1.0: Highly relevant - paper directly discusses related topics
+Extract the KEY SEMANTICS that are relevant to THIS RESEARCHER'S framework.
+Focus on topics, entities, and concepts that matter for THEIR research questions.
+Do not extract generic topics - extract what matters for THEIR specific inquiry.
 
-Format your response as:
-Score: [0.0-1.0]
-Reasoning: [Your explanation of why this score was assigned]";
-    }
-
-    private string CreateContributionPrompt(ArticleRecord article, string researchQuestion)
-    {
-        return $@"Assess the CONTRIBUTION of this research paper to the research question.
-Contribution means: Does this paper directly research and provide findings for the research question?
-
-Research Question: {researchQuestion}
-
-Paper Title: {article.Title}
-Abstract: {article.Abstract}
-
-Provide your assessment as a score from 0.0 to 1.0 and reasoning:
-- 0.0-0.3: No contribution - paper does not research this question
-- 0.4-0.6: Limited contribution - paper provides some relevant findings
-- 0.7-1.0: Strong contribution - paper directly researches this question with clear findings
-
-Format your response as:
-Score: [0.0-1.0]
-Reasoning: [Your explanation of why this score was assigned]";
-    }
-
-    private (float Score, string Reasoning) ParseAssessmentResponse(string response)
-    {
-        var score = 0.0f;
-        var reasoning = response;
+Return ONLY a valid JSON object (no markdown, no explanation, no code blocks, just the JSON):
+{{
+  ""topics"": [""topic1"", ""topic2""],
+  ""entities"": [""entity1"", ""entity2""],
+  ""keywords"": [""keyword1"", ""keyword2""]
+}}";
 
         try
         {
-            // Look for score pattern
-            var scoreMatch = System.Text.RegularExpressions.Regex.Match(response, @"Score:\s*([0-9]*\.?[0-9]+)");
-            if (scoreMatch.Success && float.TryParse(scoreMatch.Groups[1].Value, out var parsedScore))
-            {
-                score = Math.Clamp(parsedScore, 0.0f, 1.0f);
-            }
-
-            // Look for reasoning pattern
-            var reasoningMatch = System.Text.RegularExpressions.Regex.Match(response, @"Reasoning:\s*(.+)", System.Text.RegularExpressions.RegexOptions.Singleline);
-            if (reasoningMatch.Success)
-            {
-                reasoning = reasoningMatch.Groups[1].Value.Trim();
-            }
+            var extractionResponse = await cognitiveAdapter.GenerateTextAsync(extractionPrompt);
+            var semantics = ParseSemanticExtraction(extractionResponse);
+            projection.FrameworkSpecificTopics = semantics.Topics;
+            projection.FrameworkSpecificEntities = semantics.Entities;
+            projection.FrameworkSpecificKeywords = semantics.Keywords;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Fallback: use the full response as reasoning
+            _logger.LogWarning(ex, "Semantic extraction through framework failed for document {Index}",
+                documentIndex);
+            // Continue with assessment even if extraction fails
         }
 
-        return (score, reasoning);
+        // Phase 2: Assess through each research question in the framework
+        foreach (var (question, qIndex) in framework.ResearchQuestions.Select((q, i) => (q, i)))
+        {
+            var assessment = await AssessThroughFramework(
+                document, question, qIndex, framework, cognitiveAdapter);
+            projection.FrameworkAssessments.Add(assessment);
+        }
+
+        // Determine formation indicators based on user's framework
+        projection.RequiresEngagement = projection.FrameworkAssessments.Any(a =>
+            a.RelevanceScore >= 0.7 || a.ContributionScore >= 0.7);
+
+        return projection;
     }
-    
+
+    /// <summary>
+    /// Assess a document through the user's specific research question and framework.
+    /// This implements the neurosymbolic transcendence - natural language becomes symbolic rules.
+    /// </summary>
+    private async Task<FrameworkAssessment> AssessThroughFramework(
+        ProjectableDocument document,
+        string researchQuestion,
+        int questionIndex,
+        JourneyFramework framework,
+        ICognitiveAdapter cognitiveAdapter)
+    {
+        // Build assessment prompt that applies user's framework as symbolic system
+        var assessmentPrompt = $@"
+You are applying this researcher's intellectual framework to assess a document.
+
+RESEARCHER'S COMPLETE FRAMEWORK:
+{framework.CompleteFrameworkNarrative}
+
+SPECIFIC RESEARCH QUESTION BEING ASSESSED:
+{researchQuestion}
+
+DOCUMENT:
+Title: {document.Title}
+Abstract: {document.Abstract}
+
+Assess this document THROUGH THE RESEARCHER'S LENS:
+
+1. RELEVANCE Assessment:
+   Does this document discuss topics related to the researcher's question?
+   Use THEIR definitions and vocabulary to judge relevance.
+   Score 0.0-1.0 where >0.7 means highly relevant to THEIR framework.
+
+2. CONTRIBUTION Assessment:
+   Does this document directly research the question with findings?
+   Use THEIR criteria for what constitutes a contribution.
+   Score 0.0-1.0 where >0.7 means strong contribution to THEIR research.
+
+Provide reasoning that shows how you applied THEIR framework, not generic assessment.
+
+Return ONLY a valid JSON object (no markdown, no explanation, no code blocks, just the JSON):
+{{
+  ""relevance_score"": 0.8,
+  ""relevance_reasoning"": ""How this relates to THEIR framework..."",
+  ""contribution_score"": 0.6,
+  ""contribution_reasoning"": ""How this contributes to THEIR research..."",
+  ""framework_application"": ""How I applied their specific definitions and criteria...""
+}}";
+
+        var response = await cognitiveAdapter.GenerateTextAsync(assessmentPrompt);
+        var assessment = ParseFrameworkAssessment(response);
+        assessment.ResearchQuestion = researchQuestion;
+        assessment.QuestionIndex = questionIndex;
+
+        return assessment;
+    }
+
+    /// <summary>
+    /// Generate outputs that enable formation through engagement, not consumption.
+    /// </summary>
+    private Dictionary<string, object> GenerateFormationOutput(
+        FormationResults results,
+        JourneyFramework framework,
+        CsvWriterService csvWriter)
+    {
+        // Calculate formation metrics
+        var documentsRequiringEngagement = results.DocumentProjections
+            .Count(p => p.RequiresEngagement);
+
+        var highRelevanceCount = results.DocumentProjections
+            .Count(p => p.FrameworkAssessments.Any(a => a.RelevanceScore >= 0.7));
+
+        var highContributionCount = results.DocumentProjections
+            .Count(p => p.FrameworkAssessments.Any(a => a.ContributionScore >= 0.7));
+
+        // Generate CSV for external tools if needed
+        var csvOutput = GenerateFormationCsv(results, framework, csvWriter);
+
+        // Create formation prompts to guide engagement
+        var formationPrompts = GenerateFormationPrompts(results, framework);
+
+        return new Dictionary<string, object>
+        {
+            // Formation journey metadata
+            ["journey_framework"] = new
+            {
+                intellectual_stance = framework.IntellectualStance,
+                research_questions = framework.ResearchQuestions,
+                definitions = framework.Definitions,
+                assessment_criteria = framework.AssessmentCriteria
+            },
+
+            // Processing transparency
+            ["processing_summary"] = new
+            {
+                total_documents = results.TotalDocuments,
+                successful_projections = results.SuccessfulProjections,
+                failed_projections = results.ProjectionFailures.Count,
+                processing_duration_seconds = results.ProcessingDuration?.TotalSeconds ?? 0
+            },
+
+            // Formation indicators
+            ["formation_indicators"] = new
+            {
+                documents_requiring_engagement = documentsRequiringEngagement,
+                high_relevance_documents = highRelevanceCount,
+                high_contribution_documents = highContributionCount,
+                engagement_percentage = results.DocumentProjections.Any()
+                    ? (double)documentsRequiringEngagement / results.DocumentProjections.Count * 100
+                    : 0
+            },
+
+            // Detailed projections for engagement
+            ["document_projections"] = results.DocumentProjections.Select(p => new
+            {
+                title = p.Title,
+                authors = p.Authors,
+                year = p.Year,
+                requires_engagement = p.RequiresEngagement,
+                framework_topics = p.FrameworkSpecificTopics,
+                framework_entities = p.FrameworkSpecificEntities,
+                framework_keywords = p.FrameworkSpecificKeywords,
+                assessments = p.FrameworkAssessments.Select(a => new
+                {
+                    question = a.ResearchQuestion,
+                    relevance_score = a.RelevanceScore,
+                    relevance_reasoning = a.RelevanceReasoning,
+                    contribution_score = a.ContributionScore,
+                    contribution_reasoning = a.ContributionReasoning,
+                    framework_application = a.FrameworkApplication
+                }).ToList()
+            }).ToList(),
+
+            // Formation prompts to guide synthesis
+            ["formation_prompts"] = formationPrompts,
+
+            // Failure transparency
+            ["projection_failures"] = results.ProjectionFailures.Select(f => new
+            {
+                document_index = f.DocumentIndex,
+                document_title = f.DocumentTitle,
+                failure_reason = f.FailureReason,
+                impact_on_formation = f.FormationImpact
+            }).ToList(),
+
+            // CSV for external tools
+            ["csv_output"] = csvOutput != null ? Convert.ToBase64String(csvOutput) : null
+        };
+    }
+
+    #region Helper Methods
+
+    private async Task EnsureCorpusDocuments(
+        ProcessContext context,
+        CsvParserService csvParser,
+        DocumentService documentService)
+    {
+        if (context.Inputs.ContainsKey("csv_upload") && context.Inputs["csv_upload"] != null)
+        {
+            var csvContent = context.Inputs["csv_upload"].ToString();
+            if (!string.IsNullOrWhiteSpace(csvContent))
+            {
+                _logger.LogInformation("Adding documents to corpus for journey projection");
+                var csvBytes = System.Text.Encoding.UTF8.GetBytes(csvContent);
+                using var csvStream = new MemoryStream(csvBytes);
+                var csvArticles = csvParser.ParseCsv(csvStream);
+
+                foreach (var article in csvArticles)
+                {
+                    await documentService.AddDocumentToCorpusAsync(
+                        context.UserId,
+                        article.Title,
+                        article.Abstract,
+                        article.Authors,
+                        article.DOI,
+                        article.Year,
+                        article.Venue,
+                        article.Keywords);
+                }
+
+                _logger.LogInformation("Added {Count} documents to corpus", csvArticles.Count);
+            }
+        }
+    }
+
+    private Dictionary<string, string> ParseDefinitions(string definitionsText)
+    {
+        var definitions = new Dictionary<string, string>();
+        var lines = definitionsText.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
+        foreach (var line in lines)
+        {
+            var parts = line.Split(':', 2);
+            if (parts.Length == 2)
+            {
+                definitions[parts[0].Trim()] = parts[1].Trim();
+            }
+        }
+
+        return definitions;
+    }
+
+    private string ConstructFrameworkNarrative(JourneyFramework framework)
+    {
+        var narrative = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(framework.IntellectualStance))
+        {
+            narrative.Add($"Intellectual Stance: {framework.IntellectualStance}");
+        }
+
+        if (framework.ResearchQuestions.Any())
+        {
+            narrative.Add($"Research Questions:\n{string.Join("\n", framework.ResearchQuestions.Select((q, i) => $"{i + 1}. {q}"))}");
+        }
+
+        if (framework.Definitions?.Any() == true)
+        {
+            narrative.Add($"Key Definitions:\n{string.Join("\n", framework.Definitions.Select(kvp => $"- {kvp.Key}: {kvp.Value}"))}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(framework.AssessmentCriteria))
+        {
+            narrative.Add($"Assessment Criteria: {framework.AssessmentCriteria}");
+        }
+
+        return string.Join("\n\n", narrative);
+    }
+
+    private SemanticExtraction ParseSemanticExtraction(string jsonResponse)
+    {
+        try
+        {
+            // Log the raw response for debugging
+            _logger.LogDebug("Raw semantic extraction response: {Response}", jsonResponse);
+
+            // Try to extract JSON from the response if it contains extra text or markdown
+            var cleanedResponse = ExtractJsonFromResponse(jsonResponse);
+
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            return JsonSerializer.Deserialize<SemanticExtraction>(cleanedResponse, options)
+                ?? new SemanticExtraction();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to parse semantic extraction response. Raw response: {Response}", jsonResponse);
+            return new SemanticExtraction();
+        }
+    }
+
+    private string ExtractJsonFromResponse(string response)
+    {
+        // Try to extract JSON from a response that may contain markdown or extra text
+        var trimmed = response.Trim();
+
+        // Remove markdown code blocks if present
+        if (trimmed.StartsWith("```json"))
+        {
+            trimmed = trimmed.Substring(7); // Remove ```json
+            var endIndex = trimmed.LastIndexOf("```");
+            if (endIndex > 0)
+            {
+                trimmed = trimmed.Substring(0, endIndex);
+            }
+        }
+        else if (trimmed.StartsWith("```"))
+        {
+            trimmed = trimmed.Substring(3); // Remove ```
+            var endIndex = trimmed.LastIndexOf("```");
+            if (endIndex > 0)
+            {
+                trimmed = trimmed.Substring(0, endIndex);
+            }
+        }
+
+        // Find the first { and last } to extract JSON object
+        var startIndex = trimmed.IndexOf('{');
+        var endIndex2 = trimmed.LastIndexOf('}');
+
+        if (startIndex >= 0 && endIndex2 > startIndex)
+        {
+            return trimmed.Substring(startIndex, endIndex2 - startIndex + 1);
+        }
+
+        return trimmed;
+    }
+
+    private FrameworkAssessment ParseFrameworkAssessment(string jsonResponse)
+    {
+        try
+        {
+            // Try to extract JSON from the response if it contains extra text or markdown
+            var cleanedResponse = ExtractJsonFromResponse(jsonResponse);
+
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var json = JsonSerializer.Deserialize<JsonElement>(cleanedResponse, options);
+
+            return new FrameworkAssessment
+            {
+                RelevanceScore = json.TryGetProperty("relevance_score", out var rs)
+                    ? (float)rs.GetDouble() : 0f,
+                RelevanceReasoning = json.TryGetProperty("relevance_reasoning", out var rr)
+                    ? rr.GetString() ?? "" : "",
+                ContributionScore = json.TryGetProperty("contribution_score", out var cs)
+                    ? (float)cs.GetDouble() : 0f,
+                ContributionReasoning = json.TryGetProperty("contribution_reasoning", out var cr)
+                    ? cr.GetString() ?? "" : "",
+                FrameworkApplication = json.TryGetProperty("framework_application", out var fa)
+                    ? fa.GetString() ?? "" : ""
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to parse framework assessment response. Raw response: {Response}", jsonResponse);
+            return new FrameworkAssessment();
+        }
+    }
+
+    private List<string> GenerateFormationPrompts(FormationResults results, JourneyFramework framework)
+    {
+        var prompts = new List<string>();
+
+        // Identify patterns in high-scoring documents
+        var highRelevanceDocs = results.DocumentProjections
+            .Where(p => p.FrameworkAssessments.Any(a => a.RelevanceScore >= 0.7))
+            .ToList();
+
+        if (highRelevanceDocs.Any())
+        {
+            prompts.Add($"Review the {highRelevanceDocs.Count} high-relevance documents to identify patterns in how they address your research questions.");
+        }
+
+        // Suggest framework refinement opportunities
+        var lowScoringDocs = results.DocumentProjections
+            .Where(p => p.FrameworkAssessments.All(a => a.RelevanceScore < 0.3))
+            .ToList();
+
+        if (lowScoringDocs.Count > results.DocumentProjections.Count * 0.5)
+        {
+            prompts.Add("Many documents scored low on relevance. Consider refining your research questions or expanding your definitions.");
+        }
+
+        // Encourage synthesis
+        if (results.DocumentProjections.Any(p => p.RequiresEngagement))
+        {
+            prompts.Add("Begin synthesizing insights by examining how different documents approach your research questions.");
+        }
+
+        return prompts;
+    }
+
+    private byte[]? GenerateFormationCsv(
+        FormationResults results,
+        JourneyFramework framework,
+        CsvWriterService csvWriter)
+    {
+        if (!results.DocumentProjections.Any())
+            return null;
+
+        var screeningResults = results.DocumentProjections.Select(p => new ScreeningResult
+        {
+            Title = p.Title,
+            Authors = p.Authors,
+            Year = p.Year,
+            Venue = p.Venue,
+            DOI = p.DOI,
+            Topics = p.FrameworkSpecificTopics,
+            Entities = p.FrameworkSpecificEntities,
+            Keywords = p.FrameworkSpecificKeywords,
+            MustRead = p.RequiresEngagement,
+            RQAssessments = p.FrameworkAssessments.Select(a => new RQAssessment
+            {
+                QuestionIndex = a.QuestionIndex,
+                RelevanceScore = a.RelevanceScore,
+                ContributionScore = a.ContributionScore,
+                RelevanceIndicator = a.RelevanceScore >= 0.7,
+                ContributionIndicator = a.ContributionScore >= 0.7,
+                RelevanceReasoning = a.RelevanceReasoning,
+                ContributionReasoning = a.ContributionReasoning
+            }).ToList()
+        }).ToList();
+
+        return csvWriter.WriteToCsv(screeningResults, framework.ResearchQuestions);
+    }
+
+    private void RecordProjectionFailure(
+        FormationResults results,
+        int documentIndex,
+        ProjectableDocument document,
+        Exception exception)
+    {
+        var failure = new ProjectionFailure
+        {
+            DocumentIndex = documentIndex,
+            DocumentTitle = document.Title,
+            FailureReason = exception.Message,
+            FormationImpact = "Document could not be projected through your framework. Manual review recommended.",
+            FailedAt = DateTime.UtcNow
+        };
+
+        results.ProjectionFailures.Add(failure);
+
+        _logger.LogError(exception,
+            "Failed to project document {Index} ({Title}) through user framework",
+            documentIndex + 1, document.Title);
+    }
+
+    #endregion
+
     public Dictionary<string, object> GetCapabilities()
     {
         return new Dictionary<string, object>
         {
             ["supports_batch"] = true,
             ["supports_streaming"] = false,
-            ["requires_llm"] = true
+            ["requires_llm"] = true,
+            ["enables_formation"] = true,
+            ["supports_framework_authorship"] = true,
+            ["implements_neurosymbolic_transcendence"] = true
         };
     }
-    
-    /// <summary>
-    /// Record a document processing failure with complete context for transparency
-    /// </summary>
-    private void RecordDocumentFailure(
-        ProcessingFailureSummary failureSummary, 
-        int articleIndex, 
-        ArticleRecord article, 
-        string processingStage, 
-        int? researchQuestionIndex, 
-        Exception exception)
+
+    #region Internal Classes
+
+    private class JourneyFramework
     {
-        var failure = new DocumentProcessingFailure
-        {
-            DocumentIndex = articleIndex,
-            DocumentTitle = article.Title,
-            DocumentIdentifier = article.DOI,
-            ProcessingStage = processingStage,
-            ResearchQuestionIndex = researchQuestionIndex,
-            ExceptionType = exception.GetType().Name,
-            ExceptionMessage = exception.Message,
-            StackTrace = exception.StackTrace,
-            InnerExceptionDetails = exception.InnerException?.ToString(),
-            FormationImpact = GetFormationImpact(processingStage, exception),
-            Context = new Dictionary<string, object>
-            {
-                ["article_authors"] = article.Authors,
-                ["article_year"] = article.Year,
-                ["article_venue"] = article.Venue,
-                ["abstract_length"] = article.Abstract?.Length ?? 0
-            }
-        };
-        
-        failureSummary.Failures.Add(failure);
-        
-        _logger.LogError(exception, 
-            "Document processing failure: Article {Index} ({Title}) failed at {Stage}. Impact: {Impact}",
-            articleIndex + 1, article.Title, processingStage, failure.FormationImpact);
+        public string IntellectualStance { get; set; } = "";
+        public List<string> ResearchQuestions { get; set; } = new();
+        public Dictionary<string, string> Definitions { get; set; } = new();
+        public string AssessmentCriteria { get; set; } = "";
+        public string CompleteFrameworkNarrative { get; set; } = "";
     }
-    
-    /// <summary>
-    /// Determine the formation impact of a specific processing failure
-    /// </summary>
-    private string GetFormationImpact(string processingStage, Exception exception)
+
+    private class ProjectableDocument
     {
-        return processingStage switch
-        {
-            "Semantic Extraction" => "Document cannot be semantically analyzed. Topics, entities, and keywords unavailable for assessment. Document excluded from systematic screening.",
-            "Research Question Assessment" when processingStage.Contains("RQ") => "Research question assessment incomplete. Document may still be partially evaluated against other research questions.",
-            "Document Processing" => "Complete document processing failure. Document excluded from systematic screening results.",
-            _ => "Processing stage failed. Document may be partially processed or excluded depending on failure type."
-        };
+        public Guid Id { get; set; }
+        public string Title { get; set; } = "";
+        public string Abstract { get; set; } = "";
+        public string Authors { get; set; } = "";
+        public int? Year { get; set; }
+        public string Venue { get; set; } = "";
+        public string DOI { get; set; } = "";
+        public string Keywords { get; set; } = "";
     }
+
+    private class DocumentProjection
+    {
+        public Guid DocumentId { get; set; }
+        public string Title { get; set; } = "";
+        public string Authors { get; set; } = "";
+        public int? Year { get; set; }
+        public string Venue { get; set; } = "";
+        public string DOI { get; set; } = "";
+        public List<string> FrameworkSpecificTopics { get; set; } = new();
+        public List<string> FrameworkSpecificEntities { get; set; } = new();
+        public List<string> FrameworkSpecificKeywords { get; set; } = new();
+        public List<FrameworkAssessment> FrameworkAssessments { get; set; } = new();
+        public bool RequiresEngagement { get; set; }
+    }
+
+    private class FrameworkAssessment
+    {
+        public string ResearchQuestion { get; set; } = "";
+        public int QuestionIndex { get; set; }
+        public float RelevanceScore { get; set; }
+        public string RelevanceReasoning { get; set; } = "";
+        public float ContributionScore { get; set; }
+        public string ContributionReasoning { get; set; } = "";
+        public string FrameworkApplication { get; set; } = "";
+    }
+
+    private class FormationResults
+    {
+        public DateTime ProcessingStarted { get; set; }
+        public DateTime ProcessingCompleted { get; set; }
+        public int TotalDocuments { get; set; }
+        public int SuccessfulProjections { get; set; }
+        public List<DocumentProjection> DocumentProjections { get; set; } = new();
+        public List<ProjectionFailure> ProjectionFailures { get; set; } = new();
+        public JourneyFramework Framework { get; set; } = new();
+
+        public TimeSpan? ProcessingDuration =>
+            ProcessingCompleted != default ? ProcessingCompleted - ProcessingStarted : null;
+    }
+
+    private class ProjectionFailure
+    {
+        public int DocumentIndex { get; set; }
+        public string DocumentTitle { get; set; } = "";
+        public string FailureReason { get; set; } = "";
+        public string FormationImpact { get; set; } = "";
+        public DateTime FailedAt { get; set; }
+    }
+
+    private class SemanticExtraction
+    {
+        public List<string> Topics { get; set; } = new();
+        public List<string> Entities { get; set; } = new();
+        public List<string> Keywords { get; set; } = new();
+    }
+
+    #endregion
 }

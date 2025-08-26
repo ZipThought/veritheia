@@ -18,14 +18,16 @@ public class DatabaseFixture : IAsyncLifetime
     private PostgreSqlContainer _container = null!;
     private Respawner _respawner = null!;
     private string _connectionString = null!;
-    
+
+    public string ConnectionString => _connectionString;
+
     public VeritheiaDbContext CreateContext()
     {
         var dataSourceBuilder = new NpgsqlDataSourceBuilder(_connectionString);
         dataSourceBuilder.EnableDynamicJson();
         dataSourceBuilder.UseVector();
         var dataSource = dataSourceBuilder.Build();
-        
+
         var optionsBuilder = new DbContextOptionsBuilder<VeritheiaDbContext>();
         optionsBuilder.UseNpgsql(dataSource, o => o.UseVector())
             .UseSeeding((context, _) =>
@@ -38,11 +40,11 @@ public class DatabaseFixture : IAsyncLifetime
             });
         return new VeritheiaDbContext(optionsBuilder.Options);
     }
-    
+
     private void SeedDemoData(DbContext context)
     {
         var veritheiaContext = (VeritheiaDbContext)context;
-        
+
         // Check if demo user already exists
         var demoUser = veritheiaContext.Users.FirstOrDefault(u => u.Email == "demo@veritheia.local");
         if (demoUser == null)
@@ -57,16 +59,16 @@ public class DatabaseFixture : IAsyncLifetime
             };
             veritheiaContext.Users.Add(demoUser);
             veritheiaContext.SaveChanges();
-            
+
             // Create default personas
             CreateDefaultPersonas(veritheiaContext, demoUser.Id);
         }
     }
-    
+
     private async Task SeedDemoDataAsync(DbContext context, CancellationToken cancellationToken)
     {
         var veritheiaContext = (VeritheiaDbContext)context;
-        
+
         // Check if demo user already exists
         var demoUser = await veritheiaContext.Users.FirstOrDefaultAsync(u => u.Email == "demo@veritheia.local", cancellationToken);
         if (demoUser == null)
@@ -81,12 +83,12 @@ public class DatabaseFixture : IAsyncLifetime
             };
             veritheiaContext.Users.Add(demoUser);
             await veritheiaContext.SaveChangesAsync(cancellationToken);
-            
+
             // Create default personas
             await CreateDefaultPersonasAsync(veritheiaContext, demoUser.Id, cancellationToken);
         }
     }
-    
+
     private void CreateDefaultPersonas(VeritheiaDbContext context, Guid userId)
     {
         var personas = new[]
@@ -158,11 +160,11 @@ public class DatabaseFixture : IAsyncLifetime
                 CreatedAt = DateTime.UtcNow
             }
         };
-        
+
         context.Personas.AddRange(personas);
         context.SaveChanges();
     }
-    
+
     private async Task CreateDefaultPersonasAsync(VeritheiaDbContext context, Guid userId, CancellationToken cancellationToken)
     {
         var personas = new[]
@@ -234,11 +236,11 @@ public class DatabaseFixture : IAsyncLifetime
                 CreatedAt = DateTime.UtcNow
             }
         };
-        
+
         context.Personas.AddRange(personas);
         await context.SaveChangesAsync(cancellationToken);
     }
-    
+
     public async Task InitializeAsync()
     {
         // Start PostgreSQL container with pgvector
@@ -248,37 +250,37 @@ public class DatabaseFixture : IAsyncLifetime
             .WithUsername("test")
             .WithPassword("test")
             .Build();
-            
+
         await _container.StartAsync();
-        
+
         _connectionString = _container.GetConnectionString();
-        
+
         // Apply migrations to create schema
         using var context = CreateContext();
         await context.Database.MigrateAsync();
-        
+
         // Setup Respawn for fast data reset
         await using var connection = new NpgsqlConnection(_connectionString);
         await connection.OpenAsync();
-        
+
         _respawner = await Respawner.CreateAsync(connection, new RespawnerOptions
         {
             DbAdapter = DbAdapter.Postgres,
             TablesToIgnore = ["__EFMigrationsHistory"]
         });
     }
-    
+
     public async Task ResetAsync()
     {
         await using var connection = new NpgsqlConnection(_connectionString);
         await connection.OpenAsync();
         await _respawner.ResetAsync(connection);
-        
+
         // Re-seed demo data after reset
         using var context = CreateContext();
         await SeedDemoDataAsync(context, CancellationToken.None);
     }
-    
+
     public async Task DisposeAsync()
     {
         await _container.DisposeAsync();

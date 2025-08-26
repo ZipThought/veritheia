@@ -71,7 +71,7 @@ public class ProcessWorkerService : BackgroundService
 
             try
             {
-                _logger.LogInformation("Processing execution {ExecutionId} of type {ProcessType}", 
+                _logger.LogInformation("Processing execution {ExecutionId} of type {ProcessType}",
                     execution.Id, execution.ProcessType);
 
                 // Mark as running
@@ -87,7 +87,7 @@ public class ProcessWorkerService : BackgroundService
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to process execution {ExecutionId}", execution.Id);
-                
+
                 // Mark as failed
                 execution.State = "Failed";
                 execution.CompletedAt = DateTime.UtcNow;
@@ -98,8 +98,8 @@ public class ProcessWorkerService : BackgroundService
     }
 
     private async Task ExecuteProcessInternal(
-        ProcessExecution execution, 
-        ProcessEngine processEngine, 
+        ProcessExecution execution,
+        ProcessEngine processEngine,
         CancellationToken cancellationToken)
     {
         using var scope = _serviceProvider.CreateScope();

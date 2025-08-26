@@ -23,7 +23,7 @@ public class TestCognitiveAdapter : ITestCognitiveAdapter
     private int _testSeed = 42;
     private Random _random;
     private bool _shouldSimulateFailure = false;
-    
+
     public TestCognitiveAdapter()
     {
         _random = new Random(_testSeed);
@@ -46,13 +46,13 @@ public class TestCognitiveAdapter : ITestCognitiveAdapter
         // Generate deterministic fake embedding based on text content
         // This enables repeatable test outcomes while being clearly fake
         var embedding = new float[1536]; // OpenAI embedding dimension
-        
+
         if (_deterministicMode)
         {
             // Use text hash for deterministic output in tests
             var textHash = text.GetHashCode();
             var deterministicRandom = new Random(textHash + _testSeed);
-            
+
             for (int i = 0; i < embedding.Length; i++)
             {
                 embedding[i] = (float)(deterministicRandom.NextDouble() * 2 - 1);
@@ -98,13 +98,13 @@ public class TestCognitiveAdapter : ITestCognitiveAdapter
             var relevanceScore = Math.Abs(promptHash % 100) / 100.0f;
             return Task.FromResult($"[TEST GENERATED] Relevance Assessment\nScore: {relevanceScore:F2}\nReasoning: This is a deterministic test response for relevance assessment. Not real neural evaluation.");
         }
-        
+
         if (prompt.Contains("contribution", StringComparison.OrdinalIgnoreCase))
         {
             var contributionScore = Math.Abs((promptHash + 1) % 100) / 100.0f;
             return Task.FromResult($"[TEST GENERATED] Contribution Assessment\nScore: {contributionScore:F2}\nReasoning: This is a deterministic test response for contribution assessment. Not real neural evaluation.");
         }
-        
+
         if (prompt.Contains("extract", StringComparison.OrdinalIgnoreCase) || prompt.Contains("semantic", StringComparison.OrdinalIgnoreCase))
         {
             return Task.FromResult($"[TEST GENERATED] Semantic Extraction\nTopics: [test-topic-1, test-topic-2]\nEntities: [test-entity-1, test-entity-2]\nKeywords: [test-keyword-1, test-keyword-2]\nNote: This is deterministic test data, not real semantic understanding.");

@@ -24,7 +24,7 @@ public class PersonaService
     public async Task<List<Persona>> GetUserPersonasAsync(Guid userId)
     {
         _logger.LogInformation("Retrieving personas for user {UserId}", userId);
-        
+
         return await _context.Personas
             .Where(p => p.UserId == userId)
             .OrderBy(p => p.Domain)

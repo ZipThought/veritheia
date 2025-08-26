@@ -9,7 +9,7 @@ public class InputDefinition
     /// Collection of input fields
     /// </summary>
     public List<InputField> Fields { get; set; } = new();
-    
+
     /// <summary>
     /// Add a text area input
     /// </summary>
@@ -24,7 +24,7 @@ public class InputDefinition
         });
         return this;
     }
-    
+
     /// <summary>
     /// Add a single-line text input
     /// </summary>
@@ -39,7 +39,7 @@ public class InputDefinition
         });
         return this;
     }
-    
+
     /// <summary>
     /// Add a dropdown selection
     /// </summary>
@@ -55,7 +55,7 @@ public class InputDefinition
         });
         return this;
     }
-    
+
     /// <summary>
     /// Add a knowledge scope selector
     /// </summary>
@@ -70,7 +70,7 @@ public class InputDefinition
         });
         return this;
     }
-    
+
     /// <summary>
     /// Add a document selector
     /// </summary>
@@ -85,7 +85,7 @@ public class InputDefinition
         });
         return this;
     }
-    
+
     /// <summary>
     /// Add a multi-select field
     /// </summary>

@@ -25,27 +25,27 @@ public class ValueObjectTests
                 ["includeMetadata"] = true
             }
         };
-        
+
         // Act & Assert - Test GetInput<T> method
         var questions = context.GetInput<string[]>("researchQuestions");
         Assert.NotNull(questions);
         Assert.Equal(2, questions.Length);
         Assert.Contains("RQ1: What is AI?", questions);
-        
+
         var threshold = context.GetInput<double>("threshold");
         Assert.Equal(0.7, threshold);
-        
+
         var maxResults = context.GetInput<int>("maxResults");
         Assert.Equal(100, maxResults);
-        
+
         var includeMetadata = context.GetInput<bool>("includeMetadata");
         Assert.True(includeMetadata);
-        
+
         // Test missing key
         var missing = context.GetInput<string>("nonexistent");
         Assert.Null(missing);
     }
-    
+
     [Fact]
     public void JourneyContext_Stores_Journey_Specific_Data()
     {
@@ -81,7 +81,7 @@ public class ValueObjectTests
                 }
             }
         };
-        
+
         // Assert
         Assert.Equal("Systematic review of AI safety literature", journeyContext.Purpose);
         Assert.Equal(2, journeyContext.ResearchQuestions.Count);
@@ -90,7 +90,7 @@ public class ValueObjectTests
         Assert.Equal("Initial screening", journeyContext.State["currentPhase"]);
         Assert.Single(journeyContext.RecentEntries);
     }
-    
+
     [Fact]
     public void PersonaContext_Tracks_User_Evolution()
     {
@@ -107,8 +107,8 @@ public class ValueObjectTests
             },
             ActivePatterns = new List<InquiryPattern>
             {
-                new InquiryPattern 
-                { 
+                new InquiryPattern
+                {
                     PatternType = "comparative",
                     Description = "Compares different model architectures",
                     OccurrenceCount = 12,
@@ -129,7 +129,7 @@ public class ValueObjectTests
                 "Ablation studies"
             }
         };
-        
+
         // Assert
         Assert.Equal("Machine Learning Research", personaContext.DomainFocus);
         Assert.Equal(4, personaContext.RelevantVocabulary.Count);
@@ -138,7 +138,7 @@ public class ValueObjectTests
         Assert.Equal("comparative", personaContext.ActivePatterns[0].PatternType);
         Assert.Equal(3, personaContext.MethodologicalPreferences.Count);
     }
-    
+
     [Fact]
     public void InputDefinition_Fluent_API_Works()
     {
@@ -146,34 +146,34 @@ public class ValueObjectTests
         var inputDef = new InputDefinition()
             .AddTextArea("researchQuestion", "The main research question for your investigation", true)
             .AddTextInput("hypothesis", "Your working hypothesis", false)
-            .AddDropdown("methodology", "Research methodology", 
+            .AddDropdown("methodology", "Research methodology",
                 new[] { "systematic", "narrative", "scoping", "rapid" }, true)
             .AddScopeSelector("scope", "Knowledge scope to search", false)
             .AddDocumentSelector("documents", "Select documents to analyze", true)
-            .AddMultiSelect("themes", "Select relevant themes", 
+            .AddMultiSelect("themes", "Select relevant themes",
                 new[] { "safety", "ethics", "performance", "interpretability" }, false);
-        
+
         // Assert
         Assert.Equal(6, inputDef.Fields.Count);
-        
+
         var textAreaField = inputDef.Fields[0];
         Assert.Equal("researchQuestion", textAreaField.Name);
         Assert.Equal(InputFieldType.TextArea, textAreaField.Type);
         Assert.True(textAreaField.Required);
-        
+
         var dropdownField = inputDef.Fields[2];
         Assert.Equal("methodology", dropdownField.Name);
         Assert.Equal(InputFieldType.Dropdown, dropdownField.Type);
         Assert.Equal(4, dropdownField.Options.Count);
         Assert.Contains("systematic", dropdownField.Options);
-        
+
         var multiSelectField = inputDef.Fields[5];
         Assert.Equal("themes", multiSelectField.Name);
         Assert.Equal(InputFieldType.MultiSelect, multiSelectField.Type);
         Assert.False(multiSelectField.Required);
         Assert.Contains("ethics", multiSelectField.Options);
     }
-    
+
     [Fact]
     public void FormationMarker_Tracks_Journey_Milestones()
     {
@@ -191,7 +191,7 @@ public class ValueObjectTests
                 Guid.CreateVersion7()
             }
         };
-        
+
         // Assert
         Assert.NotEqual(Guid.Empty, marker.JourneyId);
         Assert.Contains("distributed systems", marker.InsightDescription);
@@ -199,7 +199,7 @@ public class ValueObjectTests
         Assert.Contains("parallel processing", marker.Context);
         Assert.Equal(3, marker.ContributingSegmentIds.Count);
     }
-    
+
     [Fact]
     public void JournalEntryContext_Provides_Entry_Summary()
     {
@@ -212,7 +212,7 @@ public class ValueObjectTests
             CreatedAt = DateTime.UtcNow.AddHours(-2),
             Tags = new List<string> { "breakthrough", "attention", "cognition" }
         };
-        
+
         // Assert
         Assert.NotEqual(Guid.Empty, entry.Id);
         Assert.Contains("attention mechanisms", entry.Content);
@@ -220,7 +220,7 @@ public class ValueObjectTests
         Assert.Equal(3, entry.Tags.Count);
         Assert.Contains("breakthrough", entry.Tags);
     }
-    
+
     [Fact]
     public void InputField_Stores_Field_Metadata()
     {
@@ -234,7 +234,7 @@ public class ValueObjectTests
             Options = new List<string> { "Computer Science", "Biology", "Physics", "Mathematics" },
             DefaultValue = "Computer Science"
         };
-        
+
         // Assert
         Assert.Equal("researchDomain", field.Name);
         Assert.Equal(InputFieldType.Dropdown, field.Type);

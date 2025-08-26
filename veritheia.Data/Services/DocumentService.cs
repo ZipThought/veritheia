@@ -17,7 +17,7 @@ public class DocumentService
 {
     private readonly VeritheiaDbContext _db;
     private readonly IDocumentStorageRepository _storage;
-    
+
     public DocumentService(
         VeritheiaDbContext dbContext,
         IDocumentStorageRepository storage)
@@ -25,7 +25,7 @@ public class DocumentService
         _db = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _storage = storage ?? throw new ArgumentNullException(nameof(storage));
     }
-    
+
     /// <summary>
     /// Upload full text for existing document or create new document with PDF
     /// </summary>
@@ -38,7 +38,7 @@ public class DocumentService
         string? title = null)
     {
         Document document;
-        
+
         if (existingDocumentId.HasValue)
         {
             // Attach full text to existing document
@@ -53,27 +53,29 @@ public class DocumentService
             {
                 Id = Guid.CreateVersion7(),
                 UserId = userId,
-                Title = title ?? Path.GetFileNameWithoutExtension(fileName),
-                Source = "pdf_upload",
-                AddedToCorpus = DateTime.UtcNow
+                FileName = fileName,
+                MimeType = mimeType,
+                FilePath = string.Empty, // Will be set after storage
+                FileSize = 0, // Will be set after storage
+                UploadedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow
             };
             _db.Documents.Add(document);
         }
-        
+
         // Store file content
         var storagePath = await _storage.StoreDocumentAsync(content, fileName, mimeType);
-        var metadata = await _storage.GetMetadataAsync(storagePath);
-        
-        // Update document with full text info
-        document.FullTextPath = storagePath;
-        document.FullTextMimeType = mimeType;
-        document.FullTextSize = metadata.SizeInBytes;
-        
+        var storageMetadata = await _storage.GetMetadataAsync(storagePath);
+
+        // Update document with file storage info
+        document.FilePath = storagePath;
+        document.FileSize = storageMetadata.SizeInBytes;
+
         await _db.SaveChangesAsync();
-        
+
         return document;
     }
-    
+
     /// <summary>
     /// Get documents for a user
     /// User isolation enforced through query
@@ -86,7 +88,7 @@ public class DocumentService
             .OrderByDescending(d => d.UploadedAt)
             .ToListAsync();
     }
-    
+
     /// <summary>
     /// Get document full text content (if available)
     /// </summary>
@@ -94,16 +96,16 @@ public class DocumentService
     {
         var document = await _db.Documents
             .FirstOrDefaultAsync(d => d.Id == documentId && d.UserId == userId);
-        
+
         if (document == null)
             throw new UnauthorizedAccessException($"Document {documentId} not found or access denied");
-        
-        if (string.IsNullOrEmpty(document.FullTextPath))
+
+        if (string.IsNullOrEmpty(document.FilePath))
             return null;  // No full text available
-            
-        return await _storage.GetDocumentContentAsync(document.FullTextPath);
+
+        return await _storage.GetDocumentContentAsync(document.FilePath);
     }
-    
+
     /// <summary>
     /// Add document to corpus with deduplication by DOI
     /// </summary>
@@ -117,43 +119,61 @@ public class DocumentService
         string? venue,
         string? keywords)
     {
-        // Check for duplicate by DOI if provided
+        // Check for duplicate by DOI if provided (check in metadata)
         if (!string.IsNullOrWhiteSpace(doi))
         {
-            var existing = await _db.Documents
-                .Where(d => d.UserId == userId)
-                .Where(d => d.DOI == doi)
+            var existing = await _db.DocumentMetadata
+                .Include(dm => dm.Document)
+                .Where(dm => dm.UserId == userId)
+                .Where(dm => dm.DOI == doi)
                 .FirstOrDefaultAsync();
-                
+
             if (existing != null)
             {
                 // Document already exists, return existing
-                return existing;
+                return existing.Document;
             }
         }
-        
-        // Create new document in canonical schema
+
+        // Create Document entity (file placeholder - no actual file yet from CSV)
         var document = new Document
         {
             Id = Guid.CreateVersion7(),
             UserId = userId,
+            FileName = $"{title?.Replace("/", "-").Replace(":", "-") ?? "untitled"}.pdf", // Placeholder filename
+            MimeType = "application/pdf", // Expected future upload type
+            FilePath = string.Empty, // No file yet
+            FileSize = 0, // No file yet
+            UploadedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        // Create DocumentMetadata entity with bibliographic data from CSV
+        var metadata = new DocumentMetadata
+        {
+            Id = Guid.CreateVersion7(),
+            UserId = userId,
+            DocumentId = document.Id,
             Title = title,
             Abstract = abstractText,
-            Authors = authors,
-            Year = year,
+            Authors = authors?.Split(',').Select(a => a.Trim()).ToArray(),
             DOI = doi,
-            Venue = venue,
-            Keywords = keywords,
-            Source = "csv_import",
-            AddedToCorpus = DateTime.UtcNow
+            PublicationDate = year.HasValue ? new DateTime(year.Value, 1, 1, 0, 0, 0, DateTimeKind.Utc) : null,
+            ExtendedMetadata = new Dictionary<string, object>
+            {
+                ["venue"] = venue ?? string.Empty,
+                ["keywords"] = keywords ?? string.Empty,
+                ["source"] = "csv_import"
+            }
         };
-        
+
         _db.Documents.Add(document);
+        _db.DocumentMetadata.Add(metadata);
         await _db.SaveChangesAsync();
-        
+
         return document;
     }
-    
+
     /// <summary>
     /// Delete document (metadata and content)
     /// </summary>
@@ -161,19 +181,19 @@ public class DocumentService
     {
         var document = await _db.Documents
             .FirstOrDefaultAsync(d => d.Id == documentId && d.UserId == userId);
-        
+
         if (document == null)
             throw new UnauthorizedAccessException($"Document {documentId} not found or access denied");
-        
+
         // Delete file content if exists
-        if (!string.IsNullOrEmpty(document.FullTextPath))
-            await _storage.DeleteDocumentAsync(document.FullTextPath);
-        
+        if (!string.IsNullOrEmpty(document.FilePath))
+            await _storage.DeleteDocumentAsync(document.FilePath);
+
         // Delete database record (cascade will handle related records)
         _db.Documents.Remove(document);
         await _db.SaveChangesAsync();
     }
-    
+
     /// <summary>
     /// Check if document has projections in a journey
     /// </summary>

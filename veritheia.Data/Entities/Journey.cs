@@ -9,13 +9,13 @@ public class Journey : BaseEntity, IUserOwned
 {
     // Partition key - required for composite primary key (UserId, Id)
     public Guid UserId { get; set; }
-    
+
     public Guid PersonaId { get; set; }
     public string ProcessType { get; set; } = string.Empty;
     public string Purpose { get; set; } = string.Empty;
     public string State { get; set; } = "Active"; // Maps to JourneyState enum
     public Dictionary<string, object> Context { get; set; } = new();
-    
+
     // Navigation properties
     public User User { get; set; } = null!;
     public Persona Persona { get; set; } = null!;
