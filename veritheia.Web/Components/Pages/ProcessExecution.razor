@@ -1,9 +1,11 @@
 @page "/journeys/{journeyId:guid}/process"
+@rendermode InteractiveServer
 @using veritheia.Web.Services
 @using Veritheia.Data.DTOs
 @using Veritheia.Common.Models
 @using Veritheia.Core.Interfaces
 @using Veritheia.Core.ValueObjects
+@using Veritheia.Core.Models
 @using Veritheia.Data.Services
 @using System.Text.Json
 @inject JourneyApiService JourneyService
@@ -139,49 +141,52 @@
         else if (_isExecuting)
         {
             <div class="execution-progress-section">
-                <div class="progress-card">
-                    <h2>🔄 Processing in Progress</h2>
+                <div class="processing-status-bar">
+                    <div class="status-line">
+                        Processing: Article @(_processedCount + 1) of @_totalCount (@_currentProgress%) │ Elapsed: @_elapsedTime │ Remaining: @_remainingTime
+                    </div>
+                    <div class="current-document">
+                        Current: "@_currentDocument"
+                    </div>
+                    <div class="control-line">
+                        <div class="control-buttons">
+                            <button class="btn btn-outline-secondary" @onclick="PauseExecution">[Pause]</button>
+                            <button class="btn btn-outline-secondary" disabled>[Resume]</button>
+                            <button class="btn btn-outline-danger" @onclick="CancelExecution">[Cancel]</button>
+                        </div>
+                        <div class="save-status">
+                            Last saved: @GetLastSaveStatus()
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-details">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: @_currentProgress%"></div>
+                        </div>
+                    </div>
                     
-                    <div class="progress-stats">
-                        <div class="stat-item">
-                            <span class="stat-value">@_processedCount</span>
-                            <span class="stat-label">of @_totalCount processed</span>
+                    <div class="statistics-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">@_processedCount</div>
+                            <div class="stat-label">Documents Processed</div>
                         </div>
-                        <div class="stat-item">
-                            <span class="stat-value">@_currentProgress%</span>
-                            <span class="stat-label">complete</span>
+                        <div class="stat-card">
+                            <div class="stat-number">@_mustReadCount</div>
+                            <div class="stat-label">Must-Read Found</div>
                         </div>
-                        <div class="stat-item">
-                            <span class="stat-value">@_mustReadCount</span>
-                            <span class="stat-label">must-read found</span>
+                        <div class="stat-card">
+                            <div class="stat-number">@(_totalCount - _processedCount)</div>
+                            <div class="stat-label">Remaining</div>
                         </div>
-                    </div>
-
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: @_currentProgress%"></div>
-                        <span class="progress-text">@_currentProgress%</span>
-                    </div>
-
-                    @if (!string.IsNullOrEmpty(_currentDocument))
-                    {
-                        <div class="current-processing">
-                            <p><strong>Currently processing:</strong></p>
-                            <p class="current-doc">@_currentDocument</p>
-                        </div>
-                    }
-
-                    <div class="time-info">
-                        <span>Elapsed: @_elapsedTime</span>
-                        <span>Estimated remaining: @_remainingTime</span>
-                    </div>
-
-                    <div class="execution-actions">
-                        <button class="btn btn-outline-secondary" @onclick="PauseExecution">
-                            ⏸️ Pause
-                        </button>
-                        <button class="btn btn-outline-danger" @onclick="CancelExecution">
-                            ❌ Cancel
-                        </button>
+                        @if (_failedCount > 0)
+                        {
+                            <div class="stat-card error">
+                                <div class="stat-number">@_failedCount</div>
+                                <div class="stat-label">Failed</div>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
@@ -335,6 +340,89 @@
     justify-content: center;
     gap: 1rem;
     margin-top: 2rem;
+}
+
+.processing-status-bar {
+    background: #263238;
+    color: #b0bec5;
+    font-family: 'Courier New', monospace;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.status-line {
+    font-size: 1.1rem;
+    color: #4fc3f7;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.current-document {
+    color: #aed581;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.control-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 0.5rem;
+    border-top: 1px solid #37474f;
+}
+
+.control-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.control-buttons button {
+    background: transparent;
+    color: #90a4ae;
+    border: 1px solid #546e7a;
+    padding: 0.25rem 0.75rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.control-buttons button:hover:not(:disabled) {
+    background: #37474f;
+    color: #eceff1;
+}
+
+.control-buttons button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.save-status {
+    color: #78909c;
+    font-size: 0.9rem;
+}
+
+.progress-bar-container {
+    margin-bottom: 2rem;
+}
+
+.statistics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.stat-card.error {
+    background: #ffebee;
+    border: 2px solid #ef5350;
+}
+
+.stat-card.error .stat-number {
+    color: #c62828;
 }
 
 .progress-stats {
@@ -546,14 +634,17 @@
     private int _totalCount = 0;
     private int _currentProgress = 0;
     private int _mustReadCount = 0;
+    private int _failedCount = 0;
     private string _currentDocument = "";
     private string _elapsedTime = "";
     private string _remainingTime = "";
+    private DateTime? _lastSaveTime;
     
     // Completion stats
     private int _totalProcessed = 0;
     private int _finalMustReadCount = 0;
     private string _completionTime = "";
+    private DateTime _startTime;
 
     protected override async Task OnInitializedAsync()
     {
@@ -688,6 +779,7 @@
         _isCompleted = false;
         _totalCount = EstimateDocumentCount(_csvContent);
         _processedCount = 0;
+        _startTime = DateTime.UtcNow;
         StateHasChanged();
 
         try
@@ -704,11 +796,32 @@
                 inputs["research_questions"] = string.Join("\n", _frameworkSummary.Questions);
             }
 
-            // Execute the process using the real ProcessEngine
+            // Create progress reporter for real-time updates
+            var progressReporter = new Progress<ProcessProgress>(progress =>
+            {
+                // Update UI with real-time progress
+                _processedCount = progress.ProcessedCount;
+                _totalCount = progress.TotalCount;
+                _mustReadCount = progress.MustReadCount;
+                _failedCount = progress.FailedCount;
+                _currentDocument = progress.CurrentDocument;
+                _currentProgress = progress.PercentComplete;
+                _lastSaveTime = progress.LastSaveTime;
+                
+                // Format time displays
+                _elapsedTime = FormatTimeSpan(progress.ElapsedTime);
+                _remainingTime = FormatTimeSpan(progress.EstimatedTimeRemaining);
+                
+                // Trigger UI update (Blazor Server will send this via SignalR)
+                InvokeAsync(StateHasChanged);
+            });
+
+            // Execute the process with progress reporting
             var result = await ProcessEngine.ExecuteProcessAsync(
                 _journey.ProcessType, 
                 JourneyId, 
-                inputs);
+                inputs,
+                progressReporter);
 
             if (result.Success)
             {
@@ -725,7 +838,8 @@
                         _finalMustReadCount = Convert.ToInt32(mustReadObj);
                 }
                 
-                _completionTime = "Complete";
+                var totalTime = DateTime.UtcNow - _startTime;
+                _completionTime = FormatTimeSpan(totalTime);
                 StateHasChanged();
             }
             else
@@ -784,6 +898,20 @@
     private void NavigateToDocuments()
     {
         Navigation.NavigateTo("/documents");
+    }
+
+    private string GetLastSaveStatus()
+    {
+        if (_lastSaveTime == null)
+            return "not yet saved";
+        
+        var timeSinceLastSave = DateTime.UtcNow - _lastSaveTime.Value;
+        if (timeSinceLastSave.TotalSeconds < 60)
+            return $"{(int)timeSinceLastSave.TotalSeconds} seconds ago";
+        else if (timeSinceLastSave.TotalMinutes < 60)
+            return $"{(int)timeSinceLastSave.TotalMinutes} minutes ago";
+        else
+            return $"{(int)timeSinceLastSave.TotalHours} hours ago";
     }
 
     public class FrameworkSummary

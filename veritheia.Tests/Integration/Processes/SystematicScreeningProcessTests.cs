@@ -3,38 +3,53 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Veritheia.Core.Interfaces;
 using Veritheia.Core.ValueObjects;
+using Veritheia.Data;
+using Veritheia.Data.Entities;
 using Veritheia.Data.Processes;
 using Veritheia.Data.Services;
 using Veritheia.Tests.Helpers;
+using veritheia.Tests.TestBase;
+using System.IO;
 
 namespace Veritheia.Tests.Integration.Processes;
 
 /// <summary>
-/// Integration tests for SystematicScreeningProcess using mocked LLM
-/// These tests run in CI and use mocks to avoid external dependencies
+/// Integration tests for SystematicScreeningProcess using REAL DATABASE with Testcontainers
+/// These tests use PostgreSQL with pgvector to test actual formation through authorship
 /// </summary>
+[Collection("DatabaseTests")]
 [Trait("Category", "Integration")]
-public class SystematicScreeningProcessTests
+public class SystematicScreeningProcessTests : DatabaseTestBase
 {
     private readonly Mock<ICognitiveAdapter> _mockCognitiveAdapter;
     private readonly Mock<ILogger<BasicSystematicScreeningProcess>> _mockLogger;
     private readonly BasicSystematicScreeningProcess _process;
+    private readonly IServiceProvider _serviceProvider;
 
-    public SystematicScreeningProcessTests()
+    public SystematicScreeningProcessTests(DatabaseFixture fixture) : base(fixture)
     {
         _mockCognitiveAdapter = new Mock<ICognitiveAdapter>();
         _mockLogger = new Mock<ILogger<BasicSystematicScreeningProcess>>();
 
-        // Create a real ServiceCollection for proper dependency injection
+        // Create a real ServiceCollection with REAL DATABASE from Testcontainers
         var services = new ServiceCollection();
+        
+        // Use the REAL database context from fixture
+        services.AddScoped<VeritheiaDbContext>(_ => Context);
+        
+        // Add real services
         services.AddScoped<ICognitiveAdapter>(_ => _mockCognitiveAdapter.Object);
         services.AddScoped<CsvParserService>(sp => new CsvParserService(Mock.Of<ILogger<CsvParserService>>()));
         services.AddScoped<CsvWriterService>(sp => new CsvWriterService(Mock.Of<ILogger<CsvWriterService>>()));
         services.AddScoped<SemanticExtractionService>(sp => new SemanticExtractionService(_mockCognitiveAdapter.Object, Mock.Of<ILogger<SemanticExtractionService>>()));
+        
+        // Real DocumentService with real storage
+        services.AddScoped<IDocumentStorageRepository, FileStorageService>(sp => 
+            new FileStorageService(Path.Combine(Path.GetTempPath(), "veritheia_test_storage")));
+        services.AddScoped<DocumentService>();
 
-        var serviceProvider = services.BuildServiceProvider();
-
-        _process = new BasicSystematicScreeningProcess(_mockLogger.Object, serviceProvider);
+        _serviceProvider = services.BuildServiceProvider();
+        _process = new BasicSystematicScreeningProcess(_mockLogger.Object, _serviceProvider);
     }
 
     [Fact]
@@ -46,7 +61,8 @@ public class SystematicScreeningProcessTests
         // Assert
         Assert.NotNull(inputDefinition);
         Assert.Contains(inputDefinition.Fields, f => f.Name == "research_questions");
-        Assert.Contains(inputDefinition.Fields, f => f.Name == "csv_content");
+        Assert.Contains(inputDefinition.Fields, f => f.Name == "csv_upload");
+        Assert.Contains(inputDefinition.Fields, f => f.Name == "intellectual_framework");
     }
 
     [Fact]
@@ -60,8 +76,8 @@ public class SystematicScreeningProcessTests
             JourneyId = Guid.NewGuid(),
             Inputs = new Dictionary<string, object>
             {
-                ["research_questions"] = TestDataHelper.GetResearchQuestionsText("cybersecurity_llm_rqs.txt"),
-                ["csv_content"] = TestDataHelper.GetCsvSample("ieee_sample.csv")
+                ["intellectual_framework"] = "My research focuses on AI in cybersecurity",
+                ["research_questions"] = TestDataHelper.GetResearchQuestionsText("cybersecurity_llm_rqs.txt")
             },
             Services = null // Not used in validation
         };
@@ -97,9 +113,9 @@ public class SystematicScreeningProcessTests
     }
 
     [Fact]
-    public void ValidateInputs_WithMissingCsvContent_ShouldReturnFalse()
+    public void ValidateInputs_WithMissingBothFrameworkAndQuestions_ShouldReturnFalse()
     {
-        // Arrange
+        // Arrange - missing both intellectual_framework AND research_questions
         var context = new ProcessContext
         {
             ExecutionId = Guid.NewGuid(),
@@ -107,7 +123,7 @@ public class SystematicScreeningProcessTests
             JourneyId = Guid.NewGuid(),
             Inputs = new Dictionary<string, object>
             {
-                ["research_questions"] = TestDataHelper.GetResearchQuestionsText("single_rq.txt")
+                ["csv_upload"] = "some_csv_content"  // Only has CSV, no framework
             },
             Services = null // Not used in validation
         };
@@ -115,7 +131,7 @@ public class SystematicScreeningProcessTests
         // Act
         var result = _process.ValidateInputs(context);
 
-        // Assert
+        // Assert - Should be false since needs either framework OR questions
         Assert.False(result);
     }
 
@@ -128,8 +144,9 @@ public class SystematicScreeningProcessTests
 
         var inputs = new Dictionary<string, object>
         {
+            ["intellectual_framework"] = "Testing formation through authorship in CI environment",
             ["research_questions"] = researchQuestions,
-            ["csv_content"] = csvContent
+            ["csv_upload"] = csvContent
         };
 
         var context = new ProcessContext
@@ -184,8 +201,9 @@ public class SystematicScreeningProcessTests
 
         var inputs = new Dictionary<string, object>
         {
+            ["intellectual_framework"] = "Testing formation through authorship in CI environment",
             ["research_questions"] = researchQuestions,
-            ["csv_content"] = csvContent
+            ["csv_upload"] = csvContent
         };
 
         var context = new ProcessContext

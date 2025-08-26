@@ -128,6 +128,17 @@ public class BasicSystematicScreeningProcess : IAnalyticalProcess
                 Framework = framework
             };
 
+            // Initialize progress reporting
+            var startTime = DateTime.UtcNow;
+            var progress = new Veritheia.Core.Models.ProcessProgress
+            {
+                TotalCount = documents.Count,
+                StartTime = startTime,
+                ProcessedCount = 0,
+                FailedCount = 0,
+                MustReadCount = 0
+            };
+
             // Process each document through the user's authored framework
             for (int docIndex = 0; docIndex < documents.Count; docIndex++)
             {
@@ -139,6 +150,15 @@ public class BasicSystematicScreeningProcess : IAnalyticalProcess
                 _logger.LogInformation("Projecting document {Index}/{Total} through user framework: {Title}",
                     docIndex + 1, documents.Count, document.Title);
 
+                // Report progress to UI in real-time
+                if (context.ProgressReporter != null)
+                {
+                    progress.CurrentIndex = docIndex;
+                    progress.CurrentDocument = document.Title;
+                    progress.StatusMessage = $"Processing: {document.Title}";
+                    context.ProgressReporter.Report(progress);
+                }
+
                 try
                 {
                     // Project this document through the user's authored framework
@@ -147,11 +167,43 @@ public class BasicSystematicScreeningProcess : IAnalyticalProcess
 
                     formationResults.DocumentProjections.Add(projection);
                     formationResults.SuccessfulProjections++;
+                    
+                    // Update progress after successful projection
+                    progress.ProcessedCount++;
+                    if (projection.MustRead)
+                        progress.MustReadCount++;
+                    
+                    // Report updated progress
+                    if (context.ProgressReporter != null)
+                    {
+                        progress.StatusMessage = $"Processed: {document.Title}";
+                        context.ProgressReporter.Report(progress);
+                    }
+                    
+                    // Save intermediate results every 10 documents
+                    if (progress.ProcessedCount % 10 == 0)
+                    {
+                        // TODO: Implement actual intermediate saving after adding to DbContext
+                        // await SaveIntermediateResults(context, formationResults, progress);
+                        progress.LastSaveTime = DateTime.UtcNow;
+                        if (context.ProgressReporter != null)
+                        {
+                            context.ProgressReporter.Report(progress);
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
                     // Transparent failure tracking - continue processing
                     RecordProjectionFailure(formationResults, docIndex, document, ex);
+                    
+                    // Update failed count in progress
+                    progress.FailedCount++;
+                    if (context.ProgressReporter != null)
+                    {
+                        progress.StatusMessage = $"Failed: {document.Title}";
+                        context.ProgressReporter.Report(progress);
+                    }
                 }
             }
 
@@ -734,6 +786,41 @@ Return ONLY a valid JSON object (no markdown, no explanation, no code blocks, ju
 
     #region Internal Classes
 
+    // TODO: Implement after adding ProcessIntermediateResult to DbContext
+    // private async Task SaveIntermediateResults(ProcessContext context, FormationResults formationResults, Veritheia.Core.Models.ProcessProgress progress)
+    // {
+    //     try
+    //     {
+    //         // Save current projection results to database for recovery
+    //         var db = context.GetService<VeritheiaDbContext>();
+    //         if (db != null)
+    //         {
+    //             // Create intermediate result record
+    //             var intermediateResult = new ProcessIntermediateResult
+    //             {
+    //                 Id = Guid.NewGuid(),
+    //                 ExecutionId = context.ExecutionId,
+    //                 JourneyId = context.JourneyId,
+    //                 SavedAt = DateTime.UtcNow,
+    //                 ProcessedCount = progress.ProcessedCount,
+    //                 FailedCount = progress.FailedCount,
+    //                 MustReadCount = progress.MustReadCount,
+    //                 ProjectionData = System.Text.Json.JsonSerializer.Serialize(formationResults.DocumentProjections.TakeLast(10))
+    //             };
+    //             
+    //             db.ProcessIntermediateResults.Add(intermediateResult);
+    //             await db.SaveChangesAsync();
+    //             
+    //             _logger.LogInformation("Saved intermediate results at document {Count}", progress.ProcessedCount);
+    //         }
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         _logger.LogWarning(ex, "Failed to save intermediate results");
+    //         // Don't fail the whole process for intermediate save failure
+    //     }
+    // }
+
     private class JourneyFramework
     {
         public string IntellectualStance { get; set; } = "";
@@ -768,6 +855,7 @@ Return ONLY a valid JSON object (no markdown, no explanation, no code blocks, ju
         public List<string> FrameworkSpecificKeywords { get; set; } = new();
         public List<FrameworkAssessment> FrameworkAssessments { get; set; } = new();
         public bool RequiresEngagement { get; set; }
+        public bool MustRead => FrameworkAssessments.Any(a => a.RelevanceIndicator || a.ContributionIndicator);
     }
 
     private class FrameworkAssessment
@@ -779,6 +867,8 @@ Return ONLY a valid JSON object (no markdown, no explanation, no code blocks, ju
         public float ContributionScore { get; set; }
         public string ContributionReasoning { get; set; } = "";
         public string FrameworkApplication { get; set; } = "";
+        public bool RelevanceIndicator => RelevanceScore >= 0.7f;
+        public bool ContributionIndicator => ContributionScore >= 0.7f;
     }
 
     private class FormationResults

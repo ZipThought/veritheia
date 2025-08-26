@@ -41,6 +41,11 @@ public class ProcessContext
     public IServiceProvider? Services { get; set; }
 
     /// <summary>
+    /// Progress reporter for real-time updates
+    /// </summary>
+    public IProgress<Models.ProcessProgress>? ProgressReporter { get; set; }
+
+    /// <summary>
     /// Get typed input value
     /// </summary>
     public T? GetInput<T>(string key)

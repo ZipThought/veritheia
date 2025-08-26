@@ -119,6 +119,19 @@ public class ProcessEngine
         Dictionary<string, object> inputs,
         CancellationToken cancellationToken = default)
     {
+        return await ExecuteProcessAsync(processId, journeyId, inputs, null, cancellationToken);
+    }
+
+    /// <summary>
+    /// Execute a process synchronously with progress reporting
+    /// </summary>
+    public async Task<ProcessExecutionResult> ExecuteProcessAsync(
+        string processId,
+        Guid journeyId,
+        Dictionary<string, object> inputs,
+        IProgress<Veritheia.Core.Models.ProcessProgress>? progressReporter,
+        CancellationToken cancellationToken = default)
+    {
         // Get journey with full context
         var journey = await _db.Journeys
             .Include(j => j.User)
@@ -158,7 +171,8 @@ public class ProcessEngine
                 UserId = journey.UserId,
                 JourneyId = journeyId,
                 Inputs = inputs,
-                Services = _serviceProvider
+                Services = _serviceProvider,
+                ProgressReporter = progressReporter
             };
 
             // Validate inputs
