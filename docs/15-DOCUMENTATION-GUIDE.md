@@ -196,7 +196,7 @@ After making documentation updates, perform this recursive review:
 - [ ] Every document connects back to formation through authorship
 - [ ] Technical features show how they enable user sovereignty
 - [ ] Constraints explain what they prevent (AI overreach)
-- [ ] Architecture supports, never replaces, human understanding
+- [ ] Architecture supports, never replaces, user understanding
 
 ### Cross-Reference Integrity
 - [ ] All internal links use the numbered structure
@@ -252,7 +252,7 @@ The documentation is never "done" but rather continuously refined to better serv
 
 Every word you write in Veritheia's documentation should serve the principle that users author their own understanding. If a sentence doesn't ultimately connect to user sovereignty, intellectual formation, or epistemic infrastructure, it probably doesn't belong.
 
-The documentation isn't just describing software; it's preserving the possibility of genuine human understanding in an age of AI-generated content. Write accordingly.
+The documentation isn't just describing software; it's preserving the possibility of genuine user understanding in an age of AI-generated content. Write accordingly.
 
 ---
 

@@ -131,7 +131,7 @@ Documents are numbered to suggest a reading path:
 **[14-AI-AGENT-GUIDE.md](./14-AI-AGENT-GUIDE.md)** - Guide for AI assistants
    - How AI agents work as instruments, not authors
    - The discipline of observation without interpretation
-   - Preserving human sovereignty in development
+   - Preserving user sovereignty in development
 
 ### Development & Maintenance
 

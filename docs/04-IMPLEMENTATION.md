@@ -166,8 +166,8 @@ Every system state must be accurately communicated or the operation is rejected.
 
 This implementation is the mechanical embodiment of the philosophical commitments in the Vision and the architectural structures in the Architecture. It does not attempt to generalize for market trends or mimic industry patterns that undermine sovereignty.
 
-Every component is constructed to hold the line: between measurement and interpretation, between projection and corpus, between system capacity and human authorship. The code is not merely correct—it is aligned.
+Every component is constructed to hold the line: between measurement and interpretation, between projection and corpus, between system capacity and user authorship. The code is not merely correct—it is aligned.
 
 The database constraints teach what intellectual sovereignty requires. The type system enforces semantic precision. The process orchestration maintains journey coherence. The partition strategy ensures privacy by design. The testing philosophy validates reality, not abstractions.
 
-This is implementation as philosophy made mechanical: every line of code, every schema constraint, every service boundary exists to preserve the human capacity to form understanding through engagement rather than consume it through extraction.
+This is implementation as philosophy made mechanical: every line of code, every schema constraint, every service boundary exists to preserve the user capacity to form understanding through engagement rather than consume it through extraction.

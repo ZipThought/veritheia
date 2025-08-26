@@ -8,7 +8,7 @@ We embrace Domain-Driven Design's core principle—that software should model th
 
 Every pattern documented here serves the architectural principles established in 03-ARCHITECTURE.md: user sovereignty through partition boundaries, intellectual formation through projection spaces, anti-surveillance through structural design, and testing through real execution rather than mocked abstractions.
 
-> **Formation Note:** These patterns emerge from the recognition that PostgreSQL with pgvector IS our domain model. We don't abstract what is already abstracted. We partition by user, project by journey, and measure within conceptual spaces because these patterns preserve the possibility of genuine human understanding.
+> **Formation Note:** These patterns emerge from the recognition that PostgreSQL with pgvector IS our domain model. We don't abstract what is already abstracted. We partition by user, project by journey, and measure within conceptual spaces because these patterns preserve the possibility of genuine user understanding.
 
 ## II. Core Invariants
 

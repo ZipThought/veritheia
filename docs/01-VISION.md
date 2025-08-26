@@ -137,7 +137,7 @@ The deepest learning comes not from consuming content but from creating understa
 
 When a PhD student uses the system, they don't receive a literature review—they develop the scholarly capacity to conduct one. When a fifth grader engages with texts, they don't get comprehension scores—they develop their own voice in responding to literature.
 
-The system's outputs are always authored outputs. Its intelligence amplifies human intelligence. Its capabilities extend human capabilities.
+The system's outputs are always authored outputs. Its intelligence amplifies user intelligence. Its capabilities extend user capabilities.
 
 ## The Architecture of Intellectual Sovereignty
 
@@ -153,7 +153,7 @@ No one can steal these insights because they would also need to steal the journe
 
 ## Why This Matters
 
-In an age of AI that produces generic outputs, Veritheia ensures human authorship. In a time of information overflow, it cultivates personal understanding. In an era of extracted intelligence, it protects intellectual sovereignty.
+In an age of AI that produces generic outputs, Veritheia ensures user authorship. In a time of information overflow, it cultivates personal understanding. In an era of extracted intelligence, it protects intellectual sovereignty.
 
 The system does not make users more efficient—it makes them more capable. Not by doing the thinking for them, but by ensuring thinking remains distinctly, irreducibly theirs.
 
@@ -169,7 +169,7 @@ Veritheia preserves educational engagement by ensuring:
 - Learning happens through creation, not consumption
 - Insights from struggle become formation
 
-The value is not in doing something new, but in preserving what has always mattered: human engagement with knowledge. Each assignment, each struggle with constraints, each breakthrough—these generate insights that accumulate into the student's intellectual formation.
+The value is not in doing something new, but in preserving what has always mattered: user engagement with knowledge. Each assignment, each struggle with constraints, each breakthrough—these generate insights that accumulate into the student's intellectual formation.
 
 ## Why Researchers Need Different Tools
 

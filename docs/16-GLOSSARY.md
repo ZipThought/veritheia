@@ -6,7 +6,7 @@
 
 **The fundamental innovation that differentiates Veritheia from all legacy systems.**
 
-Traditional symbolic AI systems encode rules in formal languages—Prolog predicates, LISP expressions, Python functions. These systems require programmers to translate human understanding into code. Traditional neurosymbolic systems combine neural networks with these coded symbolic rules, creating hybrid architectures where the symbolic component remains in the realm of formal programming languages.
+Traditional symbolic AI systems encode rules in formal languages—Prolog predicates, LISP expressions, Python functions. These systems require programmers to translate user understanding into code. Traditional neurosymbolic systems combine neural networks with these coded symbolic rules, creating hybrid architectures where the symbolic component remains in the realm of formal programming languages.
 
 **Veritheia transcends this limitation.** In our neurosymbolic transcended architecture:
 

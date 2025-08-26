@@ -64,7 +64,7 @@ The system supports formative journeys - intellectual development through engage
    - **Edge Validation**: Local LLM checks length, vocabulary, topic relevance
    - **Staged Scoring**: Sequential evaluation against rubric components
    - **Boundary Enforcement**: Filter inappropriate content, off-topic responses
-   - **Teacher Review**: Flag edge cases for human review
+   - **Teacher Review**: Flag edge cases for user review
 
 4. **Dual Formation Process** - Both teacher and students develop:
    - **Teacher Formation**: Pedagogical capacity through pattern recognition in student growth

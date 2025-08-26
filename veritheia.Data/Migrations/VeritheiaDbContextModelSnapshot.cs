@@ -325,6 +325,107 @@ namespace veritheia.Data.Migrations
                     b.ToTable("journey_document_segments", (string)null);
                 });
 
+            modelBuilder.Entity("Veritheia.Data.Entities.JourneyFailureHistory", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("AcknowledgedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Dictionary<string, object>>("Context")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DocumentIdentifier")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("DocumentTitle")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("ExceptionMessage")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("ExceptionType")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("FormationImpact")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<bool>("IsAcknowledged")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("JourneyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("OperationType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid?>("ProcessExecutionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("ProcessingContinued")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("ProcessingStage")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("RecommendedAction")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime?>("RecoveredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Severity")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("StackTrace")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserNotes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<bool>("WasRecovered")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("UserId", "Id");
+
+                    b.HasIndex("UserId", "IsAcknowledged");
+
+                    b.HasIndex("UserId", "ProcessExecutionId");
+
+                    b.HasIndex("UserId", "Severity");
+
+                    b.HasIndex("UserId", "JourneyId", "CreatedAt");
+
+                    b.ToTable("journey_failure_histories", (string)null);
+                });
+
             modelBuilder.Entity("Veritheia.Data.Entities.JourneyFormation", b =>
                 {
                     b.Property<Guid>("UserId")
@@ -973,6 +1074,32 @@ namespace veritheia.Data.Migrations
                     b.Navigation("Document");
 
                     b.Navigation("Journey");
+                });
+
+            modelBuilder.Entity("Veritheia.Data.Entities.JourneyFailureHistory", b =>
+                {
+                    b.HasOne("Veritheia.Data.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Veritheia.Data.Entities.Journey", "Journey")
+                        .WithMany()
+                        .HasForeignKey("UserId", "JourneyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Veritheia.Data.Entities.ProcessExecution", "ProcessExecution")
+                        .WithMany()
+                        .HasForeignKey("UserId", "ProcessExecutionId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Journey");
+
+                    b.Navigation("ProcessExecution");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Veritheia.Data.Entities.JourneyFormation", b =>

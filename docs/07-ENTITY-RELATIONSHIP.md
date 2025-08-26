@@ -250,7 +250,7 @@ erDiagram
     process_definitions {
         uuid id PK "Global process definition (not user-specific)"
         varchar process_type UK "Unique process type identifier"
-        varchar name "Human-readable process name"
+        varchar name "User-readable process name"
         text description "What this neurosymbolic process enables"
         varchar category "Type of formative process"
         varchar trigger_type "How process initiates"
