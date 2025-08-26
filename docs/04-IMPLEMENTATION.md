@@ -146,6 +146,22 @@ The implementation deploys through progressive environments:
 
 Each environment maintains the same architectural guarantees: user sovereignty, projection-space isolation, and anti-surveillance design.
 
+### Data Integrity Principles
+
+**Authentic or Nothing**
+
+Every vector, score, and extraction must originate from neural processing in production and development. The system provides no fallbacks, no degraded modes, no approximate processing. When the language model is unavailable, processing stops. When constraints are violated, transactions rollback. When validation fails, storage is denied. This binary choice—authentic or nothing—preserves formation integrity absolutely.
+
+Test environments may inject test doubles for integration path validation when language models are unavailable, but these must be clearly isolated in test-only code paths, generate deterministic output, and never affect production builds. Production code must always fail when neural processing is unavailable.
+
+**Systematic with Transparent Failures**
+
+Every document must receive identical processing attempt with explicit failure tracking. No document gets silently skipped, simplified, or given different treatment. The mechanical systematic application continues through failures while recording each one. When processing 3,000 documents results in 153 failures, the user receives complete transparency: detailed success/failure breakdown with full failure context. The prohibition is against silent failures, not against continuing with explicit failure tracking.
+
+**Transparent or Rejected**
+
+Every system state must be accurately communicated or the operation is rejected. No hiding errors in logs. No catching exceptions without propagation. No returning defaults to avoid failure. The user's right to understand system state supersedes any desire for continuous operation.
+
 ## X. Closing Alignment
 
 This implementation is the mechanical embodiment of the philosophical commitments in the Vision and the architectural structures in the Architecture. It does not attempt to generalize for market trends or mimic industry patterns that undermine sovereignty.

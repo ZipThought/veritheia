@@ -937,14 +937,18 @@ public class TestDbContext : VeritheiaDbContext
 
 ## Mocking Strategies
 
-### Cognitive Adapter Mocking
+### Cognitive Adapter Test Doubles
+
+**CRITICAL**: Test doubles for cognitive adapters are ONLY permitted for integration path testing when LLM endpoints are unavailable. Production and development environments MUST use real LLM endpoints. Test doubles must be clearly isolated and never accessible in production code paths.
 
 ```csharp
-public class MockCognitiveAdapter : ICognitiveAdapter
+// TEST ONLY - For CI environments without LLM access
+// This implementation validates data flow paths, NOT formation validity
+public class TestCognitiveAdapter : ICognitiveAdapter
 {
     private readonly bool _deterministicMode;
     
-    public MockCognitiveAdapter(bool deterministic = true)
+    public TestCognitiveAdapter(bool deterministic = true)
     {
         _deterministicMode = deterministic;
     }

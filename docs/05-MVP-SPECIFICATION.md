@@ -482,6 +482,33 @@ public class ConstrainedCompositionProcess : IAnalyticalProcess
 
 ## 6. Implementation Notes
 
+## 7. Data Integrity Requirements
+
+### 7.1 Neural Processing Integrity
+
+All data in production and development must originate from authentic neural processing. Embeddings must come from language models—never from random generation, hashing algorithms, or statistical approximations. Assessments must come from neural evaluation—never from keyword matching, rule-based scoring, or default values. Extractions must come from semantic understanding—never from regular expressions, string manipulation, or template matching.
+
+When neural processing cannot occur, the operation must fail completely. No degraded modes. No approximate processing. No "good enough" substitutes. The absence of neural processing is communicated as explicit failure, not masked with fake data.
+
+**Test Environment Exception**: Integration tests validating data flow paths may use test doubles that generate deterministic fake embeddings when language models are unavailable. These test doubles must:
+- Be isolated in test-specific implementations (e.g., `TestCognitiveAdapter`)
+- Generate deterministic output for test repeatability
+- Be explicitly documented as testing data flow, not formation validity
+- Never be compiled into production builds
+- Never be used when real LLM endpoints are available
+
+### 7.2 Systematic Processing with Explicit Failure Tracking
+
+Every document in a processing request must receive identical treatment attempt. The first document and the thousandth document must go through exactly the same pipeline with exactly the same operations. No optimization shortcuts. No sampling strategies. No progressive degradation.
+
+When individual documents cannot be processed, continue processing while explicitly tracking each failure. If document 847 of 3,000 causes an error, record the failure and continue with document 848. The user must receive complete transparency: "2,847 processed successfully, 153 failed" with detailed failure logs showing which documents failed and why. Never silently skip documents. Never report completion without full failure disclosure.
+
+### 7.3 Failure Transparency
+
+Users must receive immediate notification of any failure that affects formation. The notification must identify the specific failure, explain its impact on formation, and provide actionable next steps. No silent retries. No background error handling. No delayed failure reporting.
+
+Failure information must be preserved for the journey record. Users must be able to review what failed, when it failed, and why it mattered for their formation process. This isn't error logging—it's formation history.
+
 **What is Hard-Coded**: User partition architecture, journey projection framework, process engine interface, database schema with composite keys
 
 **What is Configurable**: Journey frameworks for different types of formation, projection rules for intellectual development, process implementations that support authorship within specific domains

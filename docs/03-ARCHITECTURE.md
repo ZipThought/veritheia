@@ -387,3 +387,33 @@ The system assembles context from:
 Context is managed to fit within cognitive system limits while maintaining narrative coherence and the user's voice.
 
 See [06-USER-MODEL.md](./06-USER-MODEL.md) for detailed specifications.
+
+## IX. Error Handling: Epistemic Integrity Through Failure
+
+The system must fail rather than fake. Every operation either completes with authentic processing or halts with explicit failure. No middle ground exists.
+
+### Absolute Prohibitions
+
+The system must never generate substitute data when neural processing fails in production or development environments. If embedding generation fails, throw an exception—never return random vectors. If semantic extraction fails, throw an exception—never return keyword splits. If assessment fails, throw an exception—never return default scores. Fake data corrupts formation permanently. One random vector pollutes all future similarity calculations. One fake assessment distorts pattern recognition. One skipped document breaks systematic guarantees.
+
+**Test Environment Exception**: Integration tests may use deterministic fake embeddings ONLY when validating data flow paths where language models are unavailable (CI environments, resource-constrained development machines). These test doubles must be clearly marked with interfaces like `ITestCognitiveAdapter` and must never be accessible in production code paths. The fake data must be deterministic for test repeatability. Any test using fake data must be explicitly labeled as an integration path test, not a formation validity test.
+
+The system must never hide failures from users. Every exception must propagate to the user interface. Every partial failure must halt processing entirely. Every degraded state must be rejected. Users engaged in formation require truth about system state. Silent failures create false formation—users believing they understand patterns that don't exist.
+
+The system must never silently skip failures during processing. Every document must receive identical processing attempt with explicit failure tracking. When processing fails for individual documents, continue processing while recording each failure with complete context. When users request processing of 3,000 documents and 153 fail, they must receive clear reporting: "2,847 processed successfully, 153 failed" with detailed failure logs. Never report completion without full disclosure of failures. Never skip documents without recording why. The prohibition is against silent partial processing, not against continuing with transparent failure tracking.
+
+### Required Failure Patterns
+
+External service failures must immediately halt processing with descriptive exceptions. When the language model cannot be reached, when the database rejects constraints, when the file system denies access—fail immediately. Do not retry silently. Do not degrade gracefully. Do not continue hopefully. Fail fast, fail clear, fail honest.
+
+Data validation failures must prevent storage entirely. Invalid embeddings must not enter the vector space. Malformed assessments must not enter the database. Corrupted documents must not enter the corpus. Reject at the boundary. Fail at validation. Never store questionable data hoping to handle it later.
+
+Transaction boundaries must encompass individual entity operations. Each document processing, embedding generation, or assessment storage occurs within its own transaction boundary. When processing a single document fails, that document's transaction rolls back while others complete successfully. Track all failures explicitly for user visibility. No silent partial commits within an entity. No hiding of entity-level failures. Each entity operation either succeeds atomically or fails with clear reporting.
+
+### Error Communication Requirements
+
+Every exception must explain what failed, why it matters for formation, and what the user should do. Not "Connection failed" but "Cannot reach language model for embedding generation. Document processing halted. Ensure LLM service is running on configured endpoint." Not "Invalid data" but "Embedding dimension mismatch: expected 1536, received 768. Vector space consistency broken. Check model configuration."
+
+Every error must preserve formation context. Include the journey ID, the process type, the document being processed, the specific operation that failed. Users need forensic information to understand impact on their formation journey.
+
+Every failure must be logged with full stack traces while presenting users with actionable messages. Technical details go to logs for debugging. Formation impact goes to users for decision-making.

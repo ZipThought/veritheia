@@ -8,13 +8,10 @@ var postgres = builder.AddPostgres("postgres")
 
 var veritheiaDb = postgres.AddDatabase("veritheiadb");
 
-var apiService = builder.AddProject<Projects.veritheia_ApiService>("apiservice")
-    .WithReference(veritheiaDb)
-    .WaitFor(veritheiaDb);
-
+// Web component includes ApiService business logic directly
 builder.AddProject<Projects.veritheia_Web>("webfrontend")
     .WithExternalHttpEndpoints()
-    .WithReference(apiService)
-    .WaitFor(apiService);
+    .WithReference(veritheiaDb)
+    .WaitFor(veritheiaDb);
 
 builder.Build().Run();

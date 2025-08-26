@@ -207,10 +207,10 @@
         {
             // Create the journey using the API service
             var journey = await JourneyService.CreateJourneyAsync(
+                currentUser.Id,
                 journeyPurpose, // Use purpose as the main description
                 selectedPersonaId, 
-                selectedProcessType,
-                currentUser.Id);
+                selectedProcessType);
 
             // Navigate to the new journey
             Navigation.NavigateTo($"/journeys/{journey.Id}");

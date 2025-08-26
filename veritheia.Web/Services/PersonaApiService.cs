@@ -1,58 +1,69 @@
 using Veritheia.Data.DTOs;
+using Veritheia.Data.Services;
+using AutoMapper;
 
 namespace veritheia.Web.Services;
 
 /// <summary>
-/// API service wrapper for persona operations
-/// Calls the API service instead of accessing database directly
+/// Persona service wrapper for Web component
+/// Uses direct method calls to business logic services
 /// </summary>
 public class PersonaApiService
 {
-    private readonly ApiClient _apiClient;
+    private readonly PersonaService _personaService;
+    private readonly IMapper _mapper;
 
-    public PersonaApiService(ApiClient apiClient)
+    public PersonaApiService(PersonaService personaService, IMapper mapper)
     {
-        _apiClient = apiClient;
+        _personaService = personaService;
+        _mapper = mapper;
     }
 
     /// <summary>
     /// Get all personas for user
     /// </summary>
-    public async Task<List<PersonaDto>> GetUserPersonasAsync(Guid? userId = null)
+    public async Task<List<PersonaDto>> GetUserPersonasAsync(Guid userId)
     {
-        var endpoint = userId.HasValue ? $"api/personas?userId={userId}" : "api/personas";
-        return await _apiClient.GetListAsync<PersonaDto>(endpoint);
+        if (userId == Guid.Empty)
+            throw new ArgumentException("UserId is required");
+
+        var personas = await _personaService.GetUserPersonasAsync(userId);
+        return _mapper.Map<List<PersonaDto>>(personas);
     }
 
     /// <summary>
     /// Get active personas for user (for dropdown selection)
     /// </summary>
-    public async Task<List<PersonaDto>> GetActivePersonasAsync(Guid? userId = null)
+    public async Task<List<PersonaDto>> GetActivePersonasAsync(Guid userId)
     {
-        var endpoint = userId.HasValue ? $"api/personas/active?userId={userId}" : "api/personas/active";
-        return await _apiClient.GetListAsync<PersonaDto>(endpoint);
+        if (userId == Guid.Empty)
+            throw new ArgumentException("UserId is required");
+
+        var personas = await _personaService.GetActivePersonasAsync(userId);
+        return _mapper.Map<List<PersonaDto>>(personas);
     }
 
     /// <summary>
     /// Get persona by ID
     /// </summary>
-    public async Task<PersonaDto?> GetPersonaAsync(Guid personaId, Guid? userId = null)
+    public async Task<PersonaDto?> GetPersonaAsync(Guid userId, Guid personaId)
     {
-        var endpoint = userId.HasValue ? $"api/personas/{personaId}?userId={userId}" : $"api/personas/{personaId}";
-        return await _apiClient.GetAsync<PersonaDto>(endpoint);
+        if (userId == Guid.Empty)
+            throw new ArgumentException("UserId is required");
+
+        var persona = await _personaService.GetPersonaAsync(userId, personaId);
+        return persona != null ? _mapper.Map<PersonaDto>(persona) : null;
     }
 
     /// <summary>
     /// Create custom persona
     /// </summary>
-    public async Task<PersonaDto> CreatePersonaAsync(string domain, Guid? userId = null, Dictionary<string, object>? vocabulary = null)
+    public async Task<PersonaDto> CreatePersonaAsync(Guid userId, string domain, Dictionary<string, object>? vocabulary = null)
     {
-        var request = new CreatePersonaRequest
-        {
-            UserId = userId,
-            Domain = domain,
-            ConceptualVocabulary = vocabulary
-        };
-        return await _apiClient.PostAsync<PersonaDto>("api/personas", request);
+        if (userId == Guid.Empty)
+            throw new ArgumentException("UserId is required");
+
+        var persona = await _personaService.CreatePersonaAsync(userId, domain, vocabulary ?? new Dictionary<string, object>());
+        return _mapper.Map<PersonaDto>(persona);
     }
 }

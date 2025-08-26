@@ -1,27 +1,24 @@
 using Veritheia.Data.DTOs;
+using Veritheia.Data.Services;
 using Veritheia.Common.Models;
+using AutoMapper;
 
 namespace veritheia.Web.Services;
 
 /// <summary>
-/// API service wrapper for user operations
+/// User service wrapper for Web component
+/// Uses direct method calls to business logic services
 /// Implements Pattern A: Simple Identifier Authentication
 /// </summary>
 public class UserApiService
 {
-    private readonly ApiClient _apiClient;
+    private readonly UserService _userService;
+    private readonly IMapper _mapper;
 
-    public UserApiService(ApiClient apiClient)
+    public UserApiService(UserService userService, IMapper mapper)
     {
-        _apiClient = apiClient;
-    }
-
-    /// <summary>
-    /// Get current user (demo user for MVP)
-    /// </summary>
-    public async Task<UserDto?> GetCurrentUserAsync()
-    {
-        return await _apiClient.GetAsync<UserDto>("api/users/current");
+        _userService = userService;
+        _mapper = mapper;
     }
 
     /// <summary>
@@ -29,7 +26,8 @@ public class UserApiService
     /// </summary>
     public async Task<UserDto?> GetUserAsync(Guid userId)
     {
-        return await _apiClient.GetAsync<UserDto>($"api/users/{userId}");
+        var user = await _userService.GetUserAsync(userId);
+        return user != null ? _mapper.Map<UserDto>(user) : null;
     }
 
     /// <summary>
@@ -37,7 +35,8 @@ public class UserApiService
     /// </summary>
     public async Task<UserDto?> GetUserByEmailAsync(string email)
     {
-        return await _apiClient.GetAsync<UserDto>($"api/users/by-email/{email}");
+        var user = await _userService.GetUserByEmailAsync(email);
+        return user != null ? _mapper.Map<UserDto>(user) : null;
     }
 
     /// <summary>
@@ -45,12 +44,8 @@ public class UserApiService
     /// </summary>
     public async Task<UserDto> CreateOrGetUserAsync(string email, string? displayName = null)
     {
-        var request = new CreateUserRequest
-        {
-            Email = email,
-            DisplayName = displayName ?? string.Empty
-        };
-        return await _apiClient.PostAsync<UserDto>("api/users", request);
+        var user = await _userService.CreateOrGetUserAsync(email, displayName ?? string.Empty);
+        return _mapper.Map<UserDto>(user);
     }
 
     /// <summary>
@@ -58,7 +53,7 @@ public class UserApiService
     /// </summary>
     public async Task UpdateUserAsync(Guid userId, UserUpdateRequest request)
     {
-        await _apiClient.PutAsync<object>($"api/users/{userId}", request);
+        await _userService.UpdateUserAsync(userId, request.DisplayName ?? string.Empty);
     }
 
     /// <summary>
@@ -66,6 +61,6 @@ public class UserApiService
     /// </summary>
     public async Task UpdateLastActiveAsync(Guid userId)
     {
-        await _apiClient.PutAsync($"api/users/{userId}/activity");
+        await _userService.UpdateLastActiveAsync(userId);
     }
 }

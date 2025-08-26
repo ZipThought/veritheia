@@ -134,6 +134,16 @@ Map out how users will:
 - Interpret and use the results
 
 ### 3. Model Domain
+
+### 3.4 Prohibited Extension Patterns
+
+Extensions must not implement fallback data generation. When your extension cannot access required services, fail immediately with clear exceptions. Do not generate substitute data. Do not provide degraded functionality. Do not attempt graceful degradation.
+
+Extensions must not catch and suppress platform exceptions. When platform services throw exceptions, let them propagate. Do not log and continue. Do not transform into default returns. Do not wrap in generic errors. Platform exceptions contain formation context that users need.
+
+Extensions must not partially process document sets. When your extension processes multiple documents, use transaction semantics. Either process all documents successfully or rollback entirely. Do not commit partial results. Do not skip failed documents. Do not continue after errors.
+
+Extensions must not provide degraded operation modes. When required services are unavailable, fail completely. Do not switch to "offline mode." Do not use "cached approximations." Do not offer "basic functionality." Your extension either operates with full capability or reports inability to proceed.
 Identify domain-specific concepts that need representation:
 - What entities capture process state
 - How they relate to platform entities
