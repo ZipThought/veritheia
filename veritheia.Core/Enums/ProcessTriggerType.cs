@@ -9,12 +9,12 @@ public enum ProcessTriggerType
     /// User-initiated execution
     /// </summary>
     Manual,
-    
+
     /// <summary>
     /// Event-triggered execution
     /// </summary>
     Automatic,
-    
+
     /// <summary>
     /// Time-based execution
     /// </summary>

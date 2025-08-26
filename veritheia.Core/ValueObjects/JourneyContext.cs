@@ -9,27 +9,27 @@ public class JourneyContext
     /// The journey's stated purpose
     /// </summary>
     public string Purpose { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// Current journey state/progress
     /// </summary>
     public Dictionary<string, object> State { get; set; } = new();
-    
+
     /// <summary>
     /// Recent journal entries for context
     /// </summary>
     public List<JournalEntryContext> RecentEntries { get; set; } = new();
-    
+
     /// <summary>
     /// User's persona context for this journey
     /// </summary>
     public PersonaContext? PersonaContext { get; set; }
-    
+
     /// <summary>
     /// Research questions if defined
     /// </summary>
     public List<string> ResearchQuestions { get; set; } = new();
-    
+
     /// <summary>
     /// Conceptual vocabulary for this journey
     /// </summary>

@@ -23,7 +23,7 @@ public class ProcessEngine
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<ProcessEngine> _logger;
     private readonly Dictionary<string, Type> _registeredProcesses;
-    
+
     public ProcessEngine(
         VeritheiaDbContext dbContext,
         IServiceProvider serviceProvider,
@@ -34,7 +34,7 @@ public class ProcessEngine
         _logger = logger;
         _registeredProcesses = new Dictionary<string, Type>();
     }
-    
+
     /// <summary>
     /// Register a process type for execution
     /// </summary>
@@ -43,18 +43,18 @@ public class ProcessEngine
         var processType = typeof(TProcess);
         var instance = ActivatorUtilities.CreateInstance<TProcess>(_serviceProvider);
         _registeredProcesses[instance.ProcessId] = processType;
-        
-        _logger.LogInformation("Registered process: {ProcessId} ({Name})", 
+
+        _logger.LogInformation("Registered process: {ProcessId} ({Name})",
             instance.ProcessId, instance.Name);
     }
-    
+
     /// <summary>
     /// Get all registered processes
     /// </summary>
     public List<ProcessInfo> GetAvailableProcesses()
     {
         var processes = new List<ProcessInfo>();
-        
+
         foreach (var kvp in _registeredProcesses)
         {
             var instance = CreateProcessInstance(kvp.Key);
@@ -70,10 +70,10 @@ public class ProcessEngine
                 });
             }
         }
-        
+
         return processes;
     }
-    
+
     /// <summary>
     /// Queue a process for background execution
     /// </summary>
@@ -100,13 +100,13 @@ public class ProcessEngine
             Inputs = inputs,
             CreatedAt = DateTime.UtcNow
         };
-        
+
         _db.ProcessExecutions.Add(execution);
         await _db.SaveChangesAsync(cancellationToken);
-        
-        _logger.LogInformation("Queued process {ProcessId} for journey {JourneyId} with execution {ExecutionId}", 
+
+        _logger.LogInformation("Queued process {ProcessId} for journey {JourneyId} with execution {ExecutionId}",
             processId, journeyId, execution.Id);
-        
+
         return execution.Id;
     }
 
@@ -124,15 +124,15 @@ public class ProcessEngine
             .Include(j => j.User)
             .Include(j => j.Persona)
             .FirstOrDefaultAsync(j => j.Id == journeyId, cancellationToken);
-        
+
         if (journey == null)
             throw new InvalidOperationException($"Journey {journeyId} not found");
-        
+
         // Create process instance
         var process = CreateProcessInstance(processId);
         if (process == null)
             throw new InvalidOperationException($"Process {processId} not registered");
-        
+
         // Create execution record
         var execution = new ProcessExecution
         {
@@ -145,10 +145,10 @@ public class ProcessEngine
             Inputs = inputs,
             CreatedAt = DateTime.UtcNow
         };
-        
+
         _db.ProcessExecutions.Add(execution);
         await _db.SaveChangesAsync(cancellationToken);
-        
+
         try
         {
             // Build process context
@@ -160,19 +160,19 @@ public class ProcessEngine
                 Inputs = inputs,
                 Services = _serviceProvider
             };
-            
+
             // Validate inputs
             if (!process.ValidateInputs(context))
             {
                 throw new InvalidOperationException("Process input validation failed");
             }
-            
+
             // Execute process
-            _logger.LogInformation("Executing process {ProcessId} for journey {JourneyId}", 
+            _logger.LogInformation("Executing process {ProcessId} for journey {JourneyId}",
                 processId, journeyId);
-            
+
             var result = await process.ExecuteAsync(context, cancellationToken);
-            
+
             // Update execution record
             execution.CompletedAt = DateTime.UtcNow;
             execution.State = result.Success ? "Completed" : "Failed";
@@ -180,7 +180,7 @@ public class ProcessEngine
             {
                 execution.ErrorMessage = result.ErrorMessage;
             }
-            
+
             // Store result
             var processResult = new ProcessResult
             {
@@ -191,13 +191,13 @@ public class ProcessEngine
                 Data = result.Data ?? new Dictionary<string, object>(),
                 CreatedAt = DateTime.UtcNow
             };
-            
+
             _db.ProcessResults.Add(processResult);
             await _db.SaveChangesAsync(cancellationToken);
-            
-            _logger.LogInformation("Process {ProcessId} completed with status: {Status}", 
+
+            _logger.LogInformation("Process {ProcessId} completed with status: {Status}",
                 processId, execution.State);
-            
+
             return new ProcessExecutionResult
             {
                 ExecutionId = execution.Id,
@@ -208,19 +208,19 @@ public class ProcessEngine
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Process {ProcessId} failed for journey {JourneyId}", 
+            _logger.LogError(ex, "Process {ProcessId} failed for journey {JourneyId}",
                 processId, journeyId);
-            
+
             // Update execution record
             execution.CompletedAt = DateTime.UtcNow;
             execution.State = "Failed";
             execution.ErrorMessage = ex.Message;
             await _db.SaveChangesAsync(cancellationToken);
-            
+
             throw;
         }
     }
-    
+
     /// <summary>
     /// Get execution history for a journey
     /// </summary>
@@ -232,7 +232,7 @@ public class ProcessEngine
             .OrderByDescending(e => e.StartedAt)
             .ToListAsync();
     }
-    
+
     /// <summary>
     /// Create a process instance (exposed for ProcessWorkerService)
     /// </summary>
@@ -240,7 +240,7 @@ public class ProcessEngine
     {
         if (!_registeredProcesses.TryGetValue(processId, out var processType))
             return null;
-        
+
         return (IAnalyticalProcess)ActivatorUtilities.CreateInstance(_serviceProvider, processType);
     }
 

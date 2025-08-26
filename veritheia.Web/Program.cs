@@ -1,6 +1,8 @@
 using veritheia.Web.Components;
 using veritheia.Web.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Veritheia.Data;
+using Veritheia.ApiService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,20 +20,19 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 builder.Services.AddAuthorization();
 
-// Add HTTP client for API service with Aspire service discovery
-builder.Services.AddHttpClient<ApiClient>(client =>
-{
-    client.BaseAddress = new Uri("http://apiservice");
-    client.Timeout = TimeSpan.FromSeconds(30);
-});
+// Register Data layer services (encapsulated)
+builder.Services.AddDataServices(builder.Configuration, builder.Environment);
 
 // Add HTTP context accessor for authentication
 builder.Services.AddHttpContextAccessor();
 
-// Register API client services (no direct database access)
-builder.Services.AddScoped<JourneyApiService>();
-builder.Services.AddScoped<PersonaApiService>();
-builder.Services.AddScoped<UserApiService>();
+
+// Register ApiService Services
+builder.Services.AddScoped<Veritheia.ApiService.Services.UserApiService>();
+builder.Services.AddScoped<Veritheia.ApiService.Services.JourneyApiService>();
+builder.Services.AddScoped<Veritheia.ApiService.Services.PersonaApiService>();
+
+// Web Services
 builder.Services.AddScoped<AuthenticationService>();
 builder.Services.AddScoped<ProcessConfigurationService>();
 

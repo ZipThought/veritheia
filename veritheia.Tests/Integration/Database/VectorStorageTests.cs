@@ -12,7 +12,7 @@ namespace veritheia.Tests.Integration.Database;
 public class VectorStorageTests : DatabaseTestBase
 {
     public VectorStorageTests(DatabaseFixture fixture) : base(fixture) { }
-    
+
     [Fact]
     public async Task Can_Store_SearchIndex_With_Vector1536()
     {
@@ -25,7 +25,7 @@ public class VectorStorageTests : DatabaseTestBase
             LastActiveAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow
         };
-        
+
         var persona = new Persona
         {
             Id = Guid.CreateVersion7(),
@@ -34,7 +34,7 @@ public class VectorStorageTests : DatabaseTestBase
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
-        
+
         var journey = new Journey
         {
             Id = Guid.CreateVersion7(),
@@ -44,7 +44,7 @@ public class VectorStorageTests : DatabaseTestBase
             State = "Active",
             CreatedAt = DateTime.UtcNow
         };
-        
+
         var document = new Document
         {
             Id = Guid.CreateVersion7(),
@@ -56,7 +56,7 @@ public class VectorStorageTests : DatabaseTestBase
             UploadedAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow
         };
-        
+
         var segment = new JourneyDocumentSegment
         {
             Id = Guid.CreateVersion7(),
@@ -68,7 +68,7 @@ public class VectorStorageTests : DatabaseTestBase
             SequenceIndex = 0,
             CreatedAt = DateTime.UtcNow
         };
-        
+
         var searchIndex = new SearchIndex
         {
             Id = Guid.CreateVersion7(),
@@ -77,21 +77,21 @@ public class VectorStorageTests : DatabaseTestBase
             VectorModel = "openai-ada-002",
             CreatedAt = DateTime.UtcNow
         };
-        
+
         // Create a test embedding (1536 dimensions)
         var embedding = new float[1536];
         for (int i = 0; i < 1536; i++)
         {
             embedding[i] = (float)(Math.Sin(i) * 0.1);
         }
-        
+
         var vector1536 = new SearchVector1536
         {
             UserId = user.Id,  // Required for composite primary key
             IndexId = searchIndex.Id,
             Embedding = new Vector(embedding)
         };
-        
+
         // Act
         Context.Users.Add(user);
         Context.Personas.Add(persona);
@@ -101,20 +101,20 @@ public class VectorStorageTests : DatabaseTestBase
         Context.SearchIndexes.Add(searchIndex);
         Context.SearchVectors1536.Add(vector1536);
         await Context.SaveChangesAsync();
-        
+
         // Assert
         var savedIndex = await Context.SearchIndexes
             .FirstOrDefaultAsync(si => si.Id == searchIndex.Id);
         Assert.NotNull(savedIndex);
         Assert.Equal("openai-ada-002", savedIndex.VectorModel);
-        
+
         var savedVector = await Context.SearchVectors1536
             .FirstOrDefaultAsync(v => v.IndexId == searchIndex.Id);
         Assert.NotNull(savedVector);
         Assert.NotNull(savedVector.Embedding);
         Assert.Equal(1536, savedVector.Embedding.ToArray().Length);
     }
-    
+
     [Fact]
     public async Task Can_Store_SearchVector768()
     {
@@ -127,7 +127,7 @@ public class VectorStorageTests : DatabaseTestBase
             LastActiveAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow
         };
-        
+
         var persona = new Persona
         {
             Id = Guid.CreateVersion7(),
@@ -136,7 +136,7 @@ public class VectorStorageTests : DatabaseTestBase
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
-        
+
         var journey = new Journey
         {
             Id = Guid.CreateVersion7(),
@@ -146,7 +146,7 @@ public class VectorStorageTests : DatabaseTestBase
             State = "Active",
             CreatedAt = DateTime.UtcNow
         };
-        
+
         var document = new Document
         {
             Id = Guid.CreateVersion7(),
@@ -158,7 +158,7 @@ public class VectorStorageTests : DatabaseTestBase
             UploadedAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow
         };
-        
+
         var segment = new JourneyDocumentSegment
         {
             Id = Guid.CreateVersion7(),
@@ -170,7 +170,7 @@ public class VectorStorageTests : DatabaseTestBase
             SequenceIndex = 0,
             CreatedAt = DateTime.UtcNow
         };
-        
+
         var searchIndex = new SearchIndex
         {
             Id = Guid.CreateVersion7(),
@@ -179,21 +179,21 @@ public class VectorStorageTests : DatabaseTestBase
             VectorModel = "e5-large-v2",
             CreatedAt = DateTime.UtcNow
         };
-        
+
         // Create 768-dimensional embedding
         var embedding768 = new float[768];
         for (int i = 0; i < 768; i++)
         {
             embedding768[i] = (float)(Math.Cos(i) * 0.1);
         }
-        
+
         var vector768 = new SearchVector768
         {
             UserId = user.Id,  // Required for composite primary key
             IndexId = searchIndex.Id,
             Embedding = new Vector(embedding768)
         };
-        
+
         // Act
         Context.Users.Add(user);
         Context.Personas.Add(persona);
@@ -203,14 +203,14 @@ public class VectorStorageTests : DatabaseTestBase
         Context.SearchIndexes.Add(searchIndex);
         Context.SearchVectors768.Add(vector768);
         await Context.SaveChangesAsync();
-        
+
         // Assert
         var savedVector = await Context.SearchVectors768
             .FirstOrDefaultAsync(v => v.IndexId == searchIndex.Id);
         Assert.NotNull(savedVector);
         Assert.Equal(768, savedVector.Embedding.ToArray().Length);
     }
-    
+
     [Fact]
     public async Task Can_Store_SearchVector384()
     {
@@ -223,7 +223,7 @@ public class VectorStorageTests : DatabaseTestBase
             LastActiveAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow
         };
-        
+
         var persona = new Persona
         {
             Id = Guid.CreateVersion7(),
@@ -232,7 +232,7 @@ public class VectorStorageTests : DatabaseTestBase
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
-        
+
         var journey = new Journey
         {
             Id = Guid.CreateVersion7(),
@@ -242,7 +242,7 @@ public class VectorStorageTests : DatabaseTestBase
             State = "Active",
             CreatedAt = DateTime.UtcNow
         };
-        
+
         var document = new Document
         {
             Id = Guid.CreateVersion7(),
@@ -254,7 +254,7 @@ public class VectorStorageTests : DatabaseTestBase
             UploadedAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow
         };
-        
+
         var segment = new JourneyDocumentSegment
         {
             Id = Guid.CreateVersion7(),
@@ -266,7 +266,7 @@ public class VectorStorageTests : DatabaseTestBase
             SequenceIndex = 0,
             CreatedAt = DateTime.UtcNow
         };
-        
+
         var searchIndex = new SearchIndex
         {
             Id = Guid.CreateVersion7(),
@@ -275,21 +275,21 @@ public class VectorStorageTests : DatabaseTestBase
             VectorModel = "all-MiniLM-L6-v2",
             CreatedAt = DateTime.UtcNow
         };
-        
+
         // Create 384-dimensional embedding
         var embedding384 = new float[384];
         for (int i = 0; i < 384; i++)
         {
             embedding384[i] = (float)(Math.Tan(i * 0.01) * 0.1);
         }
-        
+
         var vector384 = new SearchVector384
         {
             UserId = user.Id,  // Required for composite primary key
             IndexId = searchIndex.Id,
             Embedding = new Vector(embedding384)
         };
-        
+
         // Act
         Context.Users.Add(user);
         Context.Personas.Add(persona);
@@ -299,14 +299,14 @@ public class VectorStorageTests : DatabaseTestBase
         Context.SearchIndexes.Add(searchIndex);
         Context.SearchVectors384.Add(vector384);
         await Context.SaveChangesAsync();
-        
+
         // Assert
         var savedVector = await Context.SearchVectors384
             .FirstOrDefaultAsync(v => v.IndexId == searchIndex.Id);
         Assert.NotNull(savedVector);
         Assert.Equal(384, savedVector.Embedding.ToArray().Length);
     }
-    
+
     [Fact]
     public async Task SearchIndex_Enforces_Unique_Segment_Model_Constraint()
     {
@@ -319,7 +319,7 @@ public class VectorStorageTests : DatabaseTestBase
             LastActiveAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow
         };
-        
+
         var persona = new Persona
         {
             Id = Guid.CreateVersion7(),
@@ -328,7 +328,7 @@ public class VectorStorageTests : DatabaseTestBase
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
-        
+
         var journey = new Journey
         {
             Id = Guid.CreateVersion7(),
@@ -338,7 +338,7 @@ public class VectorStorageTests : DatabaseTestBase
             State = "Active",
             CreatedAt = DateTime.UtcNow
         };
-        
+
         var document = new Document
         {
             Id = Guid.CreateVersion7(),
@@ -350,7 +350,7 @@ public class VectorStorageTests : DatabaseTestBase
             UploadedAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow
         };
-        
+
         var segment = new JourneyDocumentSegment
         {
             Id = Guid.CreateVersion7(),
@@ -362,7 +362,7 @@ public class VectorStorageTests : DatabaseTestBase
             SequenceIndex = 0,
             CreatedAt = DateTime.UtcNow
         };
-        
+
         var index1 = new SearchIndex
         {
             Id = Guid.CreateVersion7(),
@@ -371,7 +371,7 @@ public class VectorStorageTests : DatabaseTestBase
             VectorModel = "openai-ada-002",
             CreatedAt = DateTime.UtcNow
         };
-        
+
         var index2 = new SearchIndex
         {
             Id = Guid.CreateVersion7(),
@@ -380,7 +380,7 @@ public class VectorStorageTests : DatabaseTestBase
             VectorModel = "openai-ada-002",  // Same model - should violate unique constraint
             CreatedAt = DateTime.UtcNow
         };
-        
+
         // Act & Assert
         Context.Users.Add(user);
         Context.Personas.Add(persona);
@@ -389,9 +389,9 @@ public class VectorStorageTests : DatabaseTestBase
         Context.JourneyDocumentSegments.Add(segment);
         Context.SearchIndexes.Add(index1);
         await Context.SaveChangesAsync();
-        
+
         Context.SearchIndexes.Add(index2);
-        await Assert.ThrowsAsync<DbUpdateException>(async () => 
+        await Assert.ThrowsAsync<DbUpdateException>(async () =>
             await Context.SaveChangesAsync());
     }
 }

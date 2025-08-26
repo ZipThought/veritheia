@@ -34,6 +34,28 @@ The key innovation: You write rules in plain English ("Papers are relevant if th
 
 **Veritheia follows strict specification-first development.** Complete specifications are written in `/docs` before any implementation. The implementation, which is majority AI-assisted, must follow the spec exactly—it cannot exceed or diverge from what is specified. This ensures architectural coherence and prevents feature creep.
 
+## 🚨 CRITICAL WARNING: AI Implementation Bias
+
+**DO NOT allow AI agents to implement code without explicit architectural debiasing.**
+
+AI training data contains fundamentally WRONG patterns that will violate this project's clean enterprise architecture:
+
+**AI Will Automatically Add (ALL WRONG):**
+- HTTP calls between Web and ApiService layers
+- DTO classes for every entity transfer  
+- AutoMapper and conversion layers
+- Repository pattern and unnecessary abstractions
+- "Best practice" patterns that create architectural bloat
+
+**This Project Uses CLEAN ENTERPRISE:**
+- **Web → ApiService → Data** (all in-process calls)
+- **NO HTTP within application boundary**
+- **NO DTOs** (use Entities + ViewModels for display only)
+- **NO AutoMapper, no Repository pattern**
+- **Direct service-to-service communication**
+
+**Implementation must be human-guided with explicit direction and continuous output review to override AI training bias.**
+
 ## Current Implementation Status
 
 **Architecture**: Specification defines composable component-based system with in-process communication

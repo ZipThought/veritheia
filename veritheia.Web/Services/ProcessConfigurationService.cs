@@ -1,4 +1,4 @@
-using Veritheia.Data.DTOs;
+using Veritheia.Data.ViewModels;
 
 namespace veritheia.Web.Services;
 
@@ -10,11 +10,11 @@ public class ProcessConfigurationService
     /// <summary>
     /// Get available process options
     /// </summary>
-    public List<ProcessOption> GetAvailableProcesses()
+    public List<ProcessOptionView> GetAvailableProcesses()
     {
-        return new List<ProcessOption>
+        return new List<ProcessOptionView>
         {
-            new ProcessOption
+            new ProcessOptionView
             {
                 Type = "systematic-screening",
                 DisplayName = "Systematic Literature Screening",
@@ -22,7 +22,7 @@ public class ProcessConfigurationService
                 Description = "LLAssist methodology for systematic literature review with dual assessment (relevance + contribution)",
                 Requirements = "Research questions and CSV file with academic papers"
             },
-            new ProcessOption
+            new ProcessOptionView
             {
                 Type = "basic-constrained-composition",
                 DisplayName = "Constrained Composition",
@@ -36,7 +36,7 @@ public class ProcessConfigurationService
     /// <summary>
     /// Get process option by type
     /// </summary>
-    public ProcessOption? GetProcessOption(string processType)
+    public ProcessOptionView? GetProcessOption(string processType)
     {
         return GetAvailableProcesses().FirstOrDefault(p => p.Type == processType);
     }

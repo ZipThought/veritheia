@@ -10,10 +10,10 @@ public class SearchVector1536 : BaseEntity, IUserOwned
 {
     // Partition key - required for composite primary key (UserId, IndexId)
     public Guid UserId { get; set; }
-    
+
     public Guid IndexId { get; set; }
     public Vector Embedding { get; set; } = null!;
-    
+
     // Navigation properties
     public SearchIndex Index { get; set; } = null!;
 }

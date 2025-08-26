@@ -17,7 +17,7 @@ public class DocumentService
 {
     private readonly VeritheiaDbContext _db;
     private readonly IDocumentStorageRepository _storage;
-    
+
     public DocumentService(
         VeritheiaDbContext dbContext,
         IDocumentStorageRepository storage)
@@ -25,7 +25,7 @@ public class DocumentService
         _db = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _storage = storage ?? throw new ArgumentNullException(nameof(storage));
     }
-    
+
     /// <summary>
     /// Upload a document for a user
     /// </summary>
@@ -38,10 +38,10 @@ public class DocumentService
     {
         // Store file content
         var storagePath = await _storage.StoreDocumentAsync(content, fileName, mimeType);
-        
+
         // Get file metadata
         var metadata = await _storage.GetMetadataAsync(storagePath);
-        
+
         // Create database record
         var document = new Document
         {
@@ -54,13 +54,13 @@ public class DocumentService
             UploadedAt = DateTime.UtcNow,
             ScopeId = scopeId
         };
-        
+
         _db.Documents.Add(document);
         await _db.SaveChangesAsync();
-        
+
         return document;
     }
-    
+
     /// <summary>
     /// Get documents for a user
     /// User isolation enforced through query
@@ -73,7 +73,7 @@ public class DocumentService
             .OrderByDescending(d => d.UploadedAt)
             .ToListAsync();
     }
-    
+
     /// <summary>
     /// Get document content
     /// </summary>
@@ -81,13 +81,13 @@ public class DocumentService
     {
         var document = await _db.Documents
             .FirstOrDefaultAsync(d => d.Id == documentId && d.UserId == userId);
-        
+
         if (document == null)
             throw new UnauthorizedAccessException($"Document {documentId} not found or access denied");
-        
+
         return await _storage.GetDocumentContentAsync(document.FilePath);
     }
-    
+
     /// <summary>
     /// Delete document (metadata and content)
     /// </summary>
@@ -95,18 +95,18 @@ public class DocumentService
     {
         var document = await _db.Documents
             .FirstOrDefaultAsync(d => d.Id == documentId && d.UserId == userId);
-        
+
         if (document == null)
             throw new UnauthorizedAccessException($"Document {documentId} not found or access denied");
-        
+
         // Delete file content
         await _storage.DeleteDocumentAsync(document.FilePath);
-        
+
         // Delete database record (cascade will handle related records)
         _db.Documents.Remove(document);
         await _db.SaveChangesAsync();
     }
-    
+
     /// <summary>
     /// Check if document has projections in a journey
     /// </summary>

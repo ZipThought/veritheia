@@ -25,26 +25,26 @@ public class ProcessWorkerServiceIntegrationTests : DatabaseTestBase
         services.AddSingleton<ILoggerFactory, LoggerFactory>();
         services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
         services.AddScoped(_ => Context);
-                    services.AddScoped<ICognitiveAdapter, LocalLLMAdapter>();
-        
+        services.AddScoped<ICognitiveAdapter, LocalLLMAdapter>();
+
         var serviceProvider = services.BuildServiceProvider();
         var logger = serviceProvider.GetRequiredService<ILogger<ProcessWorkerService>>();
-        
+
         // Create ProcessWorkerService
         var workerService = new ProcessWorkerService(serviceProvider, logger);
-        
+
         // This should not throw any database schema errors
         // We're testing the database access patterns, not the full service execution
         using var cancellationTokenSource = new CancellationTokenSource();
         cancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(1)); // Cancel quickly
-        
+
         try
         {
             await workerService.StartAsync(cancellationTokenSource.Token);
-            
+
             // Let it run briefly to test database queries
             await Task.Delay(100, CancellationToken.None);
-            
+
             await workerService.StopAsync(CancellationToken.None);
         }
         catch (OperationCanceledException)
@@ -52,7 +52,7 @@ public class ProcessWorkerServiceIntegrationTests : DatabaseTestBase
             // Expected - we cancelled it
             await workerService.StopAsync(CancellationToken.None);
         }
-        
+
         // If we reach here, the database queries in ProcessWorkerService worked
         Assert.True(true);
     }
@@ -64,7 +64,7 @@ public class ProcessWorkerServiceIntegrationTests : DatabaseTestBase
         var testUserId = Guid.NewGuid();
         var testJourneyId = Guid.NewGuid();
         var testExecutionId = Guid.NewGuid();
-        
+
         // Add a user first (required for foreign key)
         var user = new User
         {
@@ -74,7 +74,7 @@ public class ProcessWorkerServiceIntegrationTests : DatabaseTestBase
             CreatedAt = DateTime.UtcNow
         };
         Context.Users.Add(user);
-        
+
         // Add a persona (required for journey)
         var persona = new Persona
         {
@@ -89,7 +89,7 @@ public class ProcessWorkerServiceIntegrationTests : DatabaseTestBase
             CreatedAt = DateTime.UtcNow
         };
         Context.Personas.Add(persona);
-        
+
         // Add a journey (required for process execution)
         var journey = new Journey
         {
@@ -103,7 +103,7 @@ public class ProcessWorkerServiceIntegrationTests : DatabaseTestBase
             CreatedAt = DateTime.UtcNow
         };
         Context.Journeys.Add(journey);
-        
+
         // Add a pending process execution
         var processExecution = new ProcessExecution
         {
@@ -116,16 +116,16 @@ public class ProcessWorkerServiceIntegrationTests : DatabaseTestBase
             CreatedAt = DateTime.UtcNow
         };
         Context.ProcessExecutions.Add(processExecution);
-        
+
         await Context.SaveChangesAsync();
-        
+
         // Now test that ProcessWorkerService can query this data
         var pendingExecutions = await Context.ProcessExecutions
             .Where(pe => pe.State == "Pending")
             .OrderBy(pe => pe.CreatedAt)
             .Take(10)
             .ToListAsync();
-            
+
         Assert.Single(pendingExecutions);
         Assert.Equal(testExecutionId, pendingExecutions[0].Id);
         Assert.Equal(testUserId, pendingExecutions[0].UserId);

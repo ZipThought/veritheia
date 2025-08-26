@@ -1,11 +1,12 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.Web
 @using veritheia.Web.Services
-@using Veritheia.Data.DTOs
+@using Veritheia.Data.Entities
+@using Veritheia.ApiService.Services
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
-@inject JourneyApiService JourneyService
-@inject PersonaApiService PersonaService
+@inject Veritheia.ApiService.Services.JourneyApiService JourneyService
+@inject Veritheia.ApiService.Services.PersonaApiService PersonaService
 @inject AuthenticationService AuthService
 
 <div class="sidebar">
@@ -115,7 +116,7 @@
                 Purpose = j.Purpose 
             }).ToList();
 
-            var realPersonas = await PersonaService.GetActivePersonasAsync(user.Id);
+            var realPersonas = await PersonaService.GetUserPersonasAsync(user.Id);
             personas = realPersonas.Select(p => new PersonaViewModel 
             { 
                 Id = p.Id, 

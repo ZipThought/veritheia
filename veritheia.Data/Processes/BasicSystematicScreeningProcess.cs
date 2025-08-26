@@ -23,7 +23,7 @@ public class BasicSystematicScreeningProcess : IAnalyticalProcess
 {
     private readonly ILogger<BasicSystematicScreeningProcess> _logger;
     private readonly IServiceProvider _serviceProvider;
-    
+
     public BasicSystematicScreeningProcess(
         ILogger<BasicSystematicScreeningProcess> logger,
         IServiceProvider serviceProvider)
@@ -31,19 +31,19 @@ public class BasicSystematicScreeningProcess : IAnalyticalProcess
         _logger = logger;
         _serviceProvider = serviceProvider;
     }
-    
+
     public string ProcessId => "systematic-screening";
     public string Name => "Systematic Literature Screening";
     public string Description => "LLAssist methodology for systematic literature review with dual assessment";
     public string Category => "Research";
-    
+
     public InputDefinition GetInputDefinition()
     {
         return new InputDefinition()
             .AddTextArea("research_questions", "Research questions (one per line)", true)
             .AddTextArea("csv_content", "CSV file content (paste CSV data here)", true);
     }
-    
+
     public bool ValidateInputs(ProcessContext context)
     {
         if (!context.Inputs.ContainsKey("research_questions"))
@@ -51,23 +51,23 @@ public class BasicSystematicScreeningProcess : IAnalyticalProcess
             _logger.LogError("Missing required input: research_questions");
             return false;
         }
-        
+
         if (!context.Inputs.ContainsKey("csv_content"))
         {
             _logger.LogError("Missing required input: csv_content");
             return false;
         }
-        
+
         return true;
     }
-    
+
     public async Task<AnalyticalProcessResult> ExecuteAsync(
         ProcessContext context,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Executing LLAssist systematic screening for journey {JourneyId}", 
+        _logger.LogInformation("Executing LLAssist systematic screening for journey {JourneyId}",
             context.JourneyId);
-        
+
         try
         {
             // Parse research questions
@@ -110,7 +110,7 @@ public class BasicSystematicScreeningProcess : IAnalyticalProcess
                 throw new InvalidOperationException("No articles found in CSV file");
             }
 
-            _logger.LogInformation("Processing {Count} articles with {RQCount} research questions", 
+            _logger.LogInformation("Processing {Count} articles with {RQCount} research questions",
                 articles.Count, researchQuestions.Count);
 
             var screeningResults = new List<ScreeningResult>();
@@ -122,8 +122,8 @@ public class BasicSystematicScreeningProcess : IAnalyticalProcess
                     break;
 
                 var article = articles[articleIndex];
-                
-                _logger.LogInformation("Processing article {Index}/{Total}: {Title}", 
+
+                _logger.LogInformation("Processing article {Index}/{Total}: {Title}",
                     articleIndex + 1, articles.Count, article.Title);
 
                 // Phase 1: Extract key semantics (once per article)
@@ -149,15 +149,15 @@ public class BasicSystematicScreeningProcess : IAnalyticalProcess
                 for (int rqIndex = 0; rqIndex < researchQuestions.Count; rqIndex++)
                 {
                     var researchQuestion = researchQuestions[rqIndex];
-                    
+
                     var assessment = await AssessArticleForResearchQuestion(
                         article, researchQuestion, cognitiveAdapter, rqIndex);
-                    
+
                     screeningResult.RQAssessments.Add(assessment);
                 }
 
                 // Determine must-read (logical OR of all RQ indicators)
-                screeningResult.MustRead = screeningResult.RQAssessments.Any(a => 
+                screeningResult.MustRead = screeningResult.RQAssessments.Any(a =>
                     a.RelevanceIndicator && a.ContributionIndicator);
 
                 screeningResults.Add(screeningResult);
@@ -197,7 +197,7 @@ public class BasicSystematicScreeningProcess : IAnalyticalProcess
                 }).ToList()
             };
 
-            _logger.LogInformation("Completed screening: {Total} articles, {MustRead} must-read ({Percentage:F1}%)", 
+            _logger.LogInformation("Completed screening: {Total} articles, {MustRead} must-read ({Percentage:F1}%)",
                 screeningResults.Count, mustReadCount, (double)mustReadCount / screeningResults.Count * 100);
 
             return new AnalyticalProcessResult
@@ -220,9 +220,9 @@ public class BasicSystematicScreeningProcess : IAnalyticalProcess
     }
 
     private async Task<RQAssessment> AssessArticleForResearchQuestion(
-        ArticleRecord article, 
-        string researchQuestion, 
-        ICognitiveAdapter cognitiveAdapter, 
+        ArticleRecord article,
+        string researchQuestion,
+        ICognitiveAdapter cognitiveAdapter,
         int questionIndex)
     {
         // Create dual assessment prompts
@@ -317,7 +317,7 @@ Reasoning: [Your explanation of why this score was assigned]";
 
         return (score, reasoning);
     }
-    
+
     public Dictionary<string, object> GetCapabilities()
     {
         return new Dictionary<string, object>

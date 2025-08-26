@@ -1,9 +1,9 @@
-namespace Veritheia.Data.DTOs;
+namespace Veritheia.Data.ViewModels;
 
 /// <summary>
-/// Process option for UI display
+/// Process option view model for UI display
 /// </summary>
-public class ProcessOption
+public class ProcessOptionView
 {
     public string Type { get; set; } = "";
     public string DisplayName { get; set; } = "";

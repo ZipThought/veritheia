@@ -9,37 +9,37 @@ public class ProcessContext
     /// Unique identifier for this execution
     /// </summary>
     public Guid ExecutionId { get; set; }
-    
+
     /// <summary>
     /// User executing the process
     /// </summary>
     public Guid UserId { get; set; }
-    
+
     /// <summary>
     /// Journey context for this execution
     /// </summary>
     public Guid JourneyId { get; set; }
-    
+
     /// <summary>
     /// Optional knowledge scope constraint
     /// </summary>
     public Guid? ScopeId { get; set; }
-    
+
     /// <summary>
     /// Process-specific input parameters
     /// </summary>
     public Dictionary<string, object> Inputs { get; set; } = new();
-    
+
     /// <summary>
     /// Journey context with recent entries and persona
     /// </summary>
     public JourneyContext? JourneyContext { get; set; }
-    
+
     /// <summary>
     /// Service provider for dependency injection
     /// </summary>
     public IServiceProvider? Services { get; set; }
-    
+
     /// <summary>
     /// Get typed input value
     /// </summary>
@@ -51,7 +51,7 @@ public class ProcessContext
         }
         return default;
     }
-    
+
     /// <summary>
     /// Get service from DI container
     /// </summary>

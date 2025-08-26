@@ -1,11 +1,13 @@
 @page "/journeys/create"
 @using Microsoft.AspNetCore.Components.Web
 @using veritheia.Web.Services
-@using Veritheia.Data.DTOs
+@using Veritheia.Data.Entities
+@using Veritheia.Data.ViewModels
+@using Veritheia.ApiService.Services
 @using Veritheia.Common.Models
 @inject NavigationManager Navigation
-@inject JourneyApiService JourneyService
-@inject PersonaApiService PersonaService
+@inject Veritheia.ApiService.Services.JourneyApiService JourneyService
+@inject Veritheia.ApiService.Services.PersonaApiService PersonaService
 @inject AuthenticationService AuthService
 @inject ProcessConfigurationService ProcessConfig
 
@@ -132,8 +134,8 @@
     private bool isCreating = false;
     private string? errorMessage;
 
-    private List<PersonaDto> availablePersonas = new();
-    private List<ProcessOption> availableProcesses = new();
+    private List<Persona> availablePersonas = new();
+    private List<ProcessOptionView> availableProcesses = new();
     private UserIdentity? currentUser;
 
     protected override async Task OnInitializedAsync()
@@ -154,7 +156,7 @@
             }
             
             // Load user's personas
-            availablePersonas = await PersonaService.GetActivePersonasAsync(currentUser.Id);
+            availablePersonas = await PersonaService.GetUserPersonasAsync(currentUser.Id);
 
             // Load available processes from configuration
             availableProcesses = ProcessConfig.GetAvailableProcesses();
@@ -207,10 +209,10 @@
         {
             // Create the journey using the API service
             var journey = await JourneyService.CreateJourneyAsync(
-                journeyPurpose, // Use purpose as the main description
+                currentUser.Id,
                 selectedPersonaId, 
                 selectedProcessType,
-                currentUser.Id);
+                journeyPurpose);
 
             // Navigate to the new journey
             Navigation.NavigateTo($"/journeys/{journey.Id}");

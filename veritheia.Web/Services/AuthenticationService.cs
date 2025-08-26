@@ -1,7 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Veritheia.Data.DTOs;
+using Veritheia.Data.Entities;
+using Veritheia.ApiService.Services;
 using Veritheia.Common.Models;
 
 namespace veritheia.Web.Services;
@@ -11,10 +12,10 @@ namespace veritheia.Web.Services;
 /// </summary>
 public class AuthenticationService : IAuthenticationProvider
 {
-    private readonly UserApiService _userApiService;
+    private readonly Veritheia.ApiService.Services.UserApiService _userApiService;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public AuthenticationService(UserApiService userApiService, IHttpContextAccessor httpContextAccessor)
+    public AuthenticationService(Veritheia.ApiService.Services.UserApiService userApiService, IHttpContextAccessor httpContextAccessor)
     {
         _userApiService = userApiService;
         _httpContextAccessor = httpContextAccessor;
@@ -28,7 +29,7 @@ public class AuthenticationService : IAuthenticationProvider
         // Create or get user from API (display name is optional)
         var displayName = request.AdditionalData?.GetValueOrDefault("displayName")?.ToString();
         var user = await _userApiService.CreateOrGetUserAsync(request.Identifier, displayName);
-        
+
         // Create claims
         var claims = new List<Claim>
         {
@@ -117,7 +118,7 @@ public class AuthenticationService : IAuthenticationProvider
             Identifier = email,
             AdditionalData = new Dictionary<string, object> { ["displayName"] = displayName }
         };
-        
+
         await AuthenticateAsync(request);
         return true;
     }

@@ -38,7 +38,7 @@ public class SemanticExtractionService
         {
             var prompt = CreateExtractionPrompt(abstractText);
             var response = await _cognitiveAdapter.GenerateTextAsync(prompt);
-            
+
             return ParseExtractionResponse(response);
         }
         catch (Exception ex)
@@ -76,7 +76,7 @@ JSON Response:";
             // Try to find JSON in the response
             var jsonStart = response.IndexOf('{');
             var jsonEnd = response.LastIndexOf('}');
-            
+
             if (jsonStart >= 0 && jsonEnd > jsonStart)
             {
                 var jsonText = response.Substring(jsonStart, jsonEnd - jsonStart + 1);
@@ -108,7 +108,7 @@ JSON Response:";
     private SemanticExtraction ExtractFallbackSemantics(string response)
     {
         var extraction = new SemanticExtraction();
-        
+
         // Simple fallback: extract words that look like technical terms
         var words = response.Split(new[] { ' ', '\n', '\r', ',', ';', ':', '-' }, StringSplitOptions.RemoveEmptyEntries)
             .Where(w => w.Length > 3)
@@ -118,7 +118,7 @@ JSON Response:";
             .ToList();
 
         extraction.Keywords = words;
-        
+
         return extraction;
     }
 }

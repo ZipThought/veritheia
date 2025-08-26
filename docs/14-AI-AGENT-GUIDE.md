@@ -97,6 +97,74 @@ Carefully distinguish between architectural exploration and implementation requi
 ### Ask When Uncertain
 Better to seek clarification than make incorrect assumptions. If you find yourself extrapolating or filling gaps with "reasonable" assumptions, stop and ask. The human author would rather answer a question than correct a mistake.
 
+## CRITICAL: Training Data Bias in Implementation
+
+**WARNING: AI training data contains fundamentally WRONG architectural patterns.**
+
+### The Bias Problem
+
+AI models are trained on code that follows outdated, incorrect patterns:
+- **HTTP everywhere** - adding HTTP calls between Web and ApiService
+- **DTO proliferation** - creating DTOs for every entity transfer
+- **Over-abstraction** - Repository patterns, Service layers, unnecessary interfaces
+- **Default best practices** - that are actually worst practices
+
+**These patterns are WRONG for clean enterprise architecture but are the default AI response.**
+
+### The Implementation Reality
+
+**No amount of prompting can debias AI training data.** Even explicit imperatives and architectural constraints get subsumed by probabilistic pattern matching. The AI will acknowledge constraints while simultaneously violating them through unconscious pattern application.
+
+**However, AI can serve as guided implementation tools under continuous human supervision.** The distinction is between:
+
+**Autonomous Implementation - PROHIBITED:**
+- AI choosing patterns, signatures, or approaches based on training data
+- AI implementing without explicit human direction for each decision  
+- AI operating from learned "best practices"
+
+**Guided Implementation Tool - PERMITTED:**
+- Human gives natural language commands: "Add a method to get active personas for a user"
+- AI translates natural language to code following project architectural principles
+- Human reviews output and corrects training data bias as it emerges
+- AI serves as natural language to code translator within established constraints
+
+### The Translation Model
+
+**Natural language commands** can be effectively translated to code when:
+- The architectural principles are explicitly established (no HTTP, no DTOs, direct service calls)
+- The AI understands it must follow THIS project's patterns, not training data patterns
+- Human immediately corrects any violations through output review
+- AI operates as translator, not decision maker
+
+This translation model acknowledges that humans can give natural language instructions ("add user authentication") and AI can convert these to code, but only when the architectural constraints override the AI's training bias and violations are immediately corrected.
+
+### Example: Wrong vs Right Prompting
+
+**WRONG (will create HTTP+DTO violations):**
+```
+"Implement user management between Web and ApiService layers"
+```
+
+**RIGHT (explicitly debias):**
+```
+"Implement user management following Veritheia clean enterprise architecture:
+- IMPERATIVE: Web calls ApiService.Services.UserApiService IN-PROCESS (no HTTP)
+- IMPERATIVE: Return User entities directly (NO DTOs)
+- IMPERATIVE: No HttpClient, no API controllers in ApiService
+- IMPERATIVE: ApiService coordinates with Data.Services.UserService IN-PROCESS
+Reference: This project BANS HTTP within app boundary and BANS DTOs"
+```
+
+### Verification Required
+
+After any AI implementation, verify:
+- ✅ No `HttpClient` or HTTP calls within app boundary
+- ✅ No DTOs created or used
+- ✅ Direct service-to-service calls
+- ✅ Clean enterprise architecture maintained
+
+**The training data bias is real and persistent. Explicit debiasing is mandatory.**
+
 These disciplines are not suggestions—they are requirements born from actual failures. Violating them creates technical debt, confuses future readers (both human and AI), and undermines the integrity of the documentation.
 
 ## Why Constraints Over Flexibility

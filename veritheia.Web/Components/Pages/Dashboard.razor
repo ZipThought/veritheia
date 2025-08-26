@@ -1,8 +1,10 @@
 @page "/"
 @using veritheia.Web.Services
-@using Veritheia.Data.DTOs
+@using Veritheia.Data.Entities
+@using Veritheia.Data.Services
+@using Veritheia.ApiService.Services
 @using Veritheia.Common.Models
-@inject JourneyApiService JourneyService
+@inject Veritheia.ApiService.Services.JourneyApiService JourneyService
 @inject AuthenticationService AuthService
 @inject NavigationManager Navigation
 
@@ -159,8 +161,8 @@
 </div>
 
 @code {
-    private List<JourneyDto>? _journeys;
-    private JourneyStatisticsDto? _statistics;
+    private List<Journey>? _journeys;
+    private JourneyStatistics? _statistics;
     private UserIdentity? _currentUser;
     private bool _loading = true;
     private string? _error;

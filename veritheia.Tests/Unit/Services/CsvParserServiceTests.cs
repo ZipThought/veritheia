@@ -33,7 +33,7 @@ public class CsvParserServiceTests
         Assert.NotNull(result);
         Assert.NotEmpty(result);
         Assert.Equal(5, result.Count); // IEEE sample has 5 articles
-        
+
         // Verify first article
         var firstArticle = result[0];
         Assert.Equal("LLM-Driven SAT Impact on Phishing Defense: A Cross-Sectional Analysis", firstArticle.Title);
@@ -55,7 +55,7 @@ public class CsvParserServiceTests
         Assert.NotNull(result);
         Assert.NotEmpty(result);
         Assert.Equal(6, result.Count); // Scopus sample has 6 articles
-        
+
         // Verify first article
         var firstArticle = result[0];
         Assert.Equal("Acceptability of artificial intelligence (AI)-led chatbot services in healthcare: A mixed-methods study", firstArticle.Title);
@@ -77,7 +77,7 @@ public class CsvParserServiceTests
         Assert.NotNull(result);
         // Should parse valid rows and skip malformed ones
         Assert.True(result.Count >= 2); // At least the valid rows should be parsed
-        
+
         // Verify that logger was called for warnings/errors
         _mockLogger.Verify(
             x => x.Log(
