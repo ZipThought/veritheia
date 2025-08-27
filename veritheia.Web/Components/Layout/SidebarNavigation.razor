@@ -50,13 +50,26 @@
             @if (personas != null && personas.Any())
             {
                 <div class="nav-subsection">
-                    @foreach (var persona in personas)
+                    @foreach (var persona in personas.Take(3))
                     {
                         <NavLink class="nav-subitem" href="@($"/personas/{persona.Id}")">
                             <span class="nav-subicon">•</span>
-                            <span class="nav-subtext">@persona.Domain</span>
+                            <span class="nav-subtext">@GetTruncatedName(persona.Domain, 20)</span>
                         </NavLink>
                     }
+                    <NavLink class="nav-subitem" href="/personas/create">
+                        <span class="nav-subicon">+</span>
+                        <span class="nav-subtext">Create new...</span>
+                    </NavLink>
+                </div>
+            }
+            else
+            {
+                <div class="nav-subsection">
+                    <NavLink class="nav-subitem" href="/personas/create">
+                        <span class="nav-subicon">+</span>
+                        <span class="nav-subtext">Create persona...</span>
+                    </NavLink>
                 </div>
             }
         </div>

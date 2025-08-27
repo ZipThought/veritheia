@@ -30,6 +30,38 @@
 
         <div class="create-persona-form">
             <div class="form-section">
+                <h2 class="section-title">Choose a Template (Optional)</h2>
+                <p class="text-muted mb-3">Start with a template or create your own from scratch</p>
+                
+                <div class="template-grid">
+                    <div class="template-card @(selectedTemplate == "researcher" ? "selected" : "")" 
+                         @onclick="@(() => ApplyTemplate("researcher"))">
+                        <div class="template-icon">🔬</div>
+                        <h4>Researcher</h4>
+                        <p>Systematic investigation, evidence-based analysis</p>
+                    </div>
+                    <div class="template-card @(selectedTemplate == "student" ? "selected" : "")" 
+                         @onclick="@(() => ApplyTemplate("student"))">
+                        <div class="template-icon">📚</div>
+                        <h4>Student</h4>
+                        <p>Learning-focused, exploratory approach</p>
+                    </div>
+                    <div class="template-card @(selectedTemplate == "practitioner" ? "selected" : "")" 
+                         @onclick="@(() => ApplyTemplate("practitioner"))">
+                        <div class="template-icon">💼</div>
+                        <h4>Practitioner</h4>
+                        <p>Applied knowledge, practical solutions</p>
+                    </div>
+                    <div class="template-card @(selectedTemplate == "custom" ? "selected" : "")" 
+                         @onclick="@(() => ApplyTemplate("custom"))">
+                        <div class="template-icon">✨</div>
+                        <h4>Custom</h4>
+                        <p>Define your own unique perspective</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-section">
                 <h2 class="section-title">Persona Details</h2>
                 
                 <div class="form-group">
@@ -68,30 +100,11 @@
                 <h2 class="section-title">Methodological Preferences</h2>
                 <p class="text-muted mb-3">How does this persona prefer to work? (optional)</p>
                 
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="approach" class="form-label">Approach Style</label>
-                            <select id="approach" class="form-control" @bind="approachStyle">
-                                <option value="">Select an approach...</option>
-                                <option value="systematic">Systematic - Structured and methodical</option>
-                                <option value="exploratory">Exploratory - Open and investigative</option>
-                                <option value="pragmatic">Pragmatic - Practical and results-focused</option>
-                                <option value="analytical">Analytical - Data-driven and detailed</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="rigor" class="form-label">Rigor Level</label>
-                            <select id="rigor" class="form-control" @bind="rigorLevel">
-                                <option value="">Select rigor level...</option>
-                                <option value="high">High - Thorough verification required</option>
-                                <option value="medium">Medium - Balanced approach</option>
-                                <option value="flexible">Flexible - Context-dependent</option>
-                            </select>
-                        </div>
-                    </div>
+                <div class="form-group">
+                    <label for="methodology" class="form-label">Describe Your Approach</label>
+                    <textarea id="methodology" class="form-control" rows="4" @bind="methodologyPreferences"
+                              placeholder="e.g., I prefer systematic analysis with high rigor, focusing on evidence-based conclusions. I value thorough documentation and peer review..."></textarea>
+                    <small class="text-muted">Describe how this persona approaches problems, what standards they maintain, and what they prioritize</small>
                 </div>
             </div>
 
@@ -236,6 +249,48 @@
         color: var(--text-muted);
         font-size: 0.875rem;
     }
+
+    .template-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .template-card {
+        padding: 1.5rem;
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .template-card:hover {
+        border-color: var(--primary);
+        transform: translateY(-2px);
+    }
+
+    .template-card.selected {
+        border-color: var(--primary);
+        background-color: rgba(var(--primary-rgb), 0.05);
+    }
+
+    .template-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .template-card h4 {
+        margin: 0.5rem 0;
+        color: var(--text-primary);
+    }
+
+    .template-card p {
+        margin: 0;
+        font-size: 0.875rem;
+        color: var(--text-muted);
+    }
 </style>
 
 @code {
@@ -243,8 +298,8 @@
     private string description = "";
     private string keyTerms = "";
     private string focusAreas = "";
-    private string approachStyle = "";
-    private string rigorLevel = "";
+    private string methodologyPreferences = "";
+    private string selectedTemplate = "";
     
     private bool isCreating = false;
     private string? errorMessage;
@@ -309,14 +364,9 @@
                 vocabulary["description"] = description;
             }
 
-            if (!string.IsNullOrWhiteSpace(approachStyle))
+            if (!string.IsNullOrWhiteSpace(methodologyPreferences))
             {
-                vocabulary["approach"] = approachStyle;
-            }
-
-            if (!string.IsNullOrWhiteSpace(rigorLevel))
-            {
-                vocabulary["rigor"] = rigorLevel;
+                vocabulary["methodology"] = methodologyPreferences;
             }
 
             // Create the persona
@@ -341,5 +391,45 @@
     private void Cancel()
     {
         Navigation.NavigateTo("/journeys/create");
+    }
+
+    private void ApplyTemplate(string template)
+    {
+        selectedTemplate = template;
+        
+        switch (template)
+        {
+            case "researcher":
+                domainName = "Researcher";
+                description = "I approach problems through systematic investigation and evidence-based analysis. My focus is on rigorous methodology and peer-reviewed insights.";
+                keyTerms = "hypothesis, evidence, methodology, analysis, validation, peer-review";
+                focusAreas = "accuracy, reproducibility, statistical significance, systematic review";
+                methodologyPreferences = "I follow systematic research protocols with emphasis on reproducibility and validation. I prioritize evidence quality over quantity, and maintain strict documentation standards. My approach involves hypothesis formation, controlled investigation, and peer review.";
+                break;
+                
+            case "student":
+                domainName = "Student";
+                description = "I'm focused on learning and understanding, approaching topics with curiosity and openness to new concepts.";
+                keyTerms = "understanding, comprehension, concepts, learning, exploration, synthesis";
+                focusAreas = "clarity, relevance, difficulty level, practical application";
+                methodologyPreferences = "I prefer exploratory learning with progressive depth. I value clear explanations and practical examples. My approach involves asking questions, synthesizing information from multiple sources, and connecting new knowledge to existing understanding.";
+                break;
+                
+            case "practitioner":
+                domainName = "Practitioner";
+                description = "I focus on practical application and real-world implementation, balancing theoretical knowledge with practical constraints.";
+                keyTerms = "implementation, feasibility, best-practices, efficiency, outcomes, ROI";
+                focusAreas = "practicality, scalability, cost-effectiveness, time-to-value";
+                methodologyPreferences = "I prioritize actionable insights and practical solutions. My approach balances ideal solutions with real-world constraints. I focus on what works in practice, considering implementation challenges and measurable outcomes.";
+                break;
+                
+            case "custom":
+                domainName = "";
+                description = "";
+                keyTerms = "";
+                focusAreas = "";
+                methodologyPreferences = "";
+                break;
+        }
     }
 }
