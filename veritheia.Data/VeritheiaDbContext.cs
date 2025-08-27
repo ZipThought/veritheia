@@ -38,10 +38,7 @@ public class VeritheiaDbContext : DbContext
 
     // Search Infrastructure
     public DbSet<SearchIndex> SearchIndexes { get; set; } = null!;
-    // TODO: Re-enable vector entities after fixing pgvector configuration
-    // public DbSet<SearchVector1536> SearchVectors1536 { get; set; } = null!;
-    // public DbSet<SearchVector768> SearchVectors768 { get; set; } = null!;
-    // public DbSet<SearchVector384> SearchVectors384 { get; set; } = null!;
+    public DbSet<SearchVector> SearchVectors { get; set; } = null!;
 
     // Process Infrastructure
     public DbSet<ProcessDefinition> ProcessDefinitions { get; set; } = null!;
@@ -377,67 +374,43 @@ public class VeritheiaDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        // TODO: Re-enable vector entities after fixing pgvector configuration
-        /*
-        // SearchVector1536 - Composite primary key for partition enforcement
-        modelBuilder.Entity<SearchVector1536>(entity =>
+        // SearchVector - Unified vector table with orthogonal transformation
+        modelBuilder.Entity<SearchVector>(entity =>
         {
-            entity.ToTable("search_vectors_1536");
-            // CORRECT: Composite primary key (UserId, IndexId)
-            entity.HasKey(e => new { e.UserId, e.IndexId });
+            entity.ToTable("search_vectors");
+            // CORRECT: Composite primary key (UserId, Id)
+            entity.HasKey(e => new { e.UserId, e.Id });
+            
+            // Vector column - variable dimensions (384, 768, 1536)
             entity.Property(e => e.Embedding)
-                .HasColumnType("vector(1536)")
+                .HasColumnType("vector")
+                .IsRequired();
+            
+            // Dimension tracking
+            entity.Property(e => e.Dimension)
+                .IsRequired();
+            
+            entity.Property(e => e.VectorModel)
+                .HasMaxLength(100)
                 .IsRequired();
 
-            // Partition-aware indexes
+            // Partition-aware indexes for user isolation
             entity.HasIndex(e => new { e.UserId, e.CreatedAt });
+            entity.HasIndex(e => new { e.UserId, e.SegmentId });
+            entity.HasIndex(e => new { e.UserId, e.JourneyId })
+                .HasFilter("\"JourneyId\" IS NOT NULL");
 
-            entity.HasOne(e => e.Index)
-                .WithOne()
-                .HasForeignKey<SearchVector1536>(e => new { e.UserId, e.IndexId })
+            // Relationships
+            entity.HasOne(e => e.Segment)
+                .WithMany()
+                .HasForeignKey(e => new { e.UserId, e.SegmentId })
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // HNSW index will be created in migration with raw SQL
+            // Note: HNSW index will be created in migration
+            // CREATE INDEX idx_vectors_hnsw ON search_vectors 
+            //     USING hnsw (embedding vector_cosine_ops)
+            //     WITH (m = 16, ef_construction = 64);
         });
-
-        // SearchVector768 - Composite primary key for partition enforcement
-        modelBuilder.Entity<SearchVector768>(entity =>
-        {
-            entity.ToTable("search_vectors_768");
-            // CORRECT: Composite primary key (UserId, IndexId)
-            entity.HasKey(e => new { e.UserId, e.IndexId });
-            entity.Property(e => e.Embedding)
-                .HasColumnType("vector(768)")
-                .IsRequired();
-
-            // Partition-aware indexes
-            entity.HasIndex(e => new { e.UserId, e.CreatedAt });
-
-            entity.HasOne(e => e.Index)
-                .WithOne()
-                .HasForeignKey<SearchVector768>(e => new { e.UserId, e.IndexId })
-                .OnDelete(DeleteBehavior.Cascade);
-        });
-
-        // SearchVector384 - Composite primary key for partition enforcement
-        modelBuilder.Entity<SearchVector384>(entity =>
-        {
-            entity.ToTable("search_vectors_384");
-            // CORRECT: Composite primary key (UserId, IndexId)
-            entity.HasKey(e => new { e.UserId, e.IndexId });
-            entity.Property(e => e.Embedding)
-                .HasColumnType("vector(384)")
-                .IsRequired();
-
-            // Partition-aware indexes
-            entity.HasIndex(e => new { e.UserId, e.CreatedAt });
-
-            entity.HasOne(e => e.Index)
-                .WithOne()
-                .HasForeignKey<SearchVector384>(e => new { e.UserId, e.IndexId })
-                .OnDelete(DeleteBehavior.Cascade);
-        });
-        */
     }
 
     private void ConfigureProcessInfrastructure(ModelBuilder modelBuilder)

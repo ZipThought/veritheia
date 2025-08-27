@@ -15,8 +15,8 @@ using Veritheia.Data;
 namespace veritheia.Data.Migrations
 {
     [DbContext(typeof(VeritheiaDbContext))]
-    [Migration("20250820070909_CompositePrimaryKeys")]
-    partial class CompositePrimaryKeys
+    [Migration("20250827031223_InitialSchema")]
+    partial class InitialSchema
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -772,88 +772,48 @@ namespace veritheia.Data.Migrations
                     b.ToTable("search_indexes", (string)null);
                 });
 
-            modelBuilder.Entity("Veritheia.Data.Entities.SearchVector1536", b =>
+            modelBuilder.Entity("Veritheia.Data.Entities.SearchVector", b =>
                 {
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("IndexId")
+                    b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("Dimension")
+                        .HasColumnType("integer");
+
                     b.Property<Vector>("Embedding")
                         .IsRequired()
-                        .HasColumnType("vector(1536)");
+                        .HasColumnType("vector");
 
-                    b.Property<Guid>("Id")
+                    b.Property<Guid?>("JourneyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SegmentId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("UserId", "IndexId");
-
-                    b.HasIndex("UserId", "CreatedAt");
-
-                    b.ToTable("search_vectors_1536", (string)null);
-                });
-
-            modelBuilder.Entity("Veritheia.Data.Entities.SearchVector384", b =>
-                {
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("IndexId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Vector>("Embedding")
+                    b.Property<string>("VectorModel")
                         .IsRequired()
-                        .HasColumnType("vector(384)");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("UserId", "IndexId");
+                    b.HasKey("UserId", "Id");
 
                     b.HasIndex("UserId", "CreatedAt");
 
-                    b.ToTable("search_vectors_384", (string)null);
-                });
+                    b.HasIndex("UserId", "JourneyId")
+                        .HasFilter("\"JourneyId\" IS NOT NULL");
 
-            modelBuilder.Entity("Veritheia.Data.Entities.SearchVector768", b =>
-                {
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                    b.HasIndex("UserId", "SegmentId");
 
-                    b.Property<Guid>("IndexId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Vector>("Embedding")
-                        .IsRequired()
-                        .HasColumnType("vector(768)");
-
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("UserId", "IndexId");
-
-                    b.HasIndex("UserId", "CreatedAt");
-
-                    b.ToTable("search_vectors_768", (string)null);
+                    b.ToTable("search_vectors", (string)null);
                 });
 
             modelBuilder.Entity("Veritheia.Data.Entities.User", b =>
@@ -1076,37 +1036,15 @@ namespace veritheia.Data.Migrations
                     b.Navigation("Segment");
                 });
 
-            modelBuilder.Entity("Veritheia.Data.Entities.SearchVector1536", b =>
+            modelBuilder.Entity("Veritheia.Data.Entities.SearchVector", b =>
                 {
-                    b.HasOne("Veritheia.Data.Entities.SearchIndex", "Index")
-                        .WithOne()
-                        .HasForeignKey("Veritheia.Data.Entities.SearchVector1536", "UserId", "IndexId")
+                    b.HasOne("Veritheia.Data.Entities.JourneyDocumentSegment", "Segment")
+                        .WithMany()
+                        .HasForeignKey("UserId", "SegmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Index");
-                });
-
-            modelBuilder.Entity("Veritheia.Data.Entities.SearchVector384", b =>
-                {
-                    b.HasOne("Veritheia.Data.Entities.SearchIndex", "Index")
-                        .WithOne()
-                        .HasForeignKey("Veritheia.Data.Entities.SearchVector384", "UserId", "IndexId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Index");
-                });
-
-            modelBuilder.Entity("Veritheia.Data.Entities.SearchVector768", b =>
-                {
-                    b.HasOne("Veritheia.Data.Entities.SearchIndex", "Index")
-                        .WithOne()
-                        .HasForeignKey("Veritheia.Data.Entities.SearchVector768", "UserId", "IndexId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Index");
+                    b.Navigation("Segment");
                 });
 
             modelBuilder.Entity("Veritheia.Data.Entities.Document", b =>

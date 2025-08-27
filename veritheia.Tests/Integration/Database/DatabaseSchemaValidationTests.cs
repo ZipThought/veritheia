@@ -33,9 +33,7 @@ public class DatabaseSchemaValidationTests : DatabaseTestBase
             () => Context.JourneySegmentAssessments.Take(0).ToListAsync(),
             () => Context.JourneyFormations.Take(0).ToListAsync(),
             () => Context.SearchIndexes.Take(0).ToListAsync(),
-            () => Context.SearchVectors1536.Take(0).ToListAsync(),
-            () => Context.SearchVectors768.Take(0).ToListAsync(),
-            () => Context.SearchVectors384.Take(0).ToListAsync(),
+            () => Context.SearchVectors.Take(0).ToListAsync(),
             () => Context.ProcessDefinitions.Take(0).ToListAsync(),
             () => Context.ProcessExecutions.Take(0).ToListAsync(),
             () => Context.ProcessResults.Take(0).ToListAsync()
@@ -82,9 +80,7 @@ public class DatabaseSchemaValidationTests : DatabaseTestBase
             () => Context.JourneySegmentAssessments.Where(e => e.UserId != Guid.Empty).Take(0).ToListAsync(),
             () => Context.JourneyFormations.Where(e => e.UserId != Guid.Empty).Take(0).ToListAsync(),
             () => Context.SearchIndexes.Where(e => e.UserId != Guid.Empty).Take(0).ToListAsync(),
-            () => Context.SearchVectors1536.Where(e => e.UserId != Guid.Empty).Take(0).ToListAsync(),
-            () => Context.SearchVectors768.Where(e => e.UserId != Guid.Empty).Take(0).ToListAsync(),
-            () => Context.SearchVectors384.Where(e => e.UserId != Guid.Empty).Take(0).ToListAsync(),
+            () => Context.SearchVectors.Where(e => e.UserId != Guid.Empty).Take(0).ToListAsync(),
             () => Context.ProcessDefinitions.Where(e => e.UserId != Guid.Empty).Take(0).ToListAsync(),
             () => Context.ProcessExecutions.Where(e => e.UserId != Guid.Empty).Take(0).ToListAsync(),
             () => Context.ProcessResults.Where(e => e.UserId != Guid.Empty).Take(0).ToListAsync()
@@ -116,9 +112,7 @@ public class DatabaseSchemaValidationTests : DatabaseTestBase
         // Test that pgvector columns can be queried without errors
         var vectorChecks = new Func<Task>[]
         {
-            () => Context.SearchVectors1536.Take(0).ToListAsync(),
-            () => Context.SearchVectors768.Take(0).ToListAsync(),
-            () => Context.SearchVectors384.Take(0).ToListAsync()
+            () => Context.SearchVectors.Take(0).ToListAsync()
         };
 
         foreach (var check in vectorChecks)

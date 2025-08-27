@@ -27,7 +27,7 @@ The system supports formative journeys - intellectual development through engage
 
 2. **Document Projection** - System mechanically applies user's symbolic framework:
    - **Segmentation**: Split according to semantic boundaries relevant to user's questions
-   - **Embedding**: Generate vectors with user's vocabulary as context (transcended: user's words shape the vector space)
+   - **Embedding**: Generate vectors with user's vocabulary as context, then apply orthogonal transformation for absolute user isolation
    - **Assessment**: Neural component interprets user's natural language rules to measure each segment
 
 3. **Formation Through Authorship** - User develops scholarly capacity through:
@@ -132,7 +132,7 @@ The composable architecture provides clear extension points for additional compo
 
 Framework elements might include research questions, definitions, assessment criteria, theoretical orientations, learning objectives, rubrics, safety constraints - but the specific schema is user-defined and can evolve.
 
-Projection rules might include segmentation strategies, embedding contexts, assessment prompts, evaluation stages - but these are configured per journey type and can change as the journey develops.
+Projection rules might include segmentation strategies, embedding contexts, assessment prompts, evaluation stages - but these are configured per journey type and can change as the journey develops. Vector isolation through orthogonal transformation ensures absolute user sovereignty.
 
 *Note*: These are configurable scaffolds that accept multiple schema evolutions per journey type, not required formats.
 
@@ -354,6 +354,7 @@ CREATE INDEX idx_segments_user_journey ON journey_document_segments(user_id, jou
 - `journey_document_segments` - Documents projected into journey space
 - `journey_segment_assessments` - AI measurements within journey context
 - `journey_formations` - Captured insights and understanding development
+- `search_vectors` - Orthogonally transformed embeddings ensuring user isolation (see [Entity-Relationship Model](../docs/07-ENTITY-RELATIONSHIP.md#vector-space-sovereignty-through-orthogonal-transformation))
 
 **Framework Storage Pattern**:
 ```sql

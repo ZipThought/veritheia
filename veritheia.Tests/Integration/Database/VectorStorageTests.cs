@@ -85,10 +85,13 @@ public class VectorStorageTests : DatabaseTestBase
             embedding[i] = (float)(Math.Sin(i) * 0.1);
         }
 
-        var vector1536 = new SearchVector1536
+        var searchVector = new SearchVector
         {
-            UserId = user.Id,  // Required for composite primary key
-            IndexId = searchIndex.Id,
+            UserId = user.Id,
+            SegmentId = segment.Id,
+            JourneyId = journey.Id,
+            Dimension = 1536,
+            VectorModel = "openai-ada-002",
             Embedding = new Vector(embedding)
         };
 
@@ -99,7 +102,7 @@ public class VectorStorageTests : DatabaseTestBase
         Context.Documents.Add(document);
         Context.JourneyDocumentSegments.Add(segment);
         Context.SearchIndexes.Add(searchIndex);
-        Context.SearchVectors1536.Add(vector1536);
+        Context.SearchVectors.Add(searchVector);
         await Context.SaveChangesAsync();
 
         // Assert
@@ -108,8 +111,8 @@ public class VectorStorageTests : DatabaseTestBase
         Assert.NotNull(savedIndex);
         Assert.Equal("openai-ada-002", savedIndex.VectorModel);
 
-        var savedVector = await Context.SearchVectors1536
-            .FirstOrDefaultAsync(v => v.IndexId == searchIndex.Id);
+        var savedVector = await Context.SearchVectors
+            .FirstOrDefaultAsync(v => v.UserId == user.Id && v.SegmentId == segment.Id);
         Assert.NotNull(savedVector);
         Assert.NotNull(savedVector.Embedding);
         Assert.Equal(1536, savedVector.Embedding.ToArray().Length);
@@ -187,10 +190,13 @@ public class VectorStorageTests : DatabaseTestBase
             embedding768[i] = (float)(Math.Cos(i) * 0.1);
         }
 
-        var vector768 = new SearchVector768
+        var searchVector = new SearchVector
         {
-            UserId = user.Id,  // Required for composite primary key
-            IndexId = searchIndex.Id,
+            UserId = user.Id,
+            SegmentId = segment.Id,
+            JourneyId = journey.Id,
+            Dimension = 768,
+            VectorModel = "e5-base",
             Embedding = new Vector(embedding768)
         };
 
@@ -201,14 +207,14 @@ public class VectorStorageTests : DatabaseTestBase
         Context.Documents.Add(document);
         Context.JourneyDocumentSegments.Add(segment);
         Context.SearchIndexes.Add(searchIndex);
-        Context.SearchVectors768.Add(vector768);
+        Context.SearchVectors.Add(searchVector);
         await Context.SaveChangesAsync();
 
         // Assert
-        var savedVector = await Context.SearchVectors768
-            .FirstOrDefaultAsync(v => v.IndexId == searchIndex.Id);
+        var savedVector = await Context.SearchVectors
+            .FirstOrDefaultAsync(v => v.UserId == user.Id && v.SegmentId == segment.Id);
         Assert.NotNull(savedVector);
-        Assert.Equal(768, savedVector.Embedding.ToArray().Length);
+        Assert.Equal(768, savedVector.Dimension);
     }
 
     [Fact]
@@ -283,10 +289,13 @@ public class VectorStorageTests : DatabaseTestBase
             embedding384[i] = (float)(Math.Tan(i * 0.01) * 0.1);
         }
 
-        var vector384 = new SearchVector384
+        var searchVector = new SearchVector
         {
-            UserId = user.Id,  // Required for composite primary key
-            IndexId = searchIndex.Id,
+            UserId = user.Id,
+            SegmentId = segment.Id,
+            JourneyId = journey.Id,
+            Dimension = 384,
+            VectorModel = "all-minilm",
             Embedding = new Vector(embedding384)
         };
 
@@ -297,14 +306,14 @@ public class VectorStorageTests : DatabaseTestBase
         Context.Documents.Add(document);
         Context.JourneyDocumentSegments.Add(segment);
         Context.SearchIndexes.Add(searchIndex);
-        Context.SearchVectors384.Add(vector384);
+        Context.SearchVectors.Add(searchVector);
         await Context.SaveChangesAsync();
 
         // Assert
-        var savedVector = await Context.SearchVectors384
-            .FirstOrDefaultAsync(v => v.IndexId == searchIndex.Id);
+        var savedVector = await Context.SearchVectors
+            .FirstOrDefaultAsync(v => v.UserId == user.Id && v.SegmentId == segment.Id);
         Assert.NotNull(savedVector);
-        Assert.Equal(384, savedVector.Embedding.ToArray().Length);
+        Assert.Equal(384, savedVector.Dimension);
     }
 
     [Fact]

@@ -282,6 +282,7 @@ public interface ICognitiveAdapter
     int MaxContextTokens { get; }
     Task<float[]> CreateEmbeddingAsync(string text, string context);
     Task<AssessmentResult> AssessAsync(string content, string criteria, string context);
+    Task<float[]> TransformVectorForUser(Guid userId, float[] vector); // Orthogonal transformation
 }
 
 public record AssessmentResult(double Score, string Reasoning);
@@ -306,6 +307,15 @@ public class OpenAIAdapter : ICognitiveAdapter
         var prompt = BuildAssessmentPrompt(content, criteria, context);
         var response = await CallOpenAICompletionAPI(prompt);
         return ParseAssessmentResult(response);
+    }
+    
+    public async Task<float[]> TransformVectorForUser(Guid userId, float[] vector)
+    {
+        // Apply orthogonal transformation for user isolation
+        // See Entity-Relationship Model for mathematical details
+        var permutation = GeneratePermutation(userId, vector.Length);
+        var signs = GenerateSignFlips(userId, vector.Length);
+        return ApplyOrthogonalTransform(vector, permutation, signs);
     }
 }
 ```

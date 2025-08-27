@@ -121,8 +121,8 @@ public class ApplicationHealthTests : DatabaseTestBase
         var appliedMigrations = Context.Database.GetAppliedMigrations().ToList();
         Assert.NotEmpty(appliedMigrations);
 
-        // The critical migration that adds UserId columns should be applied
-        Assert.Contains("20250820070909_CompositePrimaryKeys", appliedMigrations);
+        // The initial schema migration should be applied
+        Assert.Contains("20250827031223_InitialSchema", appliedMigrations);
 
         // No pending migrations should remain
         var pendingMigrations = Context.Database.GetPendingMigrations().ToList();

@@ -51,6 +51,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<DocumentIngestionService>();
         services.AddScoped<TextExtractionService>();
         services.AddScoped<EmbeddingService>();
+        services.AddScoped<OrthogonalTransformationService>();
 
         // LLAssist Services
         services.AddScoped<CsvParserService>();

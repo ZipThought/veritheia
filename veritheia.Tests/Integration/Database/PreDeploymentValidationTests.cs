@@ -98,8 +98,8 @@ public class PreDeploymentValidationTests : DatabaseTestBase
         var appliedMigrations = Context.Database.GetAppliedMigrations().ToList();
         Assert.NotEmpty(appliedMigrations);
 
-        // Check that the latest migration includes the composite primary keys
-        Assert.Contains("20250820070909_CompositePrimaryKeys", appliedMigrations);
+        // Check that the initial schema migration is applied
+        Assert.Contains("20250827031223_InitialSchema", appliedMigrations);
 
         // Ensure no pending migrations
         var pendingMigrations = Context.Database.GetPendingMigrations().ToList();
@@ -123,9 +123,7 @@ public class PreDeploymentValidationTests : DatabaseTestBase
         // Test vector table queries
         var vectorTables = new Func<Task>[]
         {
-            () => Context.SearchVectors1536.Take(0).ToListAsync(),
-            () => Context.SearchVectors768.Take(0).ToListAsync(),
-            () => Context.SearchVectors384.Take(0).ToListAsync()
+            () => Context.SearchVectors.Take(0).ToListAsync()
         };
 
         foreach (var query in vectorTables)

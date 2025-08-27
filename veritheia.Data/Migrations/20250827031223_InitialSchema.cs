@@ -9,7 +9,7 @@ using Pgvector;
 namespace veritheia.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialJourneyProjection : Migration
+    public partial class InitialSchema : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -22,8 +22,8 @@ namespace veritheia.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: true),
                     Type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     ParentScopeId = table.Column<Guid>(type: "uuid", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -31,13 +31,13 @@ namespace veritheia.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_knowledge_scopes", x => x.Id);
+                    table.PrimaryKey("PK_knowledge_scopes", x => new { x.UserId, x.Id });
                     table.CheckConstraint("CK_KnowledgeScope_Type", "\"Type\" IN ('Project', 'Topic', 'Subject', 'Custom')");
                     table.ForeignKey(
-                        name: "FK_knowledge_scopes_knowledge_scopes_ParentScopeId",
-                        column: x => x.ParentScopeId,
+                        name: "FK_knowledge_scopes_knowledge_scopes_UserId_ParentScopeId",
+                        columns: x => new { x.UserId, x.ParentScopeId },
                         principalTable: "knowledge_scopes",
-                        principalColumn: "Id",
+                        principalColumns: new[] { "UserId", "Id" },
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -46,19 +46,19 @@ namespace veritheia.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     ProcessType = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     Name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: true),
                     Category = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     TriggerType = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     Inputs = table.Column<Dictionary<string, object>>(type: "jsonb", nullable: false),
-                    Configuration = table.Column<Dictionary<string, object>>(type: "jsonb", nullable: false),
+                    Configuration = table.Column<Dictionary<string, object>>(type: "jsonb", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_process_definitions", x => x.Id);
+                    table.PrimaryKey("PK_process_definitions", x => new { x.UserId, x.Id });
                     table.CheckConstraint("CK_ProcessDefinition_Category", "\"Category\" IN ('Methodological', 'Developmental', 'Analytical', 'Compositional', 'Reflective')");
                     table.CheckConstraint("CK_ProcessDefinition_Trigger", "\"TriggerType\" IN ('Manual', 'UserInitiated')");
                 });
@@ -96,12 +96,12 @@ namespace veritheia.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_documents", x => x.Id);
+                    table.PrimaryKey("PK_documents", x => new { x.UserId, x.Id });
                     table.ForeignKey(
-                        name: "FK_documents_knowledge_scopes_ScopeId",
-                        column: x => x.ScopeId,
+                        name: "FK_documents_knowledge_scopes_UserId_ScopeId",
+                        columns: x => new { x.UserId, x.ScopeId },
                         principalTable: "knowledge_scopes",
-                        principalColumn: "Id",
+                        principalColumns: new[] { "UserId", "Id" },
                         onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_documents_users_UserId",
@@ -129,7 +129,7 @@ namespace veritheia.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_personas", x => x.Id);
+                    table.PrimaryKey("PK_personas", x => new { x.UserId, x.Id });
                     table.ForeignKey(
                         name: "FK_personas_users_UserId",
                         column: x => x.UserId,
@@ -145,14 +145,14 @@ namespace veritheia.Data.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     ProcessType = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    IsEnabled = table.Column<bool>(type: "boolean", nullable: false),
-                    GrantedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    LastUsed = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_process_capabilities", x => x.Id);
+                    table.PrimaryKey("PK_process_capabilities", x => new { x.UserId, x.Id });
                     table.ForeignKey(
                         name: "FK_process_capabilities_users_UserId",
                         column: x => x.UserId,
@@ -166,22 +166,27 @@ namespace veritheia.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     DocumentId = table.Column<Guid>(type: "uuid", nullable: false),
                     Title = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
-                    Authors = table.Column<List<string>>(type: "text[]", nullable: false),
+                    Authors = table.Column<string[]>(type: "text[]", nullable: true),
+                    Abstract = table.Column<string>(type: "text", nullable: true),
+                    Keywords = table.Column<string[]>(type: "text[]", nullable: true),
                     PublicationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ExtendedMetadata = table.Column<Dictionary<string, object>>(type: "jsonb", nullable: false),
+                    Publisher = table.Column<string>(type: "text", nullable: true),
+                    DOI = table.Column<string>(type: "text", nullable: true),
+                    ExtendedMetadata = table.Column<Dictionary<string, object>>(type: "jsonb", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_document_metadata", x => x.Id);
+                    table.PrimaryKey("PK_document_metadata", x => new { x.UserId, x.Id });
                     table.ForeignKey(
-                        name: "FK_document_metadata_documents_DocumentId",
-                        column: x => x.DocumentId,
+                        name: "FK_document_metadata_documents_UserId_DocumentId",
+                        columns: x => new { x.UserId, x.DocumentId },
                         principalTable: "documents",
-                        principalColumn: "Id",
+                        principalColumns: new[] { "UserId", "Id" },
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -201,13 +206,13 @@ namespace veritheia.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_journeys", x => x.Id);
+                    table.PrimaryKey("PK_journeys", x => new { x.UserId, x.Id });
                     table.CheckConstraint("CK_Journey_State", "\"State\" IN ('Active', 'Paused', 'Completed', 'Abandoned')");
                     table.ForeignKey(
-                        name: "FK_journeys_personas_PersonaId",
-                        column: x => x.PersonaId,
+                        name: "FK_journeys_personas_UserId_PersonaId",
+                        columns: x => new { x.UserId, x.PersonaId },
                         principalTable: "personas",
-                        principalColumn: "Id",
+                        principalColumns: new[] { "UserId", "Id" },
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_journeys_users_UserId",
@@ -222,6 +227,7 @@ namespace veritheia.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     JourneyId = table.Column<Guid>(type: "uuid", nullable: false),
                     Type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     IsShareable = table.Column<bool>(type: "boolean", nullable: false),
@@ -230,13 +236,13 @@ namespace veritheia.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_journals", x => x.Id);
+                    table.PrimaryKey("PK_journals", x => new { x.UserId, x.Id });
                     table.CheckConstraint("CK_Journal_Type", "\"Type\" IN ('Research', 'Method', 'Decision', 'Reflection')");
                     table.ForeignKey(
-                        name: "FK_journals_journeys_JourneyId",
-                        column: x => x.JourneyId,
+                        name: "FK_journals_journeys_UserId_JourneyId",
+                        columns: x => new { x.UserId, x.JourneyId },
                         principalTable: "journeys",
-                        principalColumn: "Id",
+                        principalColumns: new[] { "UserId", "Id" },
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -245,13 +251,13 @@ namespace veritheia.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     JourneyId = table.Column<Guid>(type: "uuid", nullable: false),
                     DocumentId = table.Column<Guid>(type: "uuid", nullable: false),
+                    SequenceIndex = table.Column<int>(type: "integer", nullable: false),
                     SegmentContent = table.Column<string>(type: "text", nullable: false),
                     SegmentType = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    SegmentPurpose = table.Column<string>(type: "text", nullable: true),
-                    StructuralPath = table.Column<Dictionary<string, object>>(type: "jsonb", nullable: true),
-                    SequenceIndex = table.Column<int>(type: "integer", nullable: false),
+                    StructuralPath = table.Column<Dictionary<string, object>>(type: "jsonb", nullable: false),
                     ByteRange = table.Column<NpgsqlRange<int>>(type: "int4range", nullable: true),
                     CreatedByRule = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
                     CreatedForQuestion = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
@@ -260,18 +266,18 @@ namespace veritheia.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_journey_document_segments", x => x.Id);
+                    table.PrimaryKey("PK_journey_document_segments", x => new { x.UserId, x.Id });
                     table.ForeignKey(
-                        name: "FK_journey_document_segments_documents_DocumentId",
-                        column: x => x.DocumentId,
+                        name: "FK_journey_document_segments_documents_UserId_DocumentId",
+                        columns: x => new { x.UserId, x.DocumentId },
                         principalTable: "documents",
-                        principalColumn: "Id",
+                        principalColumns: new[] { "UserId", "Id" },
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_journey_document_segments_journeys_JourneyId",
-                        column: x => x.JourneyId,
+                        name: "FK_journey_document_segments_journeys_UserId_JourneyId",
+                        columns: x => new { x.UserId, x.JourneyId },
                         principalTable: "journeys",
-                        principalColumn: "Id",
+                        principalColumns: new[] { "UserId", "Id" },
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -280,25 +286,23 @@ namespace veritheia.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     JourneyId = table.Column<Guid>(type: "uuid", nullable: false),
                     InsightType = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     InsightContent = table.Column<string>(type: "text", nullable: false),
                     FormedFromSegments = table.Column<Dictionary<string, object>>(type: "jsonb", nullable: true),
                     FormedThroughQuestions = table.Column<Dictionary<string, object>>(type: "jsonb", nullable: true),
-                    FormationReasoning = table.Column<string>(type: "text", nullable: true),
-                    FormationMarker = table.Column<string>(type: "text", nullable: true),
-                    FormedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_journey_formations", x => x.Id);
+                    table.PrimaryKey("PK_journey_formations", x => new { x.UserId, x.Id });
                     table.ForeignKey(
-                        name: "FK_journey_formations_journeys_JourneyId",
-                        column: x => x.JourneyId,
+                        name: "FK_journey_formations_journeys_UserId_JourneyId",
+                        columns: x => new { x.UserId, x.JourneyId },
                         principalTable: "journeys",
-                        principalColumn: "Id",
+                        principalColumns: new[] { "UserId", "Id" },
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -306,22 +310,23 @@ namespace veritheia.Data.Migrations
                 name: "journey_frameworks",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     JourneyId = table.Column<Guid>(type: "uuid", nullable: false),
                     JourneyType = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     FrameworkElements = table.Column<Dictionary<string, object>>(type: "jsonb", nullable: false),
                     ProjectionRules = table.Column<Dictionary<string, object>>(type: "jsonb", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_journey_frameworks", x => x.Id);
+                    table.PrimaryKey("PK_journey_frameworks", x => new { x.UserId, x.JourneyId });
                     table.ForeignKey(
-                        name: "FK_journey_frameworks_journeys_JourneyId",
-                        column: x => x.JourneyId,
+                        name: "FK_journey_frameworks_journeys_UserId_JourneyId",
+                        columns: x => new { x.UserId, x.JourneyId },
                         principalTable: "journeys",
-                        principalColumn: "Id",
+                        principalColumns: new[] { "UserId", "Id" },
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -330,11 +335,12 @@ namespace veritheia.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     JourneyId = table.Column<Guid>(type: "uuid", nullable: false),
                     ProcessType = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     State = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     Inputs = table.Column<Dictionary<string, object>>(type: "jsonb", nullable: false),
-                    StartedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    StartedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CompletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     ErrorMessage = table.Column<string>(type: "text", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -342,13 +348,13 @@ namespace veritheia.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_process_executions", x => x.Id);
+                    table.PrimaryKey("PK_process_executions", x => new { x.UserId, x.Id });
                     table.CheckConstraint("CK_ProcessExecution_State", "\"State\" IN ('Pending', 'Running', 'Completed', 'Failed', 'Cancelled')");
                     table.ForeignKey(
-                        name: "FK_process_executions_journeys_JourneyId",
-                        column: x => x.JourneyId,
+                        name: "FK_process_executions_journeys_UserId_JourneyId",
+                        columns: x => new { x.UserId, x.JourneyId },
                         principalTable: "journeys",
-                        principalColumn: "Id",
+                        principalColumns: new[] { "UserId", "Id" },
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -357,23 +363,24 @@ namespace veritheia.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     JournalId = table.Column<Guid>(type: "uuid", nullable: false),
                     Content = table.Column<string>(type: "text", nullable: false),
                     Significance = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    Tags = table.Column<List<string>>(type: "text[]", nullable: false),
-                    Metadata = table.Column<Dictionary<string, object>>(type: "jsonb", nullable: false),
+                    Tags = table.Column<string[]>(type: "text[]", nullable: true),
+                    Metadata = table.Column<Dictionary<string, object>>(type: "jsonb", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_journal_entries", x => x.Id);
+                    table.PrimaryKey("PK_journal_entries", x => new { x.UserId, x.Id });
                     table.CheckConstraint("CK_JournalEntry_Significance", "\"Significance\" IN ('Routine', 'Notable', 'Critical', 'Milestone')");
                     table.ForeignKey(
-                        name: "FK_journal_entries_journals_JournalId",
-                        column: x => x.JournalId,
+                        name: "FK_journal_entries_journals_UserId_JournalId",
+                        columns: x => new { x.UserId, x.JournalId },
                         principalTable: "journals",
-                        principalColumn: "Id",
+                        principalColumns: new[] { "UserId", "Id" },
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -382,27 +389,25 @@ namespace veritheia.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     SegmentId = table.Column<Guid>(type: "uuid", nullable: false),
                     AssessmentType = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    ResearchQuestionId = table.Column<int>(type: "integer", nullable: true),
-                    RelevanceScore = table.Column<float>(type: "real", nullable: true),
-                    ContributionScore = table.Column<float>(type: "real", nullable: true),
+                    Score = table.Column<double>(type: "double precision", nullable: false),
+                    Reasoning = table.Column<string>(type: "text", nullable: false),
                     RubricScores = table.Column<Dictionary<string, object>>(type: "jsonb", nullable: true),
-                    AssessmentReasoning = table.Column<string>(type: "text", nullable: true),
                     ReasoningChain = table.Column<Dictionary<string, object>>(type: "jsonb", nullable: true),
                     AssessedByModel = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    AssessedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_journey_segment_assessments", x => x.Id);
+                    table.PrimaryKey("PK_journey_segment_assessments", x => new { x.UserId, x.Id });
                     table.ForeignKey(
-                        name: "FK_journey_segment_assessments_journey_document_segments_Segme~",
-                        column: x => x.SegmentId,
+                        name: "FK_journey_segment_assessments_journey_document_segments_UserI~",
+                        columns: x => new { x.UserId, x.SegmentId },
                         principalTable: "journey_document_segments",
-                        principalColumn: "Id",
+                        principalColumns: new[] { "UserId", "Id" },
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -411,21 +416,45 @@ namespace veritheia.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     SegmentId = table.Column<Guid>(type: "uuid", nullable: false),
                     VectorModel = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    VectorDimension = table.Column<int>(type: "integer", nullable: false),
-                    IndexedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_search_indexes", x => x.Id);
+                    table.PrimaryKey("PK_search_indexes", x => new { x.UserId, x.Id });
                     table.ForeignKey(
-                        name: "FK_search_indexes_journey_document_segments_SegmentId",
-                        column: x => x.SegmentId,
+                        name: "FK_search_indexes_journey_document_segments_UserId_SegmentId",
+                        columns: x => new { x.UserId, x.SegmentId },
                         principalTable: "journey_document_segments",
-                        principalColumn: "Id",
+                        principalColumns: new[] { "UserId", "Id" },
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "search_vectors",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    SegmentId = table.Column<Guid>(type: "uuid", nullable: false),
+                    JourneyId = table.Column<Guid>(type: "uuid", nullable: true),
+                    Dimension = table.Column<int>(type: "integer", nullable: false),
+                    Embedding = table.Column<Vector>(type: "vector", nullable: false),
+                    VectorModel = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_search_vectors", x => new { x.UserId, x.Id });
+                    table.ForeignKey(
+                        name: "FK_search_vectors_journey_document_segments_UserId_SegmentId",
+                        columns: x => new { x.UserId, x.SegmentId },
+                        principalTable: "journey_document_segments",
+                        principalColumns: new[] { "UserId", "Id" },
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -434,146 +463,186 @@ namespace veritheia.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     ExecutionId = table.Column<Guid>(type: "uuid", nullable: false),
                     ProcessType = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     Data = table.Column<Dictionary<string, object>>(type: "jsonb", nullable: false),
-                    Metadata = table.Column<Dictionary<string, object>>(type: "jsonb", nullable: false),
-                    ExecutedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Metadata = table.Column<Dictionary<string, object>>(type: "jsonb", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_process_results", x => x.Id);
+                    table.PrimaryKey("PK_process_results", x => new { x.UserId, x.Id });
                     table.ForeignKey(
-                        name: "FK_process_results_process_executions_ExecutionId",
-                        column: x => x.ExecutionId,
+                        name: "FK_process_results_process_executions_UserId_ExecutionId",
+                        columns: x => new { x.UserId, x.ExecutionId },
                         principalTable: "process_executions",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "search_vectors_1536",
-                columns: table => new
-                {
-                    IndexId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Embedding = table.Column<Vector>(type: "vector(1536)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_search_vectors_1536", x => x.IndexId);
-                    table.ForeignKey(
-                        name: "FK_search_vectors_1536_search_indexes_IndexId",
-                        column: x => x.IndexId,
-                        principalTable: "search_indexes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "search_vectors_384",
-                columns: table => new
-                {
-                    IndexId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Embedding = table.Column<Vector>(type: "vector(384)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_search_vectors_384", x => x.IndexId);
-                    table.ForeignKey(
-                        name: "FK_search_vectors_384_search_indexes_IndexId",
-                        column: x => x.IndexId,
-                        principalTable: "search_indexes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "search_vectors_768",
-                columns: table => new
-                {
-                    IndexId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Embedding = table.Column<Vector>(type: "vector(768)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_search_vectors_768", x => x.IndexId);
-                    table.ForeignKey(
-                        name: "FK_search_vectors_768_search_indexes_IndexId",
-                        column: x => x.IndexId,
-                        principalTable: "search_indexes",
-                        principalColumn: "Id",
+                        principalColumns: new[] { "UserId", "Id" },
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_document_metadata_DocumentId",
+                name: "IX_document_metadata_UserId_CreatedAt",
                 table: "document_metadata",
-                column: "DocumentId",
+                columns: new[] { "UserId", "CreatedAt" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_document_metadata_UserId_DocumentId",
+                table: "document_metadata",
+                columns: new[] { "UserId", "DocumentId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_documents_ScopeId",
+                name: "IX_documents_UserId_CreatedAt",
                 table: "documents",
-                column: "ScopeId");
+                columns: new[] { "UserId", "CreatedAt" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_documents_UserId",
+                name: "IX_documents_UserId_FileName",
                 table: "documents",
-                column: "UserId");
+                columns: new[] { "UserId", "FileName" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_journal_entries_JournalId",
+                name: "IX_documents_UserId_MimeType",
+                table: "documents",
+                columns: new[] { "UserId", "MimeType" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_documents_UserId_ScopeId",
+                table: "documents",
+                columns: new[] { "UserId", "ScopeId" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_journal_entries_UserId_CreatedAt",
                 table: "journal_entries",
-                column: "JournalId");
+                columns: new[] { "UserId", "CreatedAt" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_journals_JourneyId",
+                name: "IX_journal_entries_UserId_JournalId",
+                table: "journal_entries",
+                columns: new[] { "UserId", "JournalId" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_journal_entries_UserId_Significance",
+                table: "journal_entries",
+                columns: new[] { "UserId", "Significance" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_journals_UserId_CreatedAt",
                 table: "journals",
-                column: "JourneyId");
+                columns: new[] { "UserId", "CreatedAt" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_journey_document_segments_DocumentId",
-                table: "journey_document_segments",
-                column: "DocumentId");
+                name: "IX_journals_UserId_JourneyId",
+                table: "journals",
+                columns: new[] { "UserId", "JourneyId" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_journey_document_segments_JourneyId_DocumentId_SequenceIndex",
+                name: "IX_journals_UserId_Type",
+                table: "journals",
+                columns: new[] { "UserId", "Type" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_journey_document_segments_UserId_CreatedAt",
                 table: "journey_document_segments",
-                columns: new[] { "JourneyId", "DocumentId", "SequenceIndex" },
+                columns: new[] { "UserId", "CreatedAt" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_journey_document_segments_UserId_DocumentId",
+                table: "journey_document_segments",
+                columns: new[] { "UserId", "DocumentId" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_journey_document_segments_UserId_JourneyId",
+                table: "journey_document_segments",
+                columns: new[] { "UserId", "JourneyId" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_journey_document_segments_UserId_JourneyId_DocumentId_Seque~",
+                table: "journey_document_segments",
+                columns: new[] { "UserId", "JourneyId", "DocumentId", "SequenceIndex" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_journey_formations_JourneyId",
+                name: "IX_journey_formations_UserId_CreatedAt",
                 table: "journey_formations",
-                column: "JourneyId");
+                columns: new[] { "UserId", "CreatedAt" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_journey_frameworks_JourneyId",
+                name: "IX_journey_formations_UserId_InsightType",
+                table: "journey_formations",
+                columns: new[] { "UserId", "InsightType" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_journey_formations_UserId_JourneyId",
+                table: "journey_formations",
+                columns: new[] { "UserId", "JourneyId" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_journey_frameworks_UserId_CreatedAt",
                 table: "journey_frameworks",
-                column: "JourneyId",
-                unique: true);
+                columns: new[] { "UserId", "CreatedAt" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_journey_segment_assessments_SegmentId",
+                name: "IX_journey_frameworks_UserId_JourneyType",
+                table: "journey_frameworks",
+                columns: new[] { "UserId", "JourneyType" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_journey_segment_assessments_UserId_AssessmentType",
                 table: "journey_segment_assessments",
-                column: "SegmentId");
+                columns: new[] { "UserId", "AssessmentType" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_journeys_PersonaId",
+                name: "IX_journey_segment_assessments_UserId_CreatedAt",
+                table: "journey_segment_assessments",
+                columns: new[] { "UserId", "CreatedAt" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_journey_segment_assessments_UserId_SegmentId",
+                table: "journey_segment_assessments",
+                columns: new[] { "UserId", "SegmentId" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_journeys_UserId_CreatedAt",
                 table: "journeys",
-                column: "PersonaId");
+                columns: new[] { "UserId", "CreatedAt" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_journeys_UserId",
+                name: "IX_journeys_UserId_PersonaId",
                 table: "journeys",
-                column: "UserId");
+                columns: new[] { "UserId", "PersonaId" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_knowledge_scopes_ParentScopeId",
+                name: "IX_journeys_UserId_ProcessType",
+                table: "journeys",
+                columns: new[] { "UserId", "ProcessType" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_journeys_UserId_State",
+                table: "journeys",
+                columns: new[] { "UserId", "State" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_knowledge_scopes_UserId_CreatedAt",
                 table: "knowledge_scopes",
-                column: "ParentScopeId");
+                columns: new[] { "UserId", "CreatedAt" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_knowledge_scopes_UserId_ParentScopeId",
+                table: "knowledge_scopes",
+                columns: new[] { "UserId", "ParentScopeId" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_knowledge_scopes_UserId_Type",
+                table: "knowledge_scopes",
+                columns: new[] { "UserId", "Type" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_personas_UserId_CreatedAt",
+                table: "personas",
+                columns: new[] { "UserId", "CreatedAt" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_personas_UserId_Domain",
@@ -582,33 +651,89 @@ namespace veritheia.Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_personas_UserId_IsActive",
+                table: "personas",
+                columns: new[] { "UserId", "IsActive" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_process_capabilities_UserId_CreatedAt",
+                table: "process_capabilities",
+                columns: new[] { "UserId", "CreatedAt" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_process_capabilities_UserId_ProcessType",
                 table: "process_capabilities",
                 columns: new[] { "UserId", "ProcessType" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_process_definitions_ProcessType",
+                name: "IX_process_definitions_UserId_Category",
                 table: "process_definitions",
-                column: "ProcessType",
+                columns: new[] { "UserId", "Category" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_process_definitions_UserId_CreatedAt",
+                table: "process_definitions",
+                columns: new[] { "UserId", "CreatedAt" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_process_definitions_UserId_ProcessType",
+                table: "process_definitions",
+                columns: new[] { "UserId", "ProcessType" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_process_executions_JourneyId",
+                name: "IX_process_executions_UserId_CreatedAt",
                 table: "process_executions",
-                column: "JourneyId");
+                columns: new[] { "UserId", "CreatedAt" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_process_results_ExecutionId",
+                name: "IX_process_executions_UserId_JourneyId",
+                table: "process_executions",
+                columns: new[] { "UserId", "JourneyId" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_process_executions_UserId_State",
+                table: "process_executions",
+                columns: new[] { "UserId", "State" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_process_results_UserId_CreatedAt",
                 table: "process_results",
-                column: "ExecutionId",
+                columns: new[] { "UserId", "CreatedAt" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_process_results_UserId_ExecutionId",
+                table: "process_results",
+                columns: new[] { "UserId", "ExecutionId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_search_indexes_SegmentId_VectorModel",
+                name: "IX_search_indexes_UserId_CreatedAt",
                 table: "search_indexes",
-                columns: new[] { "SegmentId", "VectorModel" },
+                columns: new[] { "UserId", "CreatedAt" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_search_indexes_UserId_SegmentId_VectorModel",
+                table: "search_indexes",
+                columns: new[] { "UserId", "SegmentId", "VectorModel" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_search_vectors_UserId_CreatedAt",
+                table: "search_vectors",
+                columns: new[] { "UserId", "CreatedAt" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_search_vectors_UserId_JourneyId",
+                table: "search_vectors",
+                columns: new[] { "UserId", "JourneyId" },
+                filter: "\"JourneyId\" IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_search_vectors_UserId_SegmentId",
+                table: "search_vectors",
+                columns: new[] { "UserId", "SegmentId" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_users_Email",
@@ -645,22 +770,16 @@ namespace veritheia.Data.Migrations
                 name: "process_results");
 
             migrationBuilder.DropTable(
-                name: "search_vectors_1536");
+                name: "search_indexes");
 
             migrationBuilder.DropTable(
-                name: "search_vectors_384");
-
-            migrationBuilder.DropTable(
-                name: "search_vectors_768");
+                name: "search_vectors");
 
             migrationBuilder.DropTable(
                 name: "journals");
 
             migrationBuilder.DropTable(
                 name: "process_executions");
-
-            migrationBuilder.DropTable(
-                name: "search_indexes");
 
             migrationBuilder.DropTable(
                 name: "journey_document_segments");
