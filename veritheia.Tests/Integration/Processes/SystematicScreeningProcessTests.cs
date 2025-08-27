@@ -1,40 +1,60 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 using Moq;
+using System.Text.Json;
 using Veritheia.Core.Interfaces;
 using Veritheia.Core.ValueObjects;
-using Veritheia.Data.Processes;
+using Veritheia.ApiService.Processes;
+using Veritheia.ApiService.Services;
+using Veritheia.Data;
+using Veritheia.Data.Entities;
 using Veritheia.Data.Services;
 using Veritheia.Tests.Helpers;
+using veritheia.Tests.TestBase;
 
 namespace Veritheia.Tests.Integration.Processes;
 
 /// <summary>
 /// Integration tests for SystematicScreeningProcess using mocked LLM
-/// These tests run in CI and use mocks to avoid external dependencies
+/// Tests the new corpus-based implementation
 /// </summary>
 [Trait("Category", "Integration")]
-public class SystematicScreeningProcessTests
+public class SystematicScreeningProcessTests : DatabaseTestBase
 {
     private readonly Mock<ICognitiveAdapter> _mockCognitiveAdapter;
-    private readonly Mock<ILogger<BasicSystematicScreeningProcess>> _mockLogger;
-    private readonly BasicSystematicScreeningProcess _process;
+    private readonly Mock<ILogger<SystematicScreeningProcess>> _mockLogger;
+    private readonly SystematicScreeningProcess _process;
+    private readonly IServiceProvider _serviceProvider;
 
-    public SystematicScreeningProcessTests()
+    public SystematicScreeningProcessTests(DatabaseFixture fixture) : base(fixture)
     {
         _mockCognitiveAdapter = new Mock<ICognitiveAdapter>();
-        _mockLogger = new Mock<ILogger<BasicSystematicScreeningProcess>>();
+        _mockLogger = new Mock<ILogger<SystematicScreeningProcess>>();
 
         // Create a real ServiceCollection for proper dependency injection
         var services = new ServiceCollection();
+        
+        // Add database context
+        services.AddScoped<VeritheiaDbContext>(_ => Context);
+        
+        // Add ApiService services
+        services.AddScoped<DocumentService>();
+        services.AddScoped<DocumentMetadataService>();
+        services.AddScoped<SemanticExtractionService>();
+        
+        // Add Data layer services (utilities)
+        services.AddScoped<CsvWriterService>();
+        
+        // Add mocked services
         services.AddScoped<ICognitiveAdapter>(_ => _mockCognitiveAdapter.Object);
-        services.AddScoped<CsvParserService>(sp => new CsvParserService(Mock.Of<ILogger<CsvParserService>>()));
-        services.AddScoped<CsvWriterService>(sp => new CsvWriterService(Mock.Of<ILogger<CsvWriterService>>()));
-        services.AddScoped<SemanticExtractionService>(sp => new SemanticExtractionService(_mockCognitiveAdapter.Object, Mock.Of<ILogger<SemanticExtractionService>>()));
+        services.AddScoped<IDocumentStorageRepository>(_ => Mock.Of<IDocumentStorageRepository>());
+        
+        // Add logging
+        services.AddLogging();
 
-        var serviceProvider = services.BuildServiceProvider();
-
-        _process = new BasicSystematicScreeningProcess(_mockLogger.Object, serviceProvider);
+        _serviceProvider = services.BuildServiceProvider();
+        _process = new SystematicScreeningProcess(_mockLogger.Object, _serviceProvider);
     }
 
     [Fact]
@@ -46,13 +66,16 @@ public class SystematicScreeningProcessTests
         // Assert
         Assert.NotNull(inputDefinition);
         Assert.Contains(inputDefinition.Fields, f => f.Name == "research_questions");
-        Assert.Contains(inputDefinition.Fields, f => f.Name == "csv_content");
+        Assert.Contains(inputDefinition.Fields, f => f.Name == "document_ids");
+        Assert.Contains(inputDefinition.Fields, f => f.Name == "relevance_threshold");
+        Assert.Contains(inputDefinition.Fields, f => f.Name == "contribution_threshold");
     }
 
     [Fact]
     public void ValidateInputs_WithValidInputs_ShouldReturnTrue()
     {
         // Arrange
+        var documentIds = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
         var context = new ProcessContext
         {
             ExecutionId = Guid.NewGuid(),
@@ -60,10 +83,9 @@ public class SystematicScreeningProcessTests
             JourneyId = Guid.NewGuid(),
             Inputs = new Dictionary<string, object>
             {
-                ["research_questions"] = TestDataHelper.GetResearchQuestionsText("cybersecurity_llm_rqs.txt"),
-                ["csv_content"] = TestDataHelper.GetCsvSample("ieee_sample.csv")
-            },
-            Services = null // Not used in validation
+                ["research_questions"] = "How are LLMs being used in cybersecurity?",
+                ["document_ids"] = JsonSerializer.Serialize(documentIds)
+            }
         };
 
         // Act
@@ -77,6 +99,7 @@ public class SystematicScreeningProcessTests
     public void ValidateInputs_WithMissingResearchQuestions_ShouldReturnFalse()
     {
         // Arrange
+        var documentIds = new List<Guid> { Guid.NewGuid() };
         var context = new ProcessContext
         {
             ExecutionId = Guid.NewGuid(),
@@ -84,9 +107,8 @@ public class SystematicScreeningProcessTests
             JourneyId = Guid.NewGuid(),
             Inputs = new Dictionary<string, object>
             {
-                ["csv_content"] = TestDataHelper.GetCsvSample("ieee_sample.csv")
-            },
-            Services = null // Not used in validation
+                ["document_ids"] = JsonSerializer.Serialize(documentIds)
+            }
         };
 
         // Act
@@ -97,7 +119,7 @@ public class SystematicScreeningProcessTests
     }
 
     [Fact]
-    public void ValidateInputs_WithMissingCsvContent_ShouldReturnFalse()
+    public void ValidateInputs_WithMissingDocumentIds_ShouldReturnFalse()
     {
         // Arrange
         var context = new ProcessContext
@@ -107,9 +129,8 @@ public class SystematicScreeningProcessTests
             JourneyId = Guid.NewGuid(),
             Inputs = new Dictionary<string, object>
             {
-                ["research_questions"] = TestDataHelper.GetResearchQuestionsText("single_rq.txt")
-            },
-            Services = null // Not used in validation
+                ["research_questions"] = "Test research question"
+            }
         };
 
         // Act
@@ -120,43 +141,94 @@ public class SystematicScreeningProcessTests
     }
 
     [Fact]
-    public async Task ExecuteAsync_WithValidInputs_ShouldProcessArticles()
+    public async Task ExecuteAsync_WithCorpusDocuments_ShouldProcessSuccessfully()
     {
-        // Arrange
-        var researchQuestions = TestDataHelper.GetResearchQuestionsText("single_rq.txt");
-        var csvContent = TestDataHelper.GetCsvSample("ieee_sample.csv");
+        // Arrange - Create test user and documents in corpus
+        var userId = Guid.NewGuid();
+        var user = new User
+        {
+            Id = userId,
+            Email = "test@example.com",
+            DisplayName = "Test User"
+        };
+        Context.Users.Add(user);
 
+        // Create test documents with metadata
+        var documentIds = new List<Guid>();
+        for (int i = 0; i < 3; i++)
+        {
+            var docId = Guid.NewGuid();
+            documentIds.Add(docId);
+
+            var document = new Document
+            {
+                Id = docId,
+                UserId = userId,
+                FileName = $"paper_{i}.pdf",
+                MimeType = "application/pdf",
+                FilePath = $"test/paper_{i}.pdf",
+                FileSize = 1000,
+                UploadedAt = DateTime.UtcNow
+            };
+            Context.Documents.Add(document);
+
+            var metadata = new DocumentMetadata
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                DocumentId = docId,
+                Title = $"Test Paper {i}: AI in Cybersecurity",
+                Authors = new[] { $"Author {i}" },
+                Abstract = $"This paper explores the use of large language models in cybersecurity applications. " +
+                          $"We investigate threat detection using AI systems. Paper number {i}.",
+                Keywords = new[] { "AI", "cybersecurity", "LLM" },
+                PublicationDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                Publisher = "Test Conference"
+            };
+            Context.DocumentMetadata.Add(metadata);
+        }
+
+        await Context.SaveChangesAsync();
+
+        // Create process context
         var inputs = new Dictionary<string, object>
         {
-            ["research_questions"] = researchQuestions,
-            ["csv_content"] = csvContent
+            ["research_questions"] = "How are LLMs being used in cybersecurity?\nWhat are the challenges?",
+            ["document_ids"] = JsonSerializer.Serialize(documentIds),
+            ["relevance_threshold"] = 0.7f,
+            ["contribution_threshold"] = 0.7f
         };
 
         var context = new ProcessContext
         {
             ExecutionId = Guid.NewGuid(),
-            UserId = Guid.NewGuid(),
+            UserId = userId,
             JourneyId = Guid.NewGuid(),
-            Inputs = inputs,
-            Services = null // Not used since we pass the real service provider to the process constructor
+            Inputs = inputs
         };
 
-        // Mock LLM responses for 5 articles × 1 RQ × (1 semantic + 2 assessments) = 15 total calls
+        // Mock LLM responses
+        // 3 documents × (1 semantic extraction + 2 RQs × 2 assessments) = 15 calls
+        // Order: For EACH document: semantic, then 4 assessments (2 RQs × 2 types)
         var mockResponses = new List<string>();
 
-        // Add semantic extraction responses (5 articles)
-        for (int i = 0; i < 5; i++)
+        for (int doc = 0; doc < 3; doc++)
         {
-            mockResponses.Add(@"{""topics"": [""cybersecurity"", ""AI""], ""entities"": [""LLM""], ""keywords"": [""security""]}");
+            // Semantic extraction response for this document (JSON)
+            mockResponses.Add(@"{
+                ""topics"": [""cybersecurity"", ""threat detection"", ""AI systems""],
+                ""entities"": [""LLM"", ""neural networks"", ""threat detection""],
+                ""keywords"": [""security"", ""artificial intelligence"", ""machine learning""]
+            }");
+            
+            // Assessment responses for this document (2 RQs × 2 assessments = 4)
+            for (int i = 0; i < 4; i++)
+            {
+                mockResponses.Add("Score: 0.8\nReasoning: This paper directly addresses the research question about LLMs in cybersecurity.");
+            }
         }
 
-        // Add assessment responses (5 articles × 1 RQ × 2 assessments = 10 responses)
-        for (int i = 0; i < 10; i++)
-        {
-            mockResponses.Add("Score: 0.7\nReasoning: Test assessment response for CI.");
-        }
-
-        var setupSequence = _mockCognitiveAdapter.SetupSequence(x => x.GenerateTextAsync(It.IsAny<string>(), It.IsAny<string>()));
+        var setupSequence = _mockCognitiveAdapter.SetupSequence(x => x.GenerateTextAsync(It.IsAny<string>(), It.IsAny<string?>()));
         foreach (var response in mockResponses)
         {
             setupSequence = setupSequence.ReturnsAsync(response);
@@ -169,76 +241,184 @@ public class SystematicScreeningProcessTests
         Assert.NotNull(result);
         Assert.True(result.Success, $"Process failed: {result.ErrorMessage ?? "Unknown error"}");
         Assert.NotNull(result.Data);
-        Assert.Contains("total_articles", result.Data.Keys);
+        
+        // Verify summary data
+        Assert.Contains("total_documents", result.Data.Keys);
+        Assert.Contains("processed_documents", result.Data.Keys);
         Assert.Contains("must_read_count", result.Data.Keys);
         Assert.Contains("research_questions", result.Data.Keys);
         Assert.Contains("csv_output", result.Data.Keys);
+        
+        Assert.Equal(3, Convert.ToInt32(result.Data["total_documents"]));
+        Assert.Equal(3, Convert.ToInt32(result.Data["processed_documents"]));
+        
+        // Verify research questions were parsed correctly
+        var resultRQs = result.Data["research_questions"] as List<string>;
+        Assert.NotNull(resultRQs);
+        Assert.Equal(2, resultRQs.Count);
     }
 
     [Fact]
-    public async Task ExecuteAsync_WithMultipleResearchQuestions_ShouldProcessAll()
+    public async Task ExecuteAsync_WithMissingAbstracts_ShouldSkipDocuments()
     {
-        // Arrange
-        var researchQuestions = TestDataHelper.GetResearchQuestionsText("cybersecurity_llm_rqs.txt");
-        var csvContent = TestDataHelper.GetCsvSample("scopus_sample.csv");
+        // Arrange - Create documents without abstracts
+        var userId = Guid.NewGuid();
+        var user = new User
+        {
+            Id = userId,
+            Email = "test2@example.com",
+            DisplayName = "Test User 2"
+        };
+        Context.Users.Add(user);
 
+        var documentIds = new List<Guid>();
+        
+        // Document with metadata
+        var docId1 = Guid.NewGuid();
+        documentIds.Add(docId1);
+        Context.Documents.Add(new Document
+        {
+            Id = docId1,
+            UserId = userId,
+            FileName = "with_abstract.pdf",
+            MimeType = "application/pdf",
+            FilePath = "test/with_abstract.pdf",
+            FileSize = 1000,
+            UploadedAt = DateTime.UtcNow
+        });
+        Context.DocumentMetadata.Add(new DocumentMetadata
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            DocumentId = docId1,
+            Title = "Paper with Abstract",
+            Abstract = "This paper has an abstract about AI.",
+            Authors = new[] { "Author A" }
+        });
+
+        // Document without abstract
+        var docId2 = Guid.NewGuid();
+        documentIds.Add(docId2);
+        Context.Documents.Add(new Document
+        {
+            Id = docId2,
+            UserId = userId,
+            FileName = "no_abstract.pdf",
+            MimeType = "application/pdf",
+            FilePath = "test/no_abstract.pdf",
+            FileSize = 1000,
+            UploadedAt = DateTime.UtcNow
+        });
+        Context.DocumentMetadata.Add(new DocumentMetadata
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            DocumentId = docId2,
+            Title = "Paper without Abstract",
+            Abstract = null, // No abstract
+            Authors = new[] { "Author B" }
+        });
+
+        await Context.SaveChangesAsync();
+
+        // Create process context
         var inputs = new Dictionary<string, object>
         {
-            ["research_questions"] = researchQuestions,
-            ["csv_content"] = csvContent
+            ["research_questions"] = "Test question",
+            ["document_ids"] = JsonSerializer.Serialize(documentIds)
         };
 
         var context = new ProcessContext
         {
             ExecutionId = Guid.NewGuid(),
-            UserId = Guid.NewGuid(),
+            UserId = userId,
             JourneyId = Guid.NewGuid(),
-            Inputs = inputs,
-            Services = null // Not used since we pass the real service provider to the process constructor
+            Inputs = inputs
         };
 
-        // Mock LLM responses - simplified approach for CI testing
-        // We need: 6 articles × (1 semantic + 4 RQs × 2 assessments each) = 6 + 48 = 54 responses
-        var mockResponses = new List<string>();
-
-        // Add semantic extraction responses (6 articles)
-        for (int i = 0; i < 6; i++)
-        {
-            mockResponses.Add(@"{""topics"": [""cybersecurity"", ""AI""], ""entities"": [""LLM""], ""keywords"": [""security""]}");
-        }
-
-        // Add assessment responses (6 articles × 4 RQs × 2 assessments = 48 responses)
-        for (int i = 0; i < 48; i++)
-        {
-            mockResponses.Add("Score: 0.7\nReasoning: Test assessment response for CI.");
-        }
-
-        var setupSequence = _mockCognitiveAdapter.SetupSequence(x => x.GenerateTextAsync(It.IsAny<string>(), It.IsAny<string>()));
-        foreach (var response in mockResponses)
-        {
-            setupSequence = setupSequence.ReturnsAsync(response);
-        }
+        // Mock LLM responses - only 1 document should be processed
+        // 1 semantic + 1 RQ × 2 assessments = 3 calls
+        _mockCognitiveAdapter.SetupSequence(x => x.GenerateTextAsync(It.IsAny<string>(), It.IsAny<string?>()))
+            .ReturnsAsync(@"{""topics"": [""AI""], ""entities"": [""test""], ""keywords"": [""test""]}")
+            .ReturnsAsync("Score: 0.5\nReasoning: Test")
+            .ReturnsAsync("Score: 0.5\nReasoning: Test");
 
         // Act
         var result = await _process.ExecuteAsync(context, CancellationToken.None);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.True(result.Success, $"Process failed: {result.ErrorMessage ?? "Unknown error"}");
-        Assert.NotNull(result.Data);
+        Assert.True(result.Success);
+        Assert.Equal(2, Convert.ToInt32(result.Data["total_documents"]));
+        Assert.Equal(1, Convert.ToInt32(result.Data["processed_documents"])); // Only 1 with abstract
+    }
 
-        // Verify that all 4 research questions were processed
-        var researchQuestionsArray = TestDataHelper.GetResearchQuestions("cybersecurity_llm_rqs.txt");
-        var resultResearchQuestions = (List<string>)result.Data["research_questions"];
-        Assert.Equal(researchQuestionsArray.Length, resultResearchQuestions.Count);
+    [Fact]
+    public async Task ExecuteAsync_WithThresholds_ShouldDetermineMustRead()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var user = new User
+        {
+            Id = userId,
+            Email = "test3@example.com",
+            DisplayName = "Test User 3"
+        };
+        Context.Users.Add(user);
 
-        // Verify articles were processed (6 in scopus sample)
-        Assert.Equal(6, (int)result.Data["total_articles"]);
+        var docId = Guid.NewGuid();
+        Context.Documents.Add(new Document
+        {
+            Id = docId,
+            UserId = userId,
+            FileName = "test.pdf",
+            MimeType = "application/pdf",
+            FilePath = "test/test.pdf",
+            FileSize = 1000,
+            UploadedAt = DateTime.UtcNow
+        });
+        Context.DocumentMetadata.Add(new DocumentMetadata
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            DocumentId = docId,
+            Title = "Test Paper",
+            Abstract = "Test abstract",
+            Authors = new[] { "Author" }
+        });
 
-        // Verify CSV output was generated
-        Assert.Contains("csv_output", result.Data.Keys);
-        var csvOutput = result.Data["csv_output"] as string;
-        Assert.NotNull(csvOutput);
-        Assert.NotEmpty(csvOutput);
+        await Context.SaveChangesAsync();
+
+        var inputs = new Dictionary<string, object>
+        {
+            ["research_questions"] = "Test question",
+            ["document_ids"] = JsonSerializer.Serialize(new List<Guid> { docId }),
+            ["relevance_threshold"] = 0.7f,
+            ["contribution_threshold"] = 0.7f
+        };
+
+        var context = new ProcessContext
+        {
+            ExecutionId = Guid.NewGuid(),
+            UserId = userId,
+            JourneyId = Guid.NewGuid(),
+            Inputs = inputs
+        };
+
+        // Mock responses with scores above threshold
+        _mockCognitiveAdapter.SetupSequence(x => x.GenerateTextAsync(It.IsAny<string>(), It.IsAny<string?>()))
+            .ReturnsAsync(@"{""topics"": [""test""], ""entities"": [""test""], ""keywords"": [""test""]}")
+            .ReturnsAsync("Score: 0.8\nReasoning: High relevance") // Above threshold
+            .ReturnsAsync("Score: 0.9\nReasoning: Strong contribution"); // Above threshold
+
+        // Act
+        var result = await _process.ExecuteAsync(context, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.Success);
+        Assert.Equal(1, Convert.ToInt32(result.Data["must_read_count"])); // Should be must-read
+        
+        var results = result.Data["results"] as List<Dictionary<string, object>>;
+        Assert.NotNull(results);
+        Assert.Single(results);
     }
 }

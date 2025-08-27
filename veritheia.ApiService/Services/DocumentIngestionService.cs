@@ -9,8 +9,9 @@ using Microsoft.Extensions.Logging;
 using Veritheia.Core.Interfaces;
 using Veritheia.Data;
 using Veritheia.Data.Entities;
+using Veritheia.Data.Services;
 
-namespace Veritheia.Data.Services;
+namespace Veritheia.ApiService.Services;
 
 /// <summary>
 /// Platform Service: Document Ingestion Pipeline
@@ -80,6 +81,7 @@ public class DocumentIngestionService
         var documentMetadata = new DocumentMetadata
         {
             Id = Guid.CreateVersion7(),
+            UserId = userId,
             DocumentId = document.Id,
             Title = metadata.Title,
             Authors = new string[] { metadata.Author },
@@ -104,6 +106,7 @@ public class DocumentIngestionService
             var segment = new JourneyDocumentSegment
             {
                 Id = Guid.CreateVersion7(),
+                UserId = userId,
                 JourneyId = journeyId,
                 DocumentId = document.Id,
                 SegmentContent = chunks[i].Content,
@@ -118,8 +121,17 @@ public class DocumentIngestionService
 
         await _db.SaveChangesAsync();
 
-        // Generate embeddings (async, don't block)
-        _ = Task.Run(async () => await GenerateEmbeddingsAsync(segments));
+        // Generate embeddings - don't use fire-and-forget as it can leak connections
+        // For now, make it synchronous. In production, use a proper background queue.
+        try
+        {
+            await GenerateEmbeddingsAsync(segments, userId);
+        }
+        catch (Exception ex)
+        {
+            // Log but don't fail the ingestion if embedding generation fails
+            _logger.LogWarning(ex, "Failed to generate embeddings for {FileName}, continuing without embeddings", fileName);
+        }
 
         _logger.LogInformation("Ingested {FileName} with {SegmentCount} segments",
             fileName, segments.Count);
@@ -251,7 +263,7 @@ public class DocumentIngestionService
         return chunks;
     }
 
-    private async Task GenerateEmbeddingsAsync(List<JourneyDocumentSegment> segments)
+    private async Task GenerateEmbeddingsAsync(List<JourneyDocumentSegment> segments, Guid userId)
     {
         foreach (var segment in segments)
         {

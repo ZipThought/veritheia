@@ -18,16 +18,12 @@ public class DatabaseFixture : IAsyncLifetime
     private PostgreSqlContainer _container = null!;
     private Respawner _respawner = null!;
     private string _connectionString = null!;
+    private NpgsqlDataSource _dataSource = null!;
 
     public VeritheiaDbContext CreateContext()
     {
-        var dataSourceBuilder = new NpgsqlDataSourceBuilder(_connectionString);
-        dataSourceBuilder.EnableDynamicJson();
-        dataSourceBuilder.UseVector();
-        var dataSource = dataSourceBuilder.Build();
-
         var optionsBuilder = new DbContextOptionsBuilder<VeritheiaDbContext>();
-        optionsBuilder.UseNpgsql(dataSource, o => o.UseVector())
+        optionsBuilder.UseNpgsql(_dataSource, o => o.UseVector())
             .UseSeeding((context, _) =>
             {
                 SeedDemoData(context);
@@ -253,6 +249,12 @@ public class DatabaseFixture : IAsyncLifetime
 
         _connectionString = _container.GetConnectionString();
 
+        // Create NpgsqlDataSource once for all contexts
+        var dataSourceBuilder = new NpgsqlDataSourceBuilder(_connectionString);
+        dataSourceBuilder.EnableDynamicJson();
+        dataSourceBuilder.UseVector();
+        _dataSource = dataSourceBuilder.Build();
+
         // Apply migrations to create schema
         using var context = CreateContext();
         await context.Database.MigrateAsync();
@@ -281,6 +283,7 @@ public class DatabaseFixture : IAsyncLifetime
 
     public async Task DisposeAsync()
     {
+        await _dataSource.DisposeAsync();
         await _container.DisposeAsync();
     }
 }

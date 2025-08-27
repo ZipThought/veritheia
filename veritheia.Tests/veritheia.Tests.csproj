@@ -26,6 +26,7 @@
     <ProjectReference Include="..\veritheia.ApiService\veritheia.ApiService.csproj" />
     <ProjectReference Include="..\veritheia.Data\veritheia.Data.csproj" />
     <ProjectReference Include="..\veritheia.Core\veritheia.Core.csproj" />
+    <ProjectReference Include="..\veritheia.Web\veritheia.Web.csproj" />
   </ItemGroup>
 
   <ItemGroup>

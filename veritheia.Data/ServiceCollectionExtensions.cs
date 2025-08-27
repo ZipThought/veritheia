@@ -36,27 +36,24 @@ public static class ServiceCollectionExtensions
             dataSourceBuilder.UseVector(); // Enable pgvector support
             var dataSource = dataSourceBuilder.Build();
             
-            options.UseNpgsql(dataSource);
+            options.UseNpgsql(dataSource, o => o.UseVector());
         });
 
-        // Register Core Data Services
+        // Register Core Data Services (remaining in Data layer)
         services.AddScoped<JourneyService>();
         services.AddScoped<PersonaService>();
         services.AddScoped<UserService>();
-        services.AddScoped<DocumentService>();
         services.AddScoped<ProcessEngine>();
         services.AddScoped<JournalService>();
 
-        // Platform Services
-        services.AddScoped<DocumentIngestionService>();
+        // Platform Services (infrastructure/utilities)
         services.AddScoped<TextExtractionService>();
         services.AddScoped<EmbeddingService>();
         services.AddScoped<OrthogonalTransformationService>();
 
-        // LLAssist Services
+        // Utility Services (parsing/writing)
         services.AddScoped<CsvParserService>();
         services.AddScoped<CsvWriterService>();
-        services.AddScoped<SemanticExtractionService>();
 
         // Cognitive Adapter - Local LLM implementation
         services.AddHttpClient<LocalLLMAdapter>();

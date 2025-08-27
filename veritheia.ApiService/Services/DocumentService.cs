@@ -7,7 +7,7 @@ using Veritheia.Core.Interfaces;
 using Veritheia.Data;
 using Veritheia.Data.Entities;
 
-namespace Veritheia.Data.Services;
+namespace Veritheia.ApiService.Services;
 
 /// <summary>
 /// Document management service
@@ -70,8 +70,32 @@ public class DocumentService
         return await _db.Documents
             .Where(d => d.UserId == userId)
             .Include(d => d.Scope)
+            .Include(d => d.Metadata)
             .OrderByDescending(d => d.UploadedAt)
             .ToListAsync();
+    }
+
+    /// <summary>
+    /// Get documents with metadata for a user
+    /// </summary>
+    public async Task<List<Document>> GetUserDocumentsWithMetadataAsync(Guid userId)
+    {
+        return await _db.Documents
+            .Where(d => d.UserId == userId)
+            .Include(d => d.Metadata)
+            .Where(d => d.Metadata != null)
+            .OrderByDescending(d => d.UploadedAt)
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// Get document by ID
+    /// </summary>
+    public async Task<Document?> GetDocumentAsync(Guid documentId, Guid userId)
+    {
+        return await _db.Documents
+            .Include(d => d.Metadata)
+            .FirstOrDefaultAsync(d => d.Id == documentId && d.UserId == userId);
     }
 
     /// <summary>
@@ -114,5 +138,16 @@ public class DocumentService
     {
         return await _db.JourneyDocumentSegments
             .AnyAsync(s => s.DocumentId == documentId && s.JourneyId == journeyId);
+    }
+
+    /// <summary>
+    /// Get documents by IDs for a user
+    /// </summary>
+    public async Task<List<Document>> GetDocumentsByIdsAsync(List<Guid> documentIds, Guid userId)
+    {
+        return await _db.Documents
+            .Where(d => documentIds.Contains(d.Id) && d.UserId == userId)
+            .Include(d => d.Metadata)
+            .ToListAsync();
     }
 }

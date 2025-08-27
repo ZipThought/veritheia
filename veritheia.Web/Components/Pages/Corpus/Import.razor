@@ -1,0 +1,221 @@
+@page "/corpus/import"
+@using Veritheia.ApiService.Services
+@using Microsoft.AspNetCore.Components.Forms
+@using veritheia.Web.Services
+@inject CorpusImportService ImportService
+@inject AuthenticationService AuthService
+@inject NavigationManager Navigation
+@inject ILogger<Import> Logger
+
+<PageTitle>Import Documents</PageTitle>
+
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/corpus">Document Corpus</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Import</li>
+                </ol>
+            </nav>
+            <h1>📥 Import Documents</h1>
+            <p class="text-muted">Import research papers from CSV files (Scopus, IEEE Xplore, or generic format)</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">CSV Import</h5>
+                    <p class="text-muted">Upload a CSV file containing paper metadata. Supported formats:</p>
+                    <ul>
+                        <li><strong>Scopus Export:</strong> Direct export from Scopus database</li>
+                        <li><strong>IEEE Xplore:</strong> Export from IEEE digital library</li>
+                        <li><strong>Generic CSV:</strong> Must contain: title, abstract, authors columns</li>
+                    </ul>
+
+                    <div class="mb-3">
+                        <label for="csvFile" class="form-label">Select CSV File</label>
+                        <InputFile id="csvFile" class="form-control" OnChange="HandleFileSelected" accept=".csv" />
+                        @if (selectedFile != null)
+                        {
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    Selected: @selectedFile.Name (@FormatFileSize(selectedFile.Size))
+                                </small>
+                            </div>
+                        }
+                    </div>
+
+                    @if (isImporting)
+                    {
+                        <div class="alert alert-info">
+                            <div class="spinner-border spinner-border-sm me-2" role="status">
+                                <span class="visually-hidden">Importing...</span>
+                            </div>
+                            Importing documents... Please wait.
+                        </div>
+                    }
+
+                    @if (importResult != null)
+                    {
+                        @if (importResult.Success)
+                        {
+                            <div class="alert alert-success">
+                                <h6 class="alert-heading">✅ Import Successful!</h6>
+                                <p class="mb-2">Successfully imported @importResult.ImportedArticles of @importResult.TotalArticles articles.</p>
+                                
+                                @if (importResult.Summary != null)
+                                {
+                                    <hr />
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <small>
+                                                <strong>Summary:</strong><br />
+                                                Total Documents: @importResult.Summary.TotalDocuments<br />
+                                                With Abstract: @importResult.Summary.DocumentsWithAbstract<br />
+                                                With Keywords: @importResult.Summary.DocumentsWithKeywords
+                                            </small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            @if (importResult.Summary.DocumentsByYear.Any())
+                                            {
+                                                <small>
+                                                    <strong>By Year:</strong><br />
+                                                    @foreach (var year in importResult.Summary.DocumentsByYear.OrderByDescending(y => y.Key).Take(5))
+                                                    {
+                                                        <span>@year.Key: @year.Value docs</span><br />
+                                                    }
+                                                </small>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-danger">
+                                <h6 class="alert-heading">❌ Import Failed</h6>
+                                <p>@importResult.Error</p>
+                            </div>
+                        }
+                    }
+
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary" @onclick="ImportCsv" disabled="@(selectedFile == null || isImporting)">
+                            <i class="bi bi-upload"></i> Import CSV
+                        </button>
+                        @if (importResult?.Success == true)
+                        {
+                            <a href="/corpus" class="btn btn-success">
+                                <i class="bi bi-eye"></i> View Corpus
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h6 class="card-title">📋 CSV Format Requirements</h6>
+                    <p class="small">Your CSV should contain these columns:</p>
+                    <ul class="small">
+                        <li><strong>Required:</strong></li>
+                        <ul>
+                            <li>Title</li>
+                            <li>Abstract</li>
+                        </ul>
+                        <li><strong>Recommended:</strong></li>
+                        <ul>
+                            <li>Authors</li>
+                            <li>Year / Publication Year</li>
+                            <li>Venue / Journal / Source</li>
+                            <li>Keywords</li>
+                            <li>DOI</li>
+                        </ul>
+                    </ul>
+                    <hr />
+                    <p class="small text-muted">
+                        <strong>Note:</strong> Documents without abstracts will be skipped. 
+                        The system will attempt to detect the CSV format automatically.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h6 class="card-title">💡 Tips</h6>
+                    <ul class="small">
+                        <li>Export directly from Scopus or IEEE Xplore for best results</li>
+                        <li>Ensure CSV is UTF-8 encoded</li>
+                        <li>Maximum recommended: 5000 papers per import</li>
+                        <li>Large imports may take several minutes</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private IBrowserFile? selectedFile;
+    private bool isImporting = false;
+    private CorpusImportResult? importResult;
+    private Guid currentUserId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await AuthService.GetCurrentUserAsync();
+        if (user == null)
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
+        currentUserId = user.Id;
+    }
+
+    private void HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        selectedFile = e.File;
+        importResult = null; // Clear previous result
+    }
+
+    private async Task ImportCsv()
+    {
+        if (selectedFile == null) return;
+
+        isImporting = true;
+        importResult = null;
+
+        try
+        {
+            using var stream = selectedFile.OpenReadStream(maxAllowedSize: 50 * 1024 * 1024); // 50MB max
+            importResult = await ImportService.ImportCsvAsync(stream, currentUserId, selectedFile.Name);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to import CSV");
+            importResult = new CorpusImportResult
+            {
+                Success = false,
+                Error = $"Import failed: {ex.Message}"
+            };
+        }
+        finally
+        {
+            isImporting = false;
+        }
+    }
+
+    private string FormatFileSize(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F2} KB";
+        return $"{bytes / (1024.0 * 1024.0):F2} MB";
+    }
+}

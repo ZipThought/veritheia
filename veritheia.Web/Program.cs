@@ -2,7 +2,7 @@ using veritheia.Web.Components;
 using veritheia.Web.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Veritheia.Data;
-using Veritheia.ApiService.Services;
+using Veritheia.ApiService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,14 +23,11 @@ builder.Services.AddAuthorization();
 // Register Data layer services (encapsulated)
 builder.Services.AddDataServices(builder.Configuration, builder.Environment);
 
+// Register ApiService layer services (encapsulated)
+builder.Services.AddApiServices();
+
 // Add HTTP context accessor for authentication
 builder.Services.AddHttpContextAccessor();
-
-
-// Register ApiService Services
-builder.Services.AddScoped<Veritheia.ApiService.Services.UserApiService>();
-builder.Services.AddScoped<Veritheia.ApiService.Services.JourneyApiService>();
-builder.Services.AddScoped<Veritheia.ApiService.Services.PersonaApiService>();
 
 // Web Services
 builder.Services.AddScoped<AuthenticationService>();
@@ -96,3 +93,9 @@ app.MapRazorComponents<App>()
 app.MapDefaultEndpoints();
 
 app.Run();
+
+// Make Program class accessible for integration testing
+namespace veritheia.Web
+{
+    public partial class Program { }
+}

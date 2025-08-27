@@ -1,0 +1,316 @@
+@page "/corpus"
+@using Veritheia.ApiService.Services
+@using Veritheia.Data.Entities
+@using veritheia.Web.Services
+@inject DocumentService DocumentService
+@inject DocumentMetadataService MetadataService
+@inject AuthenticationService AuthService
+@inject NavigationManager Navigation
+@inject ILogger<Index> Logger
+
+<PageTitle>Document Corpus</PageTitle>
+
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>📚 Document Corpus</h1>
+            <p class="text-muted">Your collection of research documents and metadata</p>
+        </div>
+        <div class="col-auto">
+            <a href="/corpus/import" class="btn btn-primary">
+                <i class="bi bi-upload"></i> Import Documents
+            </a>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading documents...</span>
+            </div>
+            <p class="mt-2">Loading your corpus...</p>
+        </div>
+    }
+    else if (documents == null || !documents.Any())
+    {
+        <div class="alert alert-info text-center py-5">
+            <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+            <h4 class="mt-3">No Documents in Corpus</h4>
+            <p>Start by importing documents from CSV files or uploading individual documents.</p>
+            <a href="/corpus/import" class="btn btn-primary mt-3">
+                <i class="bi bi-upload"></i> Import Your First Documents
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row mb-3">
+            <div class="col">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" placeholder="Search documents..." 
+                           @bind="searchQuery" @bind:event="oninput" />
+                </div>
+            </div>
+            <div class="col-auto">
+                <select class="form-select" @bind="filterType">
+                    <option value="all">All Documents</option>
+                    <option value="with-metadata">With Metadata</option>
+                    <option value="without-metadata">Without Metadata</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th style="width: 40px">
+                            <input type="checkbox" class="form-check-input" 
+                                   @bind="selectAll" @bind:event="onchange" />
+                        </th>
+                        <th>Title</th>
+                        <th>Authors</th>
+                        <th>Year</th>
+                        <th>Abstract</th>
+                        <th>Keywords</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var doc in FilteredDocuments)
+                    {
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="form-check-input" 
+                                       value="@doc.Id" 
+                                       checked="@selectedDocumentIds.Contains(doc.Id)"
+                                       @onchange="e => ToggleDocumentSelection(doc.Id)" />
+                            </td>
+                            <td>
+                                <strong>@(doc.Metadata?.Title ?? doc.FileName)</strong>
+                                @if (!string.IsNullOrEmpty(doc.Metadata?.DOI))
+                                {
+                                    <br />
+                                    <small class="text-muted">DOI: @doc.Metadata.DOI</small>
+                                }
+                            </td>
+                            <td>
+                                @if (doc.Metadata?.Authors != null && doc.Metadata.Authors.Any())
+                                {
+                                    <small>@string.Join(", ", doc.Metadata.Authors.Take(3))</small>
+                                    @if (doc.Metadata.Authors.Length > 3)
+                                    {
+                                        <small class="text-muted"> et al.</small>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            <td>
+                                @if (doc.Metadata?.PublicationDate != null)
+                                {
+                                    @doc.Metadata.PublicationDate.Value.Year
+                                }
+                                else if (doc.Metadata?.ExtendedMetadata?.ContainsKey("year") == true)
+                                {
+                                    @doc.Metadata.ExtendedMetadata["year"]
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(doc.Metadata?.Abstract))
+                                {
+                                    <small>
+                                        @(doc.Metadata.Abstract.Length > 150 
+                                            ? doc.Metadata.Abstract.Substring(0, 150) + "..." 
+                                            : doc.Metadata.Abstract)
+                                    </small>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">No abstract</span>
+                                }
+                            </td>
+                            <td>
+                                @if (doc.Metadata?.Keywords != null && doc.Metadata.Keywords.Any())
+                                {
+                                    <small>
+                                        @foreach (var keyword in doc.Metadata.Keywords.Take(3))
+                                        {
+                                            <span class="badge bg-secondary me-1">@keyword</span>
+                                        }
+                                        @if (doc.Metadata.Keywords.Length > 3)
+                                        {
+                                            <span class="text-muted">+@(doc.Metadata.Keywords.Length - 3)</span>
+                                        }
+                                    </small>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button class="btn btn-outline-primary" 
+                                            @onclick="() => ViewDocument(doc.Id)"
+                                            title="View details">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button class="btn btn-outline-danger" 
+                                            @onclick="() => DeleteDocument(doc.Id)"
+                                            title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (selectedDocumentIds.Any())
+        {
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h6>Selected Documents: @selectedDocumentIds.Count</h6>
+                    <button class="btn btn-primary me-2" @onclick="ProcessSelectedDocuments">
+                        <i class="bi bi-play-circle"></i> Process with Journey
+                    </button>
+                    <button class="btn btn-danger" @onclick="DeleteSelectedDocuments">
+                        <i class="bi bi-trash"></i> Delete Selected
+                    </button>
+                </div>
+            </div>
+        }
+
+        <div class="mt-3">
+            <small class="text-muted">
+                Total: @documents.Count documents | 
+                With metadata: @documents.Count(d => d.Metadata != null) | 
+                Without metadata: @documents.Count(d => d.Metadata == null)
+            </small>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Document>? documents;
+    private HashSet<Guid> selectedDocumentIds = new();
+    private string searchQuery = "";
+    private string filterType = "all";
+    private bool isLoading = true;
+    private bool selectAll = false;
+    private Guid currentUserId;
+
+    private IEnumerable<Document> FilteredDocuments
+    {
+        get
+        {
+            if (documents == null) return Enumerable.Empty<Document>();
+
+            var filtered = documents.AsEnumerable();
+
+            // Apply filter type
+            filtered = filterType switch
+            {
+                "with-metadata" => filtered.Where(d => d.Metadata != null),
+                "without-metadata" => filtered.Where(d => d.Metadata == null),
+                _ => filtered
+            };
+
+            // Apply search
+            if (!string.IsNullOrWhiteSpace(searchQuery))
+            {
+                var query = searchQuery.ToLower();
+                filtered = filtered.Where(d =>
+                    d.FileName.ToLower().Contains(query) ||
+                    (d.Metadata?.Title?.ToLower().Contains(query) ?? false) ||
+                    (d.Metadata?.Authors?.Any(a => a.ToLower().Contains(query)) ?? false) ||
+                    (d.Metadata?.Abstract?.ToLower().Contains(query) ?? false) ||
+                    (d.Metadata?.Keywords?.Any(k => k.ToLower().Contains(query)) ?? false)
+                );
+            }
+
+            return filtered;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var user = await AuthService.GetCurrentUserAsync();
+            if (user == null)
+            {
+                Navigation.NavigateTo("/login");
+                return;
+            }
+
+            currentUserId = user.Id;
+            await LoadDocuments();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading corpus");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadDocuments()
+    {
+        documents = await DocumentService.GetUserDocumentsWithMetadataAsync(currentUserId);
+    }
+
+    private void ToggleDocumentSelection(Guid documentId)
+    {
+        if (selectedDocumentIds.Contains(documentId))
+        {
+            selectedDocumentIds.Remove(documentId);
+        }
+        else
+        {
+            selectedDocumentIds.Add(documentId);
+        }
+    }
+
+    private void ViewDocument(Guid documentId)
+    {
+        Navigation.NavigateTo($"/corpus/document/{documentId}");
+    }
+
+    private async Task DeleteDocument(Guid documentId)
+    {
+        // TODO: Add confirmation dialog
+        await DocumentService.DeleteDocumentAsync(documentId, currentUserId);
+        await LoadDocuments();
+    }
+
+    private async Task DeleteSelectedDocuments()
+    {
+        // TODO: Add confirmation dialog
+        foreach (var docId in selectedDocumentIds)
+        {
+            await DocumentService.DeleteDocumentAsync(docId, currentUserId);
+        }
+        selectedDocumentIds.Clear();
+        await LoadDocuments();
+    }
+
+    private void ProcessSelectedDocuments()
+    {
+        // Store selected documents in session or pass as query parameters
+        Navigation.NavigateTo($"/create-journey?documents={string.Join(",", selectedDocumentIds)}");
+    }
+}
