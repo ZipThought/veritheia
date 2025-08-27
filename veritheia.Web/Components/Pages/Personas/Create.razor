@@ -299,7 +299,7 @@
     private string keyTerms = "";
     private string focusAreas = "";
     private string methodologyPreferences = "";
-    private string selectedTemplate = "";
+    private string selectedTemplate = ""; // No template selected by default
     
     private bool isCreating = false;
     private string? errorMessage;
@@ -383,7 +383,17 @@
         catch (Exception ex)
         {
             Logger.LogError(ex, "Failed to create persona");
-            errorMessage = $"Failed to create persona: {ex.Message}";
+            
+            // Check for duplicate domain name error
+            if (ex.Message.Contains("duplicate key") || ex.InnerException?.Message.Contains("IX_personas_UserId_Domain") == true)
+            {
+                errorMessage = $"You already have a persona named '{domainName}'. Please choose a different name.";
+            }
+            else
+            {
+                errorMessage = $"Failed to create persona: {ex.Message}";
+            }
+            
             isCreating = false;
         }
     }
