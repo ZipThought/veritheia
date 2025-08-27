@@ -1,4 +1,5 @@
 @page "/corpus/import"
+@rendermode InteractiveServer
 @using Veritheia.ApiService.Services
 @using Microsoft.AspNetCore.Components.Forms
 @using veritheia.Web.Services
@@ -167,7 +168,7 @@
     private CorpusImportResult? importResult;
     private Guid currentUserId;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
         var user = await AuthService.GetCurrentUserAsync();
         if (user == null)

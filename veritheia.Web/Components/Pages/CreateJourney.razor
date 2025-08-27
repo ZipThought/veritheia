@@ -1,4 +1,5 @@
 @page "/journeys/create"
+@rendermode InteractiveServer
 @using Microsoft.AspNetCore.Components.Web
 @using veritheia.Web.Services
 @using Veritheia.Data.Entities
@@ -145,9 +146,11 @@
         context.RequirePersonas();
     }
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
-        // Context already initialized by MainLayout
+        // Wait for context to be initialized by MainLayout
+        context = ContextService.GetOrCreateContext();
+        
         currentUser = context?.CurrentUser;
         if (currentUser == null)
         {

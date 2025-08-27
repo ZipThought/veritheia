@@ -1,9 +1,11 @@
 ﻿@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Routing
 @using veritheia.Web.Components.Layout
 @using veritheia.Web.Services
 @inject RenderContextService ContextService
 @inject NavigationManager Navigation
 @inherits LayoutComponentBase
+@implements IDisposable
 
 @if (isAuthenticated)
 {
@@ -38,6 +40,24 @@ else
     {
         context = ContextService.GetOrCreateContext();
         context.RequireCurrentUser();
+        
+        // Subscribe to navigation events to force re-initialization
+        Navigation.LocationChanged += OnLocationChanged;
+    }
+    
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        // Force re-render on navigation
+        InvokeAsync(async () =>
+        {
+            await OnParametersSetAsync();
+            StateHasChanged();
+        });
+    }
+    
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
     }
 
     protected override async Task OnParametersSetAsync()

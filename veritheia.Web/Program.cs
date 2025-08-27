@@ -26,6 +26,9 @@ builder.Services.AddDataServices(builder.Configuration, builder.Environment);
 // Register ApiService layer services (encapsulated)
 builder.Services.AddApiServices();
 
+// Register Process Worker Service for background execution
+builder.Services.AddHostedService<Veritheia.Data.Services.ProcessWorkerService>();
+
 // Add HTTP context accessor for authentication
 builder.Services.AddHttpContextAccessor();
 
@@ -47,6 +50,12 @@ if (builder.Environment.IsDevelopment())
 }
 
 var app = builder.Build();
+
+// Configure ProcessEngine with registered processes
+using (var scope = app.Services.CreateScope())
+{
+    scope.ServiceProvider.ConfigureProcessEngine();
+}
 
 if (!app.Environment.IsDevelopment())
 {

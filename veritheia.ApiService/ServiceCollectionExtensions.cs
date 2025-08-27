@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Veritheia.ApiService.Services;
 using Veritheia.ApiService.Processes;
 using Veritheia.Core.Interfaces;
+using Veritheia.Data.Services;
 
 namespace Veritheia.ApiService;
 
@@ -30,9 +31,25 @@ public static class ServiceCollectionExtensions
         // Analysis Services
         services.AddScoped<SemanticExtractionService>();
         
+        // Process Execution Services
+        services.AddScoped<ProcessExecutionService>();
+        services.AddScoped<ProcessEngine>();
+        
         // Process Implementations
         services.AddScoped<IAnalyticalProcess, SystematicScreeningProcess>();
 
         return services;
+    }
+    
+    /// <summary>
+    /// Configure ProcessEngine with registered processes
+    /// Call this after services are built
+    /// </summary>
+    public static void ConfigureProcessEngine(this IServiceProvider serviceProvider)
+    {
+        var processEngine = serviceProvider.GetRequiredService<ProcessEngine>();
+        
+        // Register all available processes
+        processEngine.RegisterProcess<SystematicScreeningProcess>();
     }
 }

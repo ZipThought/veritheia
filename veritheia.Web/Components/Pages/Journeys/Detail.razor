@@ -1,0 +1,698 @@
+@page "/journeys/{Id:guid}"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Web
+@using veritheia.Web.Services
+@using Veritheia.Common.Models
+@using Veritheia.Data.Entities
+@using Veritheia.ApiService.Services
+@using Veritheia.Core.ValueObjects
+@using Veritheia.Data.Services
+@inject NavigationManager Navigation
+@inject RenderContextService ContextService
+@inject JourneyApiService JourneyApiService
+@inject DocumentService DocumentService
+@inject ProcessExecutionService ProcessExecutionService
+@inject ProcessConfigurationService ProcessConfig
+@inject ILogger<Detail> Logger
+
+<PageTitle>Journey Detail - Veritheia</PageTitle>
+
+<div class="container-fluid">
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading journey...</span>
+            </div>
+            <p class="mt-2">Loading journey details...</p>
+        </div>
+    }
+    else if (journey == null)
+    {
+        <div class="alert alert-danger">
+            <h4>Journey Not Found</h4>
+            <p>The requested journey could not be found or you don't have access to it.</p>
+            <a href="/" class="btn btn-primary">Return to Dashboard</a>
+        </div>
+    }
+    else
+    {
+        <!-- Journey Header -->
+        <div class="journey-header mb-4">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">@journey.Purpose</li>
+                </ol>
+            </nav>
+            
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h1>@journey.Purpose</h1>
+                    <div class="text-muted">
+                        <span class="badge bg-secondary">@journey.ProcessType</span>
+                        <span class="badge bg-info">@journey.Persona?.Domain</span>
+                        <span class="badge @GetStateClass(journey.State)">@journey.State</span>
+                    </div>
+                </div>
+                <div>
+                    <button class="btn btn-outline-secondary" @onclick="NavigateToCorpus">
+                        <i class="bi bi-collection"></i> Manage Corpus
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Process Configuration Section -->
+        @if (journey.ProcessType == "systematic_screening" && journey.State != "Completed")
+        {
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>Configure Systematic Screening</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Research Questions -->
+                    <div class="mb-3">
+                        <label class="form-label">Research Questions (one per line)</label>
+                        <textarea class="form-control" rows="4" @bind="researchQuestions" 
+                                  placeholder="Enter your research questions, one per line..."></textarea>
+                        <small class="text-muted">These questions will guide the relevance and contribution assessment of documents.</small>
+                    </div>
+
+                    <!-- Thresholds -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Relevance Threshold</label>
+                            <input type="number" class="form-control" @bind="relevanceThreshold" 
+                                   min="0" max="1" step="0.1" />
+                            <small class="text-muted">Documents scoring above this threshold are considered relevant (default: 0.7)</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Contribution Threshold</label>
+                            <input type="number" class="form-control" @bind="contributionThreshold" 
+                                   min="0" max="1" step="0.1" />
+                            <small class="text-muted">Documents scoring above this threshold are considered contributing (default: 0.7)</small>
+                        </div>
+                    </div>
+
+                    <!-- Document Selection -->
+                    <div class="mb-3">
+                        <label class="form-label">Select Documents from Corpus (@selectedDocumentIds.Count selected)</label>
+                        
+                        @if (!corpusDocuments.Any())
+                        {
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle"></i> No documents in your corpus. 
+                                <a href="/corpus/import">Import documents</a> to get started.
+                            </div>
+                        }
+                        else
+                        {
+                            <!-- Filter controls -->
+                            <div class="input-group mb-2">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control" placeholder="Search documents..." 
+                                       @bind="documentSearchQuery" @bind:event="oninput" />
+                            </div>
+
+                            <!-- Documents table -->
+                            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                                <table class="table table-hover table-sm">
+                                    <thead class="sticky-top bg-white">
+                                        <tr>
+                                            <th style="width: 40px">
+                                                <input type="checkbox" class="form-check-input" 
+                                                       checked="@selectAllDocuments" 
+                                                       @onchange="ToggleSelectAll" />
+                                            </th>
+                                            <th>Title</th>
+                                            <th>Authors</th>
+                                            <th>Year</th>
+                                            <th>Keywords</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var doc in FilteredDocuments)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <input type="checkbox" class="form-check-input" 
+                                                           checked="@selectedDocumentIds.Contains(doc.Id)"
+                                                           @onchange="e => ToggleDocumentSelection(doc.Id)" />
+                                                </td>
+                                                <td>
+                                                    <strong>@(doc.Metadata?.Title ?? doc.FileName)</strong>
+                                                    @if (!string.IsNullOrEmpty(doc.Metadata?.DOI))
+                                                    {
+                                                        <br />
+                                                        <small class="text-muted">DOI: @doc.Metadata.DOI</small>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    @if (doc.Metadata?.Authors != null && doc.Metadata.Authors.Any())
+                                                    {
+                                                        <small>@string.Join(", ", doc.Metadata.Authors.Take(2))</small>
+                                                        @if (doc.Metadata.Authors.Length > 2)
+                                                        {
+                                                            <small class="text-muted"> et al.</small>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">-</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    @if (doc.Metadata?.PublicationDate != null)
+                                                    {
+                                                        @doc.Metadata.PublicationDate.Value.Year
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">-</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    @if (doc.Metadata?.Keywords != null && doc.Metadata.Keywords.Any())
+                                                    {
+                                                        <small>
+                                                            @foreach (var keyword in doc.Metadata.Keywords.Take(2))
+                                                            {
+                                                                <span class="badge bg-secondary me-1">@keyword</span>
+                                                            }
+                                                            @if (doc.Metadata.Keywords.Length > 2)
+                                                            {
+                                                                <span class="text-muted">+@(doc.Metadata.Keywords.Length - 2)</span>
+                                                            }
+                                                        </small>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Action buttons -->
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            @if (selectedDocumentIds.Any())
+                            {
+                                <span class="text-muted">@selectedDocumentIds.Count documents selected</span>
+                            }
+                        </div>
+                        <div>
+                            <button class="btn btn-primary" @onclick="ExecuteProcess" 
+                                    disabled="@(!CanExecuteProcess || isExecuting)">
+                                @if (isExecuting)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                    <span>Processing...</span>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-play-circle"></i>
+                                    <span>Execute Screening</span>
+                                }
+                            </button>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger mt-3">
+                            <i class="bi bi-exclamation-circle"></i> @errorMessage
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Process Execution Status -->
+        @if (currentExecution != null)
+        {
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>Process Execution Status</h3>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <span class="badge @GetExecutionStateClass(currentExecution.State)">
+                                @currentExecution.State
+                            </span>
+                            <small class="text-muted ms-2">
+                                Started: @currentExecution.StartedAt?.ToString("g")
+                            </small>
+                            @if (currentExecution.CompletedAt != null)
+                            {
+                                <small class="text-muted ms-2">
+                                    Completed: @currentExecution.CompletedAt?.ToString("g")
+                                </small>
+                            }
+                        </div>
+                    </div>
+
+                    @if (currentExecution.State == "Running")
+                    {
+                        <div class="progress">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                 role="progressbar" style="width: 100%">
+                                Processing documents...
+                            </div>
+                        </div>
+                    }
+                    else if (currentExecution.State == "Failed")
+                    {
+                        <div class="alert alert-danger">
+                            <strong>Execution failed:</strong> @currentExecution.ErrorMessage
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Process Results -->
+        @if (processResults.Any())
+        {
+            <div class="card">
+                <div class="card-header">
+                    <h3>Screening Results (@processResults.Count documents)</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Results filter -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <select class="form-select" @bind="resultsFilter">
+                                <option value="all">All Documents</option>
+                                <option value="must-read">Must-Read Only</option>
+                                <option value="relevant">Relevant Only</option>
+                                <option value="contributing">Contributing Only</option>
+                            </select>
+                        </div>
+                        <div class="col-md-8 text-end">
+                            <button class="btn btn-outline-primary" @onclick="ExportResults">
+                                <i class="bi bi-download"></i> Export CSV
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Results table -->
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Authors</th>
+                                    <th>Relevance</th>
+                                    <th>Contribution</th>
+                                    <th>Must-Read</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var result in FilteredResults)
+                                {
+                                    <tr>
+                                        <td>
+                                            <strong>@result.Title</strong>
+                                        </td>
+                                        <td>
+                                            <small>@result.Authors</small>
+                                        </td>
+                                        <td>
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar @GetScoreClass(result.RelevanceScore)" 
+                                                     role="progressbar" 
+                                                     style="width: @(result.RelevanceScore * 100)%">
+                                                    @result.RelevanceScore.ToString("F2")
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar @GetScoreClass(result.ContributionScore)" 
+                                                     role="progressbar" 
+                                                     style="width: @(result.ContributionScore * 100)%">
+                                                    @result.ContributionScore.ToString("F2")
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            @if (result.IsMustRead)
+                                            {
+                                                <span class="badge bg-success">✓ Yes</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">No</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary" 
+                                                    @onclick="() => ViewResultDetails(result)">
+                                                <i class="bi bi-eye"></i> Details
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    @if (!FilteredResults.Any())
+                    {
+                        <div class="text-center py-3">
+                            <p class="text-muted">No documents match the current filter.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
+</div>
+
+<!-- Result Details Modal (simplified inline) -->
+@if (selectedResult != null)
+{
+    <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@selectedResult.Title</h5>
+                    <button type="button" class="btn-close" @onclick="() => selectedResult = null"></button>
+                </div>
+                <div class="modal-body">
+                    <h6>Relevance Assessment (@selectedResult.RelevanceScore.ToString("F2"))</h6>
+                    <p>@selectedResult.RelevanceReasoning</p>
+                    
+                    <h6>Contribution Assessment (@selectedResult.ContributionScore.ToString("F2"))</h6>
+                    <p>@selectedResult.ContributionReasoning</p>
+                    
+                    <h6>Extracted Semantics</h6>
+                    <div>
+                        <strong>Topics:</strong> @string.Join(", ", selectedResult.Topics ?? new List<string>())
+                    </div>
+                    <div>
+                        <strong>Keywords:</strong> @string.Join(", ", selectedResult.Keywords ?? new List<string>())
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="() => selectedResult = null">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private Journey? journey;
+    private List<Document> corpusDocuments = new();
+    private HashSet<Guid> selectedDocumentIds = new();
+    private ProcessExecution? currentExecution;
+    private List<ScreeningResult> processResults = new();
+    private ScreeningResult? selectedResult;
+
+    private string researchQuestions = "";
+    private double relevanceThreshold = 0.7;
+    private double contributionThreshold = 0.7;
+    private string documentSearchQuery = "";
+    private string resultsFilter = "all";
+    private bool selectAllDocuments = false;
+    
+    private bool isLoading = true;
+    private bool isExecuting = false;
+    private string? errorMessage;
+    private UserIdentity? currentUser;
+    private RenderContext? context;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadJourneyDetails();
+    }
+
+    private async Task LoadJourneyDetails()
+    {
+        try
+        {
+            isLoading = true;
+            
+            // Get current user from context
+            context = ContextService.GetOrCreateContext();
+            context.RequireCurrentUser();
+            currentUser = context.CurrentUser;
+            
+            if (currentUser == null)
+            {
+                Navigation.NavigateTo("/login");
+                return;
+            }
+
+            // Load journey details
+            journey = await JourneyApiService.GetJourneyAsync(currentUser.Id, Id);
+            
+            if (journey == null)
+            {
+                return; // Will show "not found" message
+            }
+
+            // Load user's corpus documents
+            corpusDocuments = await DocumentService.GetUserDocumentsWithMetadataAsync(currentUser.Id);
+
+            // Load any existing executions
+            await LoadProcessExecutions();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load journey details");
+            errorMessage = "Failed to load journey details";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadProcessExecutions()
+    {
+        if (currentUser == null || journey == null)
+            return;
+
+        try
+        {
+            // Load the latest execution for this journey
+            currentExecution = await ProcessExecutionService.GetLatestExecutionAsync(currentUser.Id, journey.Id);
+            
+            // If we have a completed execution, load its results
+            if (currentExecution?.State == "Completed")
+            {
+                await LoadProcessResults(currentExecution.Id);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load process executions");
+        }
+    }
+
+    private async Task LoadProcessResults(Guid executionId)
+    {
+        if (currentUser == null)
+            return;
+
+        try
+        {
+            var results = await ProcessExecutionService.GetScreeningResultsAsync(currentUser.Id, executionId);
+            
+            if (results != null)
+            {
+                processResults.Clear();
+                
+                foreach (var docResult in results.DocumentResults)
+                {
+                    processResults.Add(new ScreeningResult
+                    {
+                        Title = docResult.Title,
+                        Authors = docResult.Authors,
+                        RelevanceScore = docResult.RelevanceScore,
+                        ContributionScore = docResult.ContributionScore,
+                        IsMustRead = docResult.IsMustRead,
+                        RelevanceReasoning = docResult.RelevanceReasoning,
+                        ContributionReasoning = docResult.ContributionReasoning,
+                        Topics = docResult.Topics,
+                        Keywords = docResult.Keywords
+                    });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load process results");
+        }
+    }
+
+    private IEnumerable<Document> FilteredDocuments
+    {
+        get
+        {
+            var filtered = corpusDocuments.AsEnumerable();
+            
+            if (!string.IsNullOrWhiteSpace(documentSearchQuery))
+            {
+                var query = documentSearchQuery.ToLower();
+                filtered = filtered.Where(d =>
+                    (d.Metadata?.Title?.ToLower().Contains(query) ?? false) ||
+                    (d.Metadata?.Authors?.Any(a => a.ToLower().Contains(query)) ?? false) ||
+                    (d.Metadata?.Keywords?.Any(k => k.ToLower().Contains(query)) ?? false)
+                );
+            }
+            
+            return filtered;
+        }
+    }
+
+    private IEnumerable<ScreeningResult> FilteredResults
+    {
+        get
+        {
+            return resultsFilter switch
+            {
+                "must-read" => processResults.Where(r => r.IsMustRead),
+                "relevant" => processResults.Where(r => r.RelevanceScore >= relevanceThreshold),
+                "contributing" => processResults.Where(r => r.ContributionScore >= contributionThreshold),
+                _ => processResults
+            };
+        }
+    }
+
+    private bool CanExecuteProcess => 
+        !string.IsNullOrWhiteSpace(researchQuestions) && 
+        selectedDocumentIds.Any() && 
+        !isExecuting;
+
+    private void ToggleDocumentSelection(Guid documentId)
+    {
+        if (selectedDocumentIds.Contains(documentId))
+            selectedDocumentIds.Remove(documentId);
+        else
+            selectedDocumentIds.Add(documentId);
+    }
+
+    private void ToggleSelectAll(ChangeEventArgs e)
+    {
+        selectAllDocuments = (bool)(e.Value ?? false);
+        
+        if (selectAllDocuments)
+        {
+            foreach (var doc in FilteredDocuments)
+                selectedDocumentIds.Add(doc.Id);
+        }
+        else
+        {
+            selectedDocumentIds.Clear();
+        }
+    }
+
+    private async Task ExecuteProcess()
+    {
+        if (!CanExecuteProcess || currentUser == null || journey == null)
+            return;
+
+        isExecuting = true;
+        errorMessage = null;
+
+        try
+        {
+            // Execute the systematic screening process
+            var result = await ProcessExecutionService.ExecuteSystematicScreeningAsync(
+                currentUser.Id,
+                journey.Id,
+                selectedDocumentIds.ToList(),
+                researchQuestions,
+                relevanceThreshold,
+                contributionThreshold);
+
+            if (result.Success)
+            {
+                // Reload executions and results
+                await LoadProcessExecutions();
+                await LoadProcessResults(result.ExecutionId);
+                
+                // Clear the selection
+                selectedDocumentIds.Clear();
+                selectAllDocuments = false;
+            }
+            else
+            {
+                errorMessage = result.ErrorMessage ?? "Process execution failed";
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to execute process");
+            errorMessage = $"Failed to execute process: {ex.Message}";
+        }
+        finally
+        {
+            isExecuting = false;
+        }
+    }
+
+    private void ViewResultDetails(ScreeningResult result)
+    {
+        selectedResult = result;
+    }
+
+    private async Task ExportResults()
+    {
+        // TODO: Implement CSV export
+        errorMessage = "Export functionality not yet implemented";
+    }
+
+    private void NavigateToCorpus()
+    {
+        Navigation.NavigateTo("/corpus");
+    }
+
+    private string GetStateClass(string state) => state switch
+    {
+        "Active" => "bg-success",
+        "Completed" => "bg-info",
+        "Abandoned" => "bg-secondary",
+        _ => "bg-warning"
+    };
+
+    private string GetExecutionStateClass(string state) => state switch
+    {
+        "Pending" => "bg-warning",
+        "Running" => "bg-primary",
+        "Completed" => "bg-success",
+        "Failed" => "bg-danger",
+        _ => "bg-secondary"
+    };
+
+    private string GetScoreClass(double score) => score switch
+    {
+        >= 0.8 => "bg-success",
+        >= 0.6 => "bg-warning",
+        _ => "bg-danger"
+    };
+
+    // Temporary result class until we have proper models
+    private class ScreeningResult
+    {
+        public string Title { get; set; } = "";
+        public string Authors { get; set; } = "";
+        public double RelevanceScore { get; set; }
+        public double ContributionScore { get; set; }
+        public bool IsMustRead { get; set; }
+        public string? RelevanceReasoning { get; set; }
+        public string? ContributionReasoning { get; set; }
+        public List<string>? Topics { get; set; }
+        public List<string>? Keywords { get; set; }
+    }
+}

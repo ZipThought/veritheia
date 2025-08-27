@@ -62,9 +62,9 @@
         </div>
 
         <div class="nav-section">
-            <NavLink class="nav-item" href="/documents">
+            <NavLink class="nav-item" href="/corpus">
                 <span class="nav-icon">📄</span>
-                <span class="nav-text">Documents</span>
+                <span class="nav-text">Corpus</span>
             </NavLink>
         </div>
 
@@ -97,17 +97,18 @@
         context.RequirePersonas();
     }
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
-        // Context already initialized by MainLayout
-        // Just read the data
+        // Wait for context to be initialized by MainLayout
+        context = ContextService.GetOrCreateContext();
+        
         if (context?.CurrentUser == null)
         {
-            // MainLayout will handle redirect to login
+            // User not logged in
             return;
         }
 
-        // Transform data to view models
+        // Transform data to view models after context is initialized
         if (context.Journeys != null)
         {
             journeys = context.Journeys.Select(j => new JourneyViewModel 

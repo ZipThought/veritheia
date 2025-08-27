@@ -1,5 +1,6 @@
 @page "/"
 @page "/dashboard"
+@rendermode InteractiveServer
 @using veritheia.Web.Services
 @using Veritheia.Data.Entities
 @using Veritheia.Data.Services
@@ -179,15 +180,16 @@
         context.RequireStatistics();
     }
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
         try
         {
             _loading = true;
             _error = null;
             
-            // Initialize the context to fetch all demanded data
-            await ContextService.InitializeContextAsync();
+            // DO NOT call InitializeContextAsync here - MainLayout handles it
+            // Get the context that MainLayout has initialized
+            context = ContextService.GetOrCreateContext();
             
             _currentUser = context?.CurrentUser;
 
@@ -226,7 +228,7 @@
 
     private void ViewResults(Guid journeyId)
     {
-        Navigation.NavigateTo($"/journeys/{journeyId}/results");
+        Navigation.NavigateTo($"/journeys/{journeyId}");
     }
 
     private async Task ArchiveJourney(Guid journeyId)
