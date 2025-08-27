@@ -191,6 +191,11 @@
             // Get the context that MainLayout has initialized
             context = ContextService.GetOrCreateContext();
             
+            // Re-declare demands in case of navigation
+            context.RequireCurrentUser();
+            context.RequireJourneys();
+            context.RequireStatistics();
+            
             _currentUser = context?.CurrentUser;
 
             if (_currentUser == null)

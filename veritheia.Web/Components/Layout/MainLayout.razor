@@ -50,7 +50,12 @@ else
         // Force re-render on navigation
         InvokeAsync(async () =>
         {
-            await OnParametersSetAsync();
+            // Reset and recreate context
+            ContextService.Reset();
+            context = ContextService.GetOrCreateContext();
+            context.RequireCurrentUser();
+            
+            // Force complete re-render which will trigger OnParametersSetAsync
             StateHasChanged();
         });
     }

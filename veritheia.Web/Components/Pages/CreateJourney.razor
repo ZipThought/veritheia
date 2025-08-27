@@ -151,6 +151,10 @@
         // Wait for context to be initialized by MainLayout
         context = ContextService.GetOrCreateContext();
         
+        // Re-declare demands in case of navigation
+        context.RequireCurrentUser();
+        context.RequirePersonas();
+        
         currentUser = context?.CurrentUser;
         if (currentUser == null)
         {
