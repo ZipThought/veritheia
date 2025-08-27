@@ -1,5 +1,5 @@
 @page "/personas/create"
-@rendermode InteractiveServer
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 @using Microsoft.AspNetCore.Components.Web
 @using veritheia.Web.Services
 @using Veritheia.Data.Entities
@@ -223,22 +223,22 @@
     }
 
     .btn-primary {
-        background-color: var(--primary);
+        background-color: #0d6efd;
         color: white;
     }
 
     .btn-primary:hover:not(:disabled) {
-        background-color: var(--primary-dark);
+        background-color: #0b5ed7;
     }
 
     .btn-outline-secondary {
         background-color: white;
-        color: var(--text-secondary);
-        border: 1px solid var(--border-color);
+        color: #6c757d;
+        border: 1px solid #dee2e6;
     }
 
     .btn-outline-secondary:hover {
-        background-color: var(--background);
+        background-color: #f8f9fa;
     }
 
     .btn-icon {
