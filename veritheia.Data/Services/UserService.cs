@@ -69,8 +69,8 @@ public class UserService
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
-        // Create default personas for new user
-        await _personaService.CreateDefaultPersonasAsync(user.Id);
+        // Do NOT automatically create personas - users must author their own
+        // This aligns with formation through authorship principle
 
         _logger.LogInformation("Created new user {UserId} with email {Email}", user.Id, email);
         return user;

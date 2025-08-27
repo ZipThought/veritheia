@@ -29,19 +29,6 @@ public class PersonaService
             .Where(p => p.UserId == userId)
             .OrderBy(p => p.Domain)
             .ToListAsync();
-            
-        // If no personas exist, create defaults (fallback for existing users)
-        if (!personas.Any())
-        {
-            _logger.LogWarning("No personas found for user {UserId}, creating defaults", userId);
-            await CreateDefaultPersonasAsync(userId);
-            
-            // Re-fetch after creation
-            personas = await _context.Personas
-                .Where(p => p.UserId == userId)
-                .OrderBy(p => p.Domain)
-                .ToListAsync();
-        }
         
         _logger.LogInformation("Found {Count} personas for user {UserId}", personas.Count, userId);
         return personas;

@@ -66,20 +66,34 @@
 
         <div class="form-section">
             <h2 class="section-title">Select Persona</h2>
-            <div class="persona-grid">
-                @foreach (var persona in availablePersonas)
-                {
-                    <div class="persona-card @(selectedPersonaId == persona.Id ? "selected" : "")" 
-                         @onclick="() => SelectPersona(persona.Id)">
-                        <div class="persona-icon">👤</div>
-                        <h3 class="persona-title">@persona.Domain</h3>
-                        <p class="persona-description">@GetPersonaDescription(persona.Domain)</p>
-                    </div>
-                }
-            </div>
-            @if (showValidation && selectedPersonaId == Guid.Empty)
+            @if (!availablePersonas.Any())
             {
-                <div class="validation-message">Please select a persona.</div>
+                <div class="alert alert-info">
+                    <h4>No Personas Available</h4>
+                    <p>You need to create a persona before starting a journey. A persona represents your perspective and approach to analysis.</p>
+                    <button class="btn btn-primary" @onclick="NavigateToCreatePersona">
+                        <span class="btn-icon">+</span>
+                        Create Your First Persona
+                    </button>
+                </div>
+            }
+            else
+            {
+                <div class="persona-grid">
+                    @foreach (var persona in availablePersonas)
+                    {
+                        <div class="persona-card @(selectedPersonaId == persona.Id ? "selected" : "")" 
+                             @onclick="() => SelectPersona(persona.Id)">
+                            <div class="persona-icon">👤</div>
+                            <h3 class="persona-title">@persona.Domain</h3>
+                            <p class="persona-description">@GetPersonaDescription(persona.Domain)</p>
+                        </div>
+                    }
+                </div>
+                @if (showValidation && selectedPersonaId == Guid.Empty)
+                {
+                    <div class="validation-message">Please select a persona.</div>
+                }
             }
         </div>
 
@@ -240,6 +254,11 @@
     private void Cancel()
     {
         Navigation.NavigateTo("/");
+    }
+    
+    private void NavigateToCreatePersona()
+    {
+        Navigation.NavigateTo("/personas/create");
     }
 
     private string GetPersonaDescription(string domain) => domain switch

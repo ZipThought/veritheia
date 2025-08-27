@@ -1,0 +1,345 @@
+@page "/personas/create"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Web
+@using veritheia.Web.Services
+@using Veritheia.Data.Entities
+@using Veritheia.ApiService.Services
+@inject NavigationManager Navigation
+@inject RenderContextService ContextService
+@inject PersonaApiService PersonaService
+@inject ILogger<Create> Logger
+
+<PageTitle>Create Persona - Veritheia</PageTitle>
+
+<div class="container-fluid">
+    <div class="create-persona">
+        <div class="create-persona-header">
+            <h1 class="page-title">Create New Persona</h1>
+            <button class="btn btn-outline-secondary" @onclick="Cancel">
+                <span class="btn-icon">×</span>
+                Cancel
+            </button>
+        </div>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-circle"></i> @errorMessage
+            </div>
+        }
+
+        <div class="create-persona-form">
+            <div class="form-section">
+                <h2 class="section-title">Persona Details</h2>
+                
+                <div class="form-group">
+                    <label for="persona-domain" class="form-label">Domain Name</label>
+                    <input id="persona-domain" type="text" class="form-control" @bind="domainName" 
+                           placeholder="e.g., Researcher, Analyst, Student, Professional" />
+                    <small class="text-muted">A short name that describes your role or perspective</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="persona-description" class="form-label">Description</label>
+                    <textarea id="persona-description" class="form-control" rows="3" @bind="description"
+                              placeholder="Describe your approach, expertise, and focus areas"></textarea>
+                    <small class="text-muted">How does this persona approach analysis and decision-making?</small>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2 class="section-title">Conceptual Vocabulary</h2>
+                <p class="text-muted mb-3">Define key terms and concepts this persona uses (optional)</p>
+                
+                <div class="form-group">
+                    <label for="key-terms" class="form-label">Key Terms (comma-separated)</label>
+                    <input id="key-terms" type="text" class="form-control" @bind="keyTerms"
+                           placeholder="e.g., hypothesis, evidence, methodology, analysis" />
+                </div>
+
+                <div class="form-group">
+                    <label for="focus-areas" class="form-label">Focus Areas (comma-separated)</label>
+                    <input id="focus-areas" type="text" class="form-control" @bind="focusAreas"
+                           placeholder="e.g., accuracy, relevance, impact, innovation" />
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2 class="section-title">Methodological Preferences</h2>
+                <p class="text-muted mb-3">How does this persona prefer to work? (optional)</p>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="approach" class="form-label">Approach Style</label>
+                            <select id="approach" class="form-control" @bind="approachStyle">
+                                <option value="">Select an approach...</option>
+                                <option value="systematic">Systematic - Structured and methodical</option>
+                                <option value="exploratory">Exploratory - Open and investigative</option>
+                                <option value="pragmatic">Pragmatic - Practical and results-focused</option>
+                                <option value="analytical">Analytical - Data-driven and detailed</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="rigor" class="form-label">Rigor Level</label>
+                            <select id="rigor" class="form-control" @bind="rigorLevel">
+                                <option value="">Select rigor level...</option>
+                                <option value="high">High - Thorough verification required</option>
+                                <option value="medium">Medium - Balanced approach</option>
+                                <option value="flexible">Flexible - Context-dependent</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn btn-primary" @onclick="CreatePersona" disabled="@isCreating">
+                    @if (isCreating)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                        <span>Creating...</span>
+                    }
+                    else
+                    {
+                        <span class="btn-icon">+</span>
+                        <span>Create Persona</span>
+                    }
+                </button>
+                <button class="btn btn-outline-secondary" @onclick="Cancel">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .create-persona {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .create-persona-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .create-persona-form {
+        background: white;
+        border-radius: 8px;
+        padding: 2rem;
+    }
+
+    .form-section {
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .form-section:last-of-type {
+        border-bottom: none;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        font-size: 1rem;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-start;
+        margin-top: 2rem;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 4px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+    }
+
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .btn-primary {
+        background-color: var(--primary);
+        color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        background-color: var(--primary-dark);
+    }
+
+    .btn-outline-secondary {
+        background-color: white;
+        color: var(--text-secondary);
+        border: 1px solid var(--border-color);
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: var(--background);
+    }
+
+    .btn-icon {
+        font-size: 1.25rem;
+    }
+
+    .text-muted {
+        color: var(--text-muted);
+        font-size: 0.875rem;
+    }
+</style>
+
+@code {
+    private string domainName = "";
+    private string description = "";
+    private string keyTerms = "";
+    private string focusAreas = "";
+    private string approachStyle = "";
+    private string rigorLevel = "";
+    
+    private bool isCreating = false;
+    private string? errorMessage;
+    private RenderContext? context;
+
+    protected override void OnInitialized()
+    {
+        context = ContextService.GetOrCreateContext();
+        context.RequireCurrentUser();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        context = ContextService.GetOrCreateContext();
+        context.RequireCurrentUser();
+        
+        if (context?.CurrentUser == null)
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+    }
+
+    private async Task CreatePersona()
+    {
+        if (string.IsNullOrWhiteSpace(domainName))
+        {
+            errorMessage = "Please enter a domain name for your persona";
+            return;
+        }
+
+        if (context?.CurrentUser == null)
+        {
+            errorMessage = "You must be logged in to create a persona";
+            return;
+        }
+
+        isCreating = true;
+        errorMessage = null;
+
+        try
+        {
+            // Build vocabulary dictionary from user input
+            var vocabulary = new Dictionary<string, object>();
+            
+            if (!string.IsNullOrWhiteSpace(keyTerms))
+            {
+                vocabulary["key_terms"] = keyTerms.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(t => t.Trim())
+                    .ToArray();
+            }
+            
+            if (!string.IsNullOrWhiteSpace(focusAreas))
+            {
+                vocabulary["assessment_focus"] = focusAreas.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(t => t.Trim())
+                    .ToArray();
+            }
+
+            if (!string.IsNullOrWhiteSpace(description))
+            {
+                vocabulary["description"] = description;
+            }
+
+            if (!string.IsNullOrWhiteSpace(approachStyle))
+            {
+                vocabulary["approach"] = approachStyle;
+            }
+
+            if (!string.IsNullOrWhiteSpace(rigorLevel))
+            {
+                vocabulary["rigor"] = rigorLevel;
+            }
+
+            // Create the persona
+            var persona = await PersonaService.CreatePersonaAsync(
+                context.CurrentUser.Id,
+                domainName,
+                vocabulary.Any() ? vocabulary : null);
+
+            Logger.LogInformation("Created persona {PersonaId} for user {UserId}", persona.Id, context.CurrentUser.Id);
+
+            // Navigate back to journey creation or dashboard
+            Navigation.NavigateTo("/journeys/create");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to create persona");
+            errorMessage = $"Failed to create persona: {ex.Message}";
+            isCreating = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/journeys/create");
+    }
+}
