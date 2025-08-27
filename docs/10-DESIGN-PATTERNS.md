@@ -2,7 +2,7 @@
 
 ## I. Philosophical Foundation
 
-This document specifies the design patterns that emerge from Veritheia's architectural commitments. These are not patterns imposed from industry fashion but natural consequences of our technology choices and philosophical stance.
+This document specifies the design patterns that emerge from Veritheia's architectural commitments. These are not patterns imposed from industry fashion but natural consequences of our technology choices and philosophical stance. The patterns include explicit extension points because institutions, organizations, and research teams extend from this open source foundation for their specific collaborative and distributed needs.
 
 We embrace Domain-Driven Design's core principle—that software should model the problem domain with precision—and its goal of maintaining model integrity through explicit boundaries. However, we reject DDD's implementation practices entirely. No repositories hiding the database. No aggregate roots pretending to enforce rules that PostgreSQL already enforces. No value objects when C# records suffice. The schema IS the domain model. The constraints ARE the business rules. Entity Framework Core provides direct projection of database truth into runtime, nothing more.
 
@@ -573,8 +573,57 @@ When implementing any feature:
 - [ ] Process execution uses ProcessContext for scope
 - [ ] Complex queries use extension methods, not repositories
 - [ ] PostgreSQL constraints enforce business rules, not C# code
+- [ ] Web components use RenderContext, never call services directly
+- [ ] Components declare data needs before render cycle
+- [ ] Single database operation per render cycle
 
-## X. Closing Principle
+## X. Web Layer Patterns
+
+### Demand-Driven Context Pattern
+
+Component-based user interfaces face a fundamental architectural problem: when multiple components independently fetch data during the same render cycle, they create concurrent database operations that violate single-threaded database context assumptions. The traditional solution—having parent components fetch all data and pass it down—violates component independence by forcing parents to know what children need. The demand-driven context pattern resolves this tension by separating demand declaration from data fetching.
+
+The pattern recognizes that component trees have natural traversal points where the framework visits each component in sequence. During this traversal, components declare what data they need without fetching it. After all components have declared their demands, a single bulk operation fetches all required data. Components then consume this pre-loaded data synchronously during render.
+
+```csharp
+public class RenderContext
+{
+    private readonly IServiceProvider _services;
+    private readonly HashSet<string> _demands = new();
+    private Dictionary<string, object> _data = new();
+    private bool _initialized = false;
+    
+    public void Require(string demand) => _demands.Add(demand);
+    
+    public T Get<T>(string key) => (T)_data[key];
+    
+    public async Task InitializeAsync()
+    {
+        if (_initialized) return;
+        
+        // Single database operation fetches all demanded data
+        using var scope = _services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<DbContext>();
+        
+        // Bulk load based on accumulated demands
+        if (_demands.Contains("user"))
+            _data["user"] = await db.Users.FindAsync(userId);
+            
+        if (_demands.Contains("journeys"))
+            _data["journeys"] = await db.Journeys
+                .Where(j => j.UserId == userId)
+                .ToListAsync();
+                
+        _initialized = true;
+    }
+}
+```
+
+This context accumulates demands during component initialization, executes a single database operation after all demands are registered, then provides synchronous access to loaded data during render. The pattern works because component initialization happens before data fetching, which happens before rendering.
+
+The anti-patterns this avoids are instructive. Direct service calls from components create the concurrent database access problem. Cascading values from parents violate component independence. Per-component caching creates chaos when the same data is cached differently in different components. The demand-driven context avoids all three by centralizing data fetching while preserving component independence through demand declaration.
+
+## XI. Closing Principle
 
 These patterns emerge from the recognition that PostgreSQL with pgvector IS our domain model, Entity Framework Core IS our data access layer, and the schema IS the source of truth. We do not abstract what is already abstracted. We do not mock what must be real. We partition by user, project by journey, and measure within conceptual spaces.
 

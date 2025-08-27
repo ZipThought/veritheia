@@ -6,9 +6,8 @@
 @using Veritheia.ApiService.Services
 @using Veritheia.Common.Models
 @inject NavigationManager Navigation
+@inject RenderContextService ContextService
 @inject Veritheia.ApiService.Services.JourneyApiService JourneyService
-@inject Veritheia.ApiService.Services.PersonaApiService PersonaService
-@inject AuthenticationService AuthService
 @inject ProcessConfigurationService ProcessConfig
 
 <PageTitle>Create New Journey - Veritheia</PageTitle>
@@ -137,35 +136,30 @@
     private List<Persona> availablePersonas = new();
     private List<ProcessOptionView> availableProcesses = new();
     private UserIdentity? currentUser;
+    private RenderContext? context;
+
+    protected override void OnInitialized()
+    {
+        context = ContextService.GetOrCreateContext();
+        context.RequireCurrentUser();
+        context.RequirePersonas();
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadAvailableOptions();
-    }
-
-    private async Task LoadAvailableOptions()
-    {
-        try
+        // Context already initialized by MainLayout
+        currentUser = context?.CurrentUser;
+        if (currentUser == null)
         {
-            // Get current authenticated user
-            currentUser = await AuthService.GetCurrentUserAsync();
-            if (currentUser == null)
-            {
-                Navigation.NavigateTo("/login");
-                return;
-            }
-            
-            // Load user's personas
-            availablePersonas = await PersonaService.GetUserPersonasAsync(currentUser.Id);
+            // MainLayout will handle redirect to login
+            return;
+        }
 
-            // Load available processes from configuration
-            availableProcesses = ProcessConfig.GetAvailableProcesses();
-        }
-        catch (Exception ex)
-        {
-            errorMessage = $"Failed to load options: {ex.Message}";
-            Console.WriteLine($"CreateJourney load error: {ex}");
-        }
+        // Load data from context
+        availablePersonas = context?.Personas ?? new List<Persona>();
+
+        // Load available processes from configuration (not from database)
+        availableProcesses = ProcessConfig.GetAvailableProcesses();
     }
 
     private void SelectPersona(Guid personaId)

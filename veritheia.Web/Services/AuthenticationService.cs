@@ -46,13 +46,10 @@ public class AuthenticationService : IAuthenticationProvider
         };
 
         var httpContext = _httpContextAccessor.HttpContext;
-        if (httpContext != null)
-        {
-            await httpContext.SignInAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme,
-                new ClaimsPrincipal(claimsIdentity),
-                authProperties);
-        }
+        await httpContext.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            new ClaimsPrincipal(claimsIdentity),
+            authProperties);
 
         return new UserIdentity
         {
@@ -106,7 +103,7 @@ public class AuthenticationService : IAuthenticationProvider
     /// </summary>
     public bool IsAuthenticated()
     {
-        return _httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated == true;
+        return _httpContextAccessor.HttpContext.User.Identity.IsAuthenticated;
     }
 
     // Legacy method for backward compatibility - will be removed in future version

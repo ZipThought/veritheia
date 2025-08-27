@@ -38,9 +38,10 @@ public class VeritheiaDbContext : DbContext
 
     // Search Infrastructure
     public DbSet<SearchIndex> SearchIndexes { get; set; } = null!;
-    public DbSet<SearchVector1536> SearchVectors1536 { get; set; } = null!;
-    public DbSet<SearchVector768> SearchVectors768 { get; set; } = null!;
-    public DbSet<SearchVector384> SearchVectors384 { get; set; } = null!;
+    // TODO: Re-enable vector entities after fixing pgvector configuration
+    // public DbSet<SearchVector1536> SearchVectors1536 { get; set; } = null!;
+    // public DbSet<SearchVector768> SearchVectors768 { get; set; } = null!;
+    // public DbSet<SearchVector384> SearchVectors384 { get; set; } = null!;
 
     // Process Infrastructure
     public DbSet<ProcessDefinition> ProcessDefinitions { get; set; } = null!;
@@ -376,6 +377,8 @@ public class VeritheiaDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
+        // TODO: Re-enable vector entities after fixing pgvector configuration
+        /*
         // SearchVector1536 - Composite primary key for partition enforcement
         modelBuilder.Entity<SearchVector1536>(entity =>
         {
@@ -434,6 +437,7 @@ public class VeritheiaDbContext : DbContext
                 .HasForeignKey<SearchVector384>(e => new { e.UserId, e.IndexId })
                 .OnDelete(DeleteBehavior.Cascade);
         });
+        */
     }
 
     private void ConfigureProcessInfrastructure(ModelBuilder modelBuilder)

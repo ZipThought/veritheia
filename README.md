@@ -87,7 +87,7 @@ Comprehensive specifications (written before implementation) are available in th
 - [User Guide](docs/02-USER-GUIDE.md) - What you can do with Veritheia
 - [Architecture](docs/03-ARCHITECTURE.md) - System design and conceptual model
 - [Implementation](docs/04-IMPLEMENTATION.md) - Technical details and development guide
-- [MVP Specification](docs/05-MVP-SPECIFICATION.md) - Feature requirements and functionality
+- [Foundation Specification](docs/05-FOUNDATION-SPECIFICATION.md) - Feature requirements and functionality
 - [AI Agent Guide](docs/14-AI-AGENT-GUIDE.md) - Epistemic collaboration principles for AI agents
 - [Authentication System](docs/17-AUTHENTICATION-SYSTEM.md) - User identity and data isolation patterns
 - [Composable Extension Patterns](docs/18-COMPOSABLE-EXTENSION-PATTERNS.md) - Timeless specification patterns

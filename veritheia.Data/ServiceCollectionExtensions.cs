@@ -29,10 +29,14 @@ public static class ServiceCollectionExtensions
         services.AddDbContext<VeritheiaDbContext>(options =>
         {
             var connectionString = configuration.GetConnectionString("veritheiadb");
-            options.UseNpgsql(connectionString, o => 
-            {
-                o.UseVector();
-            });
+            
+            // Configure Npgsql data source with dynamic JSON and vector support
+            var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+            dataSourceBuilder.EnableDynamicJson(); // Fix for Dictionary<string, object> serialization
+            dataSourceBuilder.UseVector(); // Enable pgvector support
+            var dataSource = dataSourceBuilder.Build();
+            
+            options.UseNpgsql(dataSource);
         });
 
         // Register Core Data Services
@@ -57,8 +61,8 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient<LocalLLMAdapter>();
         services.AddSingleton<ICognitiveAdapter, LocalLLMAdapter>();
 
-        // Process Worker Service - Background execution
-        services.AddHostedService<ProcessWorkerService>();
+        // Process Worker Service - Background execution - TEMPORARILY DISABLED due to connection pool exhaustion
+        // services.AddHostedService<ProcessWorkerService>();
 
         // Document Storage
         services.AddScoped<IDocumentStorageRepository>(sp =>

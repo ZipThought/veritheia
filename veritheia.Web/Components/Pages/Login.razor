@@ -15,37 +15,33 @@
         </div>
 
         <div class="login-form">
-            @if (!string.IsNullOrEmpty(errorMessage))
-            {
-                <div class="alert alert-danger">
-                    @errorMessage
+            <form action="/auth/login" method="post">
+                <AntiforgeryToken />
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger">
+                        @errorMessage
+                    </div>
+                }
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input 
+                        type="email" 
+                        id="email"
+                        name="email" 
+                        class="form-control" 
+                        value="@email"
+                        placeholder="Enter your email"
+                        required />
                 </div>
-            }
 
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input 
-                    type="email" 
-                    id="email" 
-                    class="form-control" 
-                    @bind="email" 
-                    placeholder="Enter your email"
-                    @onkeypress="OnKeyPress" />
-            </div>
-
-            <button 
-                class="btn btn-primary login-btn" 
-                @onclick="LoginAsync" 
-                disabled="@isLoggingIn">
-                @if (isLoggingIn)
-                {
-                    <span>Signing in...</span>
-                }
-                else
-                {
+                <button 
+                    type="submit"
+                    class="btn btn-primary login-btn">
                     <span>Sign In</span>
-                }
-            </button>
+                </button>
+            </form>
 
             <div class="login-info">
                 <p>This will create a new account or sign you into an existing one.</p>
@@ -162,61 +158,15 @@
 </style>
 
 @code {
-    private string email = "";
+    private string email = "demo@veritheia.local";
     private string? errorMessage;
-    private bool isLoggingIn = false;
 
     protected override async Task OnInitializedAsync()
     {
-        // Redirect if already authenticated
+        // Check if already authenticated and redirect
         if (AuthService.IsAuthenticated())
         {
             Navigation.NavigateTo("/");
-        }
-    }
-
-    private async Task LoginAsync()
-    {
-        if (string.IsNullOrWhiteSpace(email))
-        {
-            errorMessage = "Please enter your email address.";
-            return;
-        }
-
-        isLoggingIn = true;
-        errorMessage = null;
-        StateHasChanged();
-
-        try
-        {
-            var request = new AuthenticationRequest
-            {
-                Identifier = email
-            };
-            
-            await AuthService.AuthenticateAsync(request);
-            Navigation.NavigateTo("/");
-        }
-        catch (AuthenticationException ex)
-        {
-            errorMessage = $"Authentication failed: {ex.Message}";
-        }
-        catch (Exception ex)
-        {
-            errorMessage = $"An error occurred: {ex.Message}";
-        }
-        finally
-        {
-            isLoggingIn = false;
-            StateHasChanged();
-        }
-    }
-
-    private async Task OnKeyPress(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter")
-        {
-            await LoginAsync();
         }
     }
 }

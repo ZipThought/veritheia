@@ -237,7 +237,7 @@ When you choose to share, you control what and how:
 2. **Synthesize Patterns**: Write comprehensive connections
 3. **Document Methods**: Export your framework evolution
 4. **Create Deliverables**: Write papers, reports, or presentations
-5. **Archive Journey**: Preserve your formation for future work
+5. **Archive Journey**: Preserve your formation for ongoing work
 
 ## Advanced Features
 
@@ -258,7 +258,7 @@ Each maintains its own projection while you can see connections across journeys.
 - Compare framework changes over time
 - Export frameworks for reuse or sharing
 
-### Collaborative Formations (Future)
+### Collaborative Formations
 
 While formation remains personal, collaboration is possible:
 - Share journeys for peer review
@@ -296,16 +296,16 @@ Begin with something meaningful but manageable:
 
 ### Current Status
 
-Veritheia is currently in active development. The system is being built as open-source infrastructure (MIT licensed) that institutions and individuals can deploy.
+Veritheia provides the open source foundation (MIT licensed) for formation through authorship. This repository contains the complete foundation that institutions, organizations, and research teams extend for their specific needs.
 
 ### How to Access Veritheia
 
-**For Researchers and Educators** (Coming Soon):
-- Hosted version will be available soon
+**For Researchers and Educators**:
+- Hosted version available
 - Focus on two journey types: Literature Review and Lesson Plan Creation
 - Early access for pilot participants
 
-**For Developers** (Available Now):
+**For Developers**:
 You can run Veritheia locally:
 
 1. **Prerequisites**:
@@ -329,10 +329,10 @@ You can run Veritheia locally:
    - Navigate to `https://localhost:5001` in your browser
    - The Aspire dashboard is available at `https://localhost:15888`
 
-### What You Can Do Today
+### Getting Started
 
 **If you're a researcher or educator**:
-- Review the documentation to understand how Veritheia will support your work
+- Review the documentation to understand how Veritheia supports your work
 - Contact us to participate in early pilot programs
 - Prepare your document collections and research questions
 
@@ -342,7 +342,7 @@ You can run Veritheia locally:
 - Contribute to the open-source development
 - See [Implementation Guide](./04-IMPLEMENTATION.md) for technical details
 
-### Next Steps
+### Your Journey
 
 1. **Understand the Concept**: Read through this guide to understand how Veritheia works
 2. **Define Your Framework**: Start thinking about your research questions and criteria
@@ -371,7 +371,7 @@ You verify through engagement. The AI's assessments are measurements, not truths
 
 ### "What if documents are assessed incorrectly?"
 
-You can override assessments, refine criteria, or adjust frameworks. Misassessment often reveals framework ambiguity that, once clarified, improves future assessments. The system applies your refined frameworks to subsequent processing.
+You can override assessments, refine criteria, or adjust frameworks. Misassessment often reveals framework ambiguity that, once clarified, improves subsequent assessments. The system applies your refined frameworks to subsequent processing.
 
 ## The Invitation to Formation
 

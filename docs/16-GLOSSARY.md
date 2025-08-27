@@ -178,15 +178,16 @@ Enforced through:
 - Third-party APIs
 - Email services
 
-### MVP vs Future
+### System Architecture
 
-**MVP** (Launch demonstration):
+**Open Source Foundation** (Always Available):
 - Single user with multiple personas
 - Two journey types: Literature review, Lesson plan creation
 - Monolithic deployment
-- No cross-user sharing
+- Complete formation through authorship capability
+- Available in this repository for institutions to extend
 
-**Future** (architectural capability):
+**Institutional Extensions** (Built from Foundation):
 - Multi-user collaboration
 - Federation across instances
 - Distributed deployment

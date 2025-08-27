@@ -2,7 +2,7 @@
 
 ## 1. Overview
 
-Veritheia is formative technology - epistemic infrastructure that makes formation scalable in the midst of information overload. The system provides journey projection spaces where documents are transformed according to user-defined intellectual frameworks, enabling formation through authorship. Users develop intellectual capacity through engagement with projected documents, not through consumption of AI-generated outputs.
+Veritheia is formative technology - epistemic infrastructure that makes formation scalable in the midst of information overload. This specification defines the **open source foundation** available in this repository that institutions, organizations, and research teams extend for their specific needs. The foundation includes explicit extension points and design patterns because institutional deployments require collaborative capabilities (cross-user sharing, federation, distributed operation) while preserving the core principle of formation through authorship. The foundation provides journey projection spaces where documents are transformed according to user-defined intellectual frameworks, enabling formation through authorship. Users develop intellectual capacity through engagement with projected documents, not through consumption of AI-generated outputs.
 
 > **Formation Note: The Neurosymbolic Transcendence** - The system demonstrates the revolutionary capability where users author their own symbolic systems through natural language. When a researcher writes "Papers are relevant if they provide empirical evidence," or a teacher writes "Good essays use sensory details," these natural language statements become the symbolic rules governing document processing. No programming required—the user's words ARE the symbolic system.
 
@@ -40,7 +40,7 @@ The system supports formative journeys - intellectual development through engage
    - Decision reasoning that shows evolving judgment
    - Framework refinements that demonstrate deepening understanding
    - Insights authored through engagement (not AI-generated)
-   - Accumulated capacity for future scholarly work
+   - Accumulated capacity for scholarly work
 
 ### 2.2 Pedagogical Formation Journey: Educational Assessment
 
@@ -112,7 +112,7 @@ The system follows a composable architectural pattern where components can be co
 
 **ApiGateway Component**: The public interface component provides HTTP API endpoints for external system integration. This component imports the ApiService component and exposes its programming interface through HTTP protocols. It serves as the bridge between external systems and the core business logic.
 
-**MCPGateway Component**: The AI agent interface component provides Model Context Protocol endpoints for AI agent integration. This component imports the ApiService component and exposes its programming interface through MCP protocols. It enables AI agents to access system functionality through standardized MCP interfaces.
+**McpGateway Component**: The AI agent interface component provides Model Context Protocol endpoints for AI agent integration. This component imports the ApiService component and exposes its programming interface through MCP protocols. It enables AI agents to access system functionality through standardized MCP interfaces.
 
 ### 4.2 Composition Patterns
 
@@ -459,7 +459,7 @@ public class ConstrainedCompositionProcess : IAnalyticalProcess
 - User develops capacity to engage with large document corpora (scales beyond manual limits)
 - Authors synthesis through engagement with projected documents (not AI-generated summaries)
 - Evolves theoretical framework through corpus encounter (formation through authorship)
-- Builds accumulated scholarly capacity for future literature reviews
+- Builds accumulated scholarly capacity for literature reviews
 - Journey documentation shows intellectual development trajectory
 
 ### 5.2 Pedagogical Formation Success  
@@ -478,7 +478,7 @@ public class ConstrainedCompositionProcess : IAnalyticalProcess
 
 ### 5.4 Performance Success
 - Performance requirements to be determined based on actual implementation and user testing
-- Success criteria will emerge from real usage patterns, not predetermined assumptions
+- Success criteria emerge from real usage patterns, not predetermined assumptions
 
 ## 6. Implementation Notes
 
@@ -516,3 +516,9 @@ Failure information must be preserved for the journey record. Users must be able
 **Extension Path**: New formative journey types must enable formation through authorship - users must develop intellectual capacity through engagement, not receive AI-generated outputs
 
 The MVP embodies LLAssist and EdgePrompt as concrete implementations within the Veritheia platform. Both are proto-Veritheia systems that demonstrate formative journey patterns - LLAssist for research formation through literature engagement, EdgePrompt for pedagogical formation through assessment cycles. Veritheia provides the unified infrastructure that makes both possible while maintaining intellectual sovereignty through journey projection spaces and strict user partition boundaries.
+
+## 8. Extension and Configuration Patterns
+
+The system implements composable extension patterns serving as architectural foundations rather than implementation constraints. Core functionality extends through composable components while maintaining formation through authorship. The MVP represents Pattern A (Simple Implementation) with clear paths to Pattern B (Extended) and Pattern C (Hybrid) through configuration rather than code modification.
+
+All extensions must support formation through authorship within journey projection spaces. Extensions cannot generate insights for users or make decisions on their behalf. New processes implement the IAnalyticalProcess interface, gaining access to platform services. Pattern evolution maintains backward compatibility with clear deprecation processes ensuring all extensions serve intellectual development rather than generic document processing.

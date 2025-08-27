@@ -129,7 +129,7 @@ Consider Dr. Sarah facing 3,000 papers for her systematic review. Traditional AI
 
 With Veritheia, she defines her research questions and vocabulary. The system measures all 3,000 papers against HER criteria—not generic importance. She engages with organized results, making inclusion decisions that build her scholarly judgment. 
 
-The key: Sarah doesn't just complete a review; she develops the capacity to conduct future reviews. Her formation—the accumulated understanding from this journey—becomes part of her expertise. The system amplified her capability without replacing her judgment.
+The key: Sarah doesn't just complete a review; she develops the capacity to conduct literature reviews. Her formation—the accumulated understanding from this journey—becomes part of her expertise. The system amplified her capability without replacing her judgment.
 
 ## Formation Through Authorship
 

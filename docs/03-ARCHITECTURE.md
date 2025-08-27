@@ -108,15 +108,25 @@ The JSONB fields within entities like Persona demonstrate controlled flexibility
 
 HNSW indexing on vector columns enables semantic search as a first-class domain operation rather than an external service. When the system searches for documents similar to a query, it performs this operation within the same transactional context as relational queries. A single query can join semantic similarity with relational filters, maintaining ACID properties across both vector and scalar operations. This unified querying eliminates the eventual consistency problems that plague systems splitting these concerns across multiple databases.
 
-#### 2. Client Architecture
+#### 2. Component Architecture
 
-The Presentation tier implements two distinct interfaces serving complementary purposes: Blazor Server for full-capability interaction and Web API for headless extensibility.
+**Critical Naming Imperatives:**
+- **Web Component**: Implements MVVM/MVC patterns for web presentation. NOT an API. Uses standard MVC controllers for form handling (e.g., `/auth/login` for authentication forms). Never use "API" naming or routing in the Web layer.
+- **ApiService Component**: Core business logic layer that is protocol-agnostic. The term "API" refers to Application Programming Interface (method calls), NOT HTTP endpoints.
+- **ApiGateway Component**: The HTTP API gateway for external integration. This is the ONLY component with `/api/*` routes for RESTful services.
+- **McpGateway Component**: The MCP API gateway for AI agent integration via Model Context Protocol.
 
-Blazor Server provides direct access to the system's complete functionality through stateful, real-time, bidirectional communication. The SignalR connection maintains live server state, enabling responsive UI updates without request-response overhead. Complex workflows like iterative document assessment, real-time journey progression, and interactive formation development operate through this channel without translation layers between server logic and UI state. This approach trades consumer internet compatibility—requiring persistent WebSocket connections, consuming server memory per user, depending on .NET runtime—for development efficiency and capability depth. The UI components directly invoke service methods, share domain models, and participate in transactions without serialization boundaries. This is the interface for serious users engaged in sustained intellectual work, where capability matters more than scale.
+The Presentation tier implements a composable architectural pattern where components combine in different configurations to serve various deployment scenarios. Each component serves a specific architectural role with well-defined interfaces for composition.
 
-The Web API serves a different constituency: headless automation, third-party integration, and eventual internet-scale exposure. RESTful endpoints provide stateless access to core operations—document ingestion, journey initiation, process execution, result retrieval. Each endpoint represents a bounded capability with explicit contracts, versioning, and authentication. External systems can orchestrate Veritheia's capabilities without understanding its internal architecture. Future consumer applications can access selective functionality through gateway patterns that manage resource consumption and enforce usage boundaries. This is the interface for ecosystem participation, where interoperability matters more than depth.
+The ApiService component forms the core business logic library, providing application programming interfaces for all system operations. The term "API" here refers to Application Programming Interface, not HTTP REST API—this component contains pure business logic, data access patterns, and domain services without any presentation or transport concerns. The ApiService enforces the fundamental principle that users remain authors of their intellectual work by centralizing business logic and user data isolation, ensuring all operations respect user boundaries and that formation data belongs exclusively to users.
 
-This dual-interface architecture reflects a fundamental recognition: different consumers require different interaction models. Power users engaged in complex intellectual work benefit from Blazor's rich, stateful interaction. Automated systems and lightweight consumers need the simplicity and standardization of REST APIs. By providing both, the system avoids forcing either constituency into an inappropriate interaction pattern. The same service layer supports both interfaces, ensuring consistency while allowing each to optimize for its specific use case.
+The Web component provides the user interface through Blazor Server, importing the ApiService component and calling its programming interface directly. This direct method invocation eliminates network overhead while maintaining clean architectural boundaries. The SignalR connection maintains live server state, enabling responsive UI updates for complex workflows like iterative document assessment and real-time journey progression. UI components directly invoke service methods, share domain models, and participate in transactions without serialization boundaries—the interface for serious users engaged in sustained intellectual work where capability matters more than scale.
+
+The ApiGateway component provides HTTP API endpoints for external system integration, importing the ApiService component and exposing its programming interface through HTTP protocols. This enables external systems to access formation data while maintaining the same user boundaries and data isolation enforced by ApiService. RESTful endpoints provide stateless access to core operations with explicit contracts, versioning, and authentication.
+
+The McpGateway component provides Model Context Protocol endpoints for AI agent integration, importing the ApiService component and exposing its programming interface through MCP protocols. AI agents can assist users in their formation journey while maintaining strict boundaries that preserve user agency—agents access formation data and provide assistance but cannot generate insights or make decisions on behalf of users.
+
+This composable pattern enables different deployment scenarios through component combination while maintaining the same interface contracts and user data isolation. Components communicate through direct method calls within the same process, with the ApiService defining the programming interface that other components consume. The architecture serves different constituencies without forcing either into inappropriate patterns: power users get rich stateful interaction through Blazor Server, while automated systems get standardized REST APIs for ecosystem participation.
 
 #### 3. Scalability Through Neurosymbolic Transcendence
 
@@ -151,7 +161,7 @@ The architecture is anti-surveillance by design while enabling explicit, consens
 
 Yet the same architecture that prevents surveillance enables rich sharing when users choose it. A researcher can publish their journey for peer review, creating an explicit bridge that others can traverse with permission. Collaborators can federate their formation spaces, maintaining distinct ownership while enabling cross-pollination. Knowledge can be transferred, cited, and built upon—but only through conscious acts of sharing that preserve attribution chains. The technical mechanism enforces the ethical principle: intellectual work remains private by default, shareable by choice, and never subject to ambient surveillance. The system processes only what users explicitly choose to share, when they choose to share it, with whom they choose to share.
 
-Note: Not all capabilities described in this architecture—particularly cross-user sharing, federation, and multi-node partitioning—will be available in the MVP or even the first release. However, the system is designed from the foundation to support these capabilities without architectural revision. The database schema, partition strategy, and identity model are structured to enable these features when needed. Building with the end in mind ensures that early implementation decisions don't preclude future capabilities. The MVP focuses on single-user formation within a monolithic deployment, but every design choice preserves the path to collaborative, distributed operation.
+**Open Source Foundation**: This repository provides the complete open source foundation for formation through authorship - single-user formation within a monolithic deployment. The foundation includes explicit design patterns and extension points because institutions, organizations, and research teams will extend from it for their specific needs: cross-user sharing, federation, multi-node partitioning, and collaborative capabilities. These extension points ensure that institutional deployments preserve the core principle of user intellectual sovereignty without requiring architectural revision or compromising formation through authorship.
 
 #### 3. Neurosymbolic Architecture: Transcended Integration
 
@@ -170,6 +180,18 @@ Mechanical systematic application ensures absolute consistency through determini
 This architecture enables transcendent formation by synthesizing user authorship with systematic processing. Users create their own symbolic systems through natural language frameworks that express their unique intellectual positions, while neural understanding provides semantic interpretation that enables systematic application of these authored systems to large document corpora. Mechanical orchestration ensures that this processing occurs without bias, omission, or inconsistency, creating conditions where formation accumulates through authentic engagement with documents that have been systematically processed through the user's own authored intellectual framework.
 
 This transcends traditional neurosymbolic approaches by making the symbolic component user-authored and dynamically created for each journey, while maintaining mechanical systematic application through neural semantic understanding.
+
+#### 4. Authentication and User Identity
+
+Authentication in Veritheia serves to verify user identity and maintain data isolation, not to gate-keep system resources. Users remain authors of their intellectual work regardless of authentication status. The system enforces user boundaries to protect personal formation while ensuring users maintain full control over their insights, preventing cross-user contamination of intellectual work.
+
+The authentication architecture embodies three core principles. User sovereignty ensures that users control their intellectual property and formation data, with authentication serving data isolation rather than access control, free from external dependencies that might compromise identity verification. Data isolation partitions all user data by UserId through composite primary keys that enforce user boundaries, making cross-user data access impossible at the database level. Minimal identity requirements mean the system needs only a unique user identifier—email, username, or external ID—with optional display name for the interface and no password requirements for basic functionality.
+
+The system supports multiple authentication patterns through the IAuthenticationProvider interface. Simple identifier authentication suits local deployment and development scenarios, requiring only a single identifier with create-or-get user semantics and session-based authentication. External identity provider integration enables enterprise deployment in multi-tenant environments through OAuth/SAML with role-based access control and audit logging. Hybrid authentication supports mixed deployment scenarios with multiple providers, fallback mechanisms, and seamless provider switching based on user preference.
+
+Session management operates through configurable patterns within the composable architecture. Cookie-based sessions serve web applications with encrypted cookies and automatic session management, maintaining browser-based session persistence in a stateless server architecture. Token-based sessions enable API access and mobile applications using JWT or similar formats with stateless authentication and configurable expiration across domains. Database sessions support high-security environments requiring full audit trails, centralized session management, and complex session policies with invalidation control.
+
+Authentication integrates across the composable architectural pattern through well-defined interfaces and context propagation mechanisms. Authentication occurs within the Web component, which imports the ApiService component directly. User context flows from Web to ApiService through method parameters, maintaining user boundaries at the business logic level. The ApiGateway component handles HTTP authentication protocols while delegating business logic to ApiService. This integration preserves user agency by ensuring external access respects the same authentication and authorization patterns, preventing compromise of user intellectual sovereignty.
 
 ### IV. Data Model: Journey Projection Spaces
 
@@ -254,7 +276,7 @@ The architecture is designed for extensibility through a set of formal interface
 
 **Implementation Constraint**: Do not engineer process chaining, workflow automation, or inter-process communication. Users compose through journey creation. The system provides processes; users author the composition.
 
-*   **Ingestion Connectors:** This is a defined interface that allows for the development of new data ingestion pathways. While the core system may only support direct file uploads, this model allows for the future addition of connectors for sources such as:
+*   **Ingestion Connectors:** This interface enables extension through new data ingestion pathways. The open source foundation supports direct file uploads, while institutional extensions include connectors for sources such as:
     *   Web scrapers
     *   Cloud storage providers (e.g., Google Drive, Dropbox)
     *   API-based data sources
@@ -374,7 +396,7 @@ Journals capture the narrative of intellectual development:
 - Multiple journals per journey (Research, Method, Decision, Reflection)
 - Written as coherent narratives, not logs
 - Assembled into context for process execution
-- Designed for potential future sharing while maintaining privacy in MVP
+- Designed for sharing capability while maintaining privacy in MVP
 
 #### Context Management
 
@@ -394,7 +416,7 @@ The system must fail rather than fake. Every operation either completes with aut
 
 ### Absolute Prohibitions
 
-The system must never generate substitute data when neural processing fails in production or development environments. If embedding generation fails, throw an exception—never return random vectors. If semantic extraction fails, throw an exception—never return keyword splits. If assessment fails, throw an exception—never return default scores. Fake data corrupts formation permanently. One random vector pollutes all future similarity calculations. One fake assessment distorts pattern recognition. One skipped document breaks systematic guarantees.
+The system must never generate substitute data when neural processing fails in production or development environments. If embedding generation fails, throw an exception—never return random vectors. If semantic extraction fails, throw an exception—never return keyword splits. If assessment fails, throw an exception—never return default scores. Fake data corrupts formation permanently. One random vector pollutes all similarity calculations. One fake assessment distorts pattern recognition. One skipped document breaks systematic guarantees.
 
 **Test Environment Exception**: Integration tests may use deterministic fake embeddings ONLY when validating data flow paths where language models are unavailable (CI environments, resource-constrained development machines). These test doubles must be clearly marked with interfaces like `ITestCognitiveAdapter` and must never be accessible in production code paths. The fake data must be deterministic for test repeatability. Any test using fake data must be explicitly labeled as an integration path test, not a formation validity test.
 
@@ -406,7 +428,7 @@ The system must never silently skip failures during processing. Every document m
 
 External service failures must immediately halt processing with descriptive exceptions. When the language model cannot be reached, when the database rejects constraints, when the file system denies access—fail immediately. Do not retry silently. Do not degrade gracefully. Do not continue hopefully. Fail fast, fail clear, fail honest.
 
-Data validation failures must prevent storage entirely. Invalid embeddings must not enter the vector space. Malformed assessments must not enter the database. Corrupted documents must not enter the corpus. Reject at the boundary. Fail at validation. Never store questionable data hoping to handle it later.
+Data validation failures must prevent storage entirely. Invalid embeddings must not enter the vector space. Malformed assessments must not enter the database. Corrupted documents must not enter the corpus. Reject at the boundary. Fail at validation. Never store questionable data.
 
 Transaction boundaries must encompass individual entity operations. Each document processing, embedding generation, or assessment storage occurs within its own transaction boundary. When processing a single document fails, that document's transaction rolls back while others complete successfully. Track all failures explicitly for user visibility. No silent partial commits within an entity. No hiding of entity-level failures. Each entity operation either succeeds atomically or fails with clear reporting.
 

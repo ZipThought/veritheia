@@ -73,30 +73,10 @@ public class EmbeddingService
             switch (dimension)
             {
                 case 1536:
-                    var vector1536 = new SearchVector1536
-                    {
-                        IndexId = searchIndex.Id,
-                        Embedding = new Pgvector.Vector(embedding)
-                    };
-                    _db.SearchVectors1536.Add(vector1536);
-                    break;
-
                 case 768:
-                    var vector768 = new SearchVector768
-                    {
-                        IndexId = searchIndex.Id,
-                        Embedding = new Pgvector.Vector(embedding)
-                    };
-                    _db.SearchVectors768.Add(vector768);
-                    break;
-
                 case 384:
-                    var vector384 = new SearchVector384
-                    {
-                        IndexId = searchIndex.Id,
-                        Embedding = new Pgvector.Vector(embedding)
-                    };
-                    _db.SearchVectors384.Add(vector384);
+                    // TODO: Re-enable vector storage after fixing pgvector configuration
+                    _logger.LogWarning("Vector storage temporarily disabled for dimension {Dimension}", dimension);
                     break;
 
                 default:

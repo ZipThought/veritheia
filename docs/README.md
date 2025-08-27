@@ -4,6 +4,8 @@
 
 This directory contains the complete specification for Veritheia—a system where you develop your own understanding by engaging with documents through your questions and frameworks. Unlike AI tools that generate summaries or answers, Veritheia helps you build genuine comprehension at scale.
 
+This repository provides the **open source foundation** for formation through authorship. Institutions, organizations, and research teams extend from this foundation for their specific collaborative and distributed needs.
+
 **New to Veritheia?** Start with [01-VISION](./01-VISION.md) for the conceptual overview, or jump to [16-GLOSSARY](./16-GLOSSARY.md) if you encounter unfamiliar terms.
 
 **Note**: The current implementation diverges from this specification. See [Development Progress](../development/PROGRESS.md) for details on the architectural refactoring needed to match the specification.
@@ -14,7 +16,7 @@ This directory contains the complete specification for Veritheia—a system wher
 - **ApiService**: Should be core business logic library (Application Programming Interface, not HTTP REST)
 - **Web**: Should import ApiService directly for in-process communication
 - **ApiGateway**: HTTP API component for external integration
-- **MCPGateway**: AI agent integration via Model Context Protocol
+- **McpGateway**: AI agent integration via Model Context Protocol
 
 **Key Principles**:
 - **User Agency**: Users remain the authors of their intellectual work
@@ -26,7 +28,7 @@ This directory contains the complete specification for Veritheia—a system wher
 
 Documents are numbered to suggest a reading path:
 - **For Users**: Start with [01-VISION](./01-VISION.md) to understand why Veritheia exists, then [02-USER-GUIDE](./02-USER-GUIDE.md) to see what it enables
-- **For Developers**: Read [01-VISION](./01-VISION.md) through [05-MVP-SPECIFICATION](./05-MVP-SPECIFICATION.md) in order for complete context
+- **For Developers**: Read [01-VISION](./01-VISION.md) through [05-FOUNDATION-SPECIFICATION](./05-FOUNDATION-SPECIFICATION.md) in order for complete context
 - **For Contributors**: Review [15-DOCUMENTATION-GUIDE](./15-DOCUMENTATION-GUIDE.md) before making changes
 
 
@@ -48,34 +50,19 @@ Documents are numbered to suggest a reading path:
    - Components that amplify rather than replace thinking
    - Patterns that ensure personal understanding
    - Models that make insights non-transferable
+   - Authentication and user identity patterns
+   - Component architecture and composition patterns
    
 **[04-IMPLEMENTATION.md](./04-IMPLEMENTATION.md)** - Technical implementation philosophy
    - Progressive development approach
    - Core runtime components
    - Database as domain model
 
-**[05-MVP-SPECIFICATION.md](./05-MVP-SPECIFICATION.md)** - Core formation patterns and architecture
+**[05-FOUNDATION-SPECIFICATION.md](./05-FOUNDATION-SPECIFICATION.md)** - Core formation patterns and architecture
    - Timeless architectural patterns for formation
    - Composable extension points for functionality
    - Configuration-driven system behavior
 
-### Architecture & System Design
-
-**[17-AUTHENTICATION-SYSTEM.md](./17-AUTHENTICATION-SYSTEM.md)** - User identity and data isolation patterns
-   - User sovereignty and data isolation principles
-   - Authentication patterns preserving user agency
-   - System integration patterns across components
-
-**[18-COMPOSABLE-EXTENSION-PATTERNS.md](./18-COMPOSABLE-EXTENSION-PATTERNS.md)** - Timeless specification patterns
-   - Specification-first development methodology
-   - Extension patterns and configuration schemas
-   - Superset architecture for progressive enhancement
-
-**[19-PROJECT-ARCHITECTURE.md](./19-PROJECT-ARCHITECTURE.md)** - System structure and communication patterns
-   - Composable component architecture
-   - In-process communication patterns
-   - Deployment scenarios and extension points
-   - MCPGateway and AI agent integration patterns
 
 ### Domain & Implementation
 

@@ -13,7 +13,17 @@
 </head>
 
 <body>
-    <Routes />
+    <ErrorBoundary>
+        <ChildContent>
+            <Routes />
+        </ChildContent>
+        <ErrorContent>
+            <div class="alert alert-danger m-3">
+                <h4>An error has occurred</h4>
+                <p>Something went wrong. Please check the server console for details.</p>
+            </div>
+        </ErrorContent>
+    </ErrorBoundary>
     <script src="_framework/blazor.server.js"></script>
 </body>
 

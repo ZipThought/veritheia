@@ -1,7 +1,7 @@
 ﻿@using Microsoft.AspNetCore.Components.Web
 @using veritheia.Web.Components.Layout
 @using veritheia.Web.Services
-@inject AuthenticationService AuthService
+@inject RenderContextService ContextService
 @inject NavigationManager Navigation
 @inherits LayoutComponentBase
 
@@ -32,10 +32,32 @@ else
 
 @code {
     private bool isAuthenticated = false;
+    private RenderContext? context;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        isAuthenticated = AuthService.IsAuthenticated();
+        context = ContextService.GetOrCreateContext();
+        context.RequireCurrentUser();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Reset context for new render cycle
+        ContextService.Reset();
+        
+        // Get new context and declare needs
+        context = ContextService.GetOrCreateContext();
+        context.RequireCurrentUser();
+
+        // Let child components declare needs
+        await base.OnParametersSetAsync();
+
+        // Single bulk load after all demands registered
+        await ContextService.InitializeContextAsync();
+
+        isAuthenticated = context.CurrentUser != null;
+        
+        // Redirect to login if not authenticated and not already on login page
         if (!isAuthenticated && !Navigation.Uri.EndsWith("/login"))
         {
             Navigation.NavigateTo("/login");

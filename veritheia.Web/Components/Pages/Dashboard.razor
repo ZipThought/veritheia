@@ -1,18 +1,19 @@
 @page "/"
+@page "/dashboard"
 @using veritheia.Web.Services
 @using Veritheia.Data.Entities
 @using Veritheia.Data.Services
 @using Veritheia.ApiService.Services
 @using Veritheia.Common.Models
+@inject RenderContextService ContextService
 @inject Veritheia.ApiService.Services.JourneyApiService JourneyService
-@inject AuthenticationService AuthService
 @inject NavigationManager Navigation
 
 <PageTitle>Dashboard - Veritheia</PageTitle>
 
 <div class="dashboard">
     <div class="dashboard-header">
-        <h1 class="dashboard-title">Active Journeys (@(_statistics?.ActiveJourneys ?? 0))</h1>
+        <h1 class="dashboard-title">Active Journeys (@(_journeys?.Count ?? 0))</h1>
         <button class="btn btn-primary" @onclick="NavigateToCreateJourney">
             <span class="btn-icon">+</span>
             New Journey
@@ -31,7 +32,7 @@
         <div class="error-state">
             <h3>Error Loading Dashboard</h3>
             <p>@_error</p>
-            <button class="btn btn-primary" @onclick="LoadDashboardData">Retry</button>
+            <button class="btn btn-primary" @onclick="OnInitializedAsync">Retry</button>
         </div>
     }
     else if (_journeys?.Any() != true)
@@ -140,6 +141,7 @@
         </div>
     }
 
+    @* Recent activity will be shown when JourneyStatistics is implemented
     @if (_statistics?.RecentActivity.Any() == true)
     {
         <div class="recent-activity">
@@ -158,50 +160,56 @@
             </div>
         </div>
     }
+    *@
 </div>
 
 @code {
     private List<Journey>? _journeys;
-    private JourneyStatistics? _statistics;
+    // private JourneyStatistics? _statistics; // Will be used when JourneyStatistics type is defined
     private UserIdentity? _currentUser;
     private bool _loading = true;
     private string? _error;
+    private RenderContext? context;
+
+    protected override void OnInitialized()
+    {
+        context = ContextService.GetOrCreateContext();
+        context.RequireCurrentUser();
+        context.RequireJourneys();
+        context.RequireStatistics();
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadDashboardData();
-    }
-
-    private async Task LoadDashboardData()
-    {
-        _loading = true;
-        _error = null;
-        StateHasChanged();
-
         try
         {
-            // Get current authenticated user
-            _currentUser = await AuthService.GetCurrentUserAsync();
+            _loading = true;
+            _error = null;
+            
+            // Initialize the context to fetch all demanded data
+            await ContextService.InitializeContextAsync();
+            
+            _currentUser = context?.CurrentUser;
+
             if (_currentUser == null)
             {
-                Navigation.NavigateTo("/login");
+                // MainLayout will handle redirect to login
+                _loading = false;
                 return;
             }
-            
-            // Load user's journeys with related data
-            _journeys = await JourneyService.GetUserJourneysAsync(_currentUser.Id);
-            
-            // Load dashboard statistics
-            _statistics = await JourneyService.GetJourneyStatisticsAsync(_currentUser.Id);
+
+            _journeys = context?.Journeys;
+            // Statistics will be loaded when JourneyStatistics type is defined
+            // _statistics = context?.Statistics;
+            _loading = false;
         }
         catch (Exception ex)
         {
             _error = $"Failed to load dashboard: {ex.Message}";
-            Console.WriteLine($"Dashboard error: {ex}");
+            _loading = false;
         }
         finally
         {
-            _loading = false;
             StateHasChanged();
         }
     }
@@ -228,7 +236,7 @@
         try
         {
             await JourneyService.ArchiveJourneyAsync(_currentUser.Id, journeyId);
-            await LoadDashboardData(); // Refresh the dashboard
+            Navigation.NavigateTo(Navigation.Uri, forceLoad: true); // Force reload to refresh data
         }
         catch (Exception ex)
         {
