@@ -72,7 +72,9 @@ public class RenderContext
             if (_demands.Contains("personas"))
             {
                 var personaService = _services.GetRequiredService<Veritheia.ApiService.Services.PersonaApiService>();
-                _data["personas"] = await personaService.GetUserPersonasAsync(userId);
+                var personas = await personaService.GetUserPersonasAsync(userId);
+                _data["personas"] = personas;
+                Console.WriteLine($"[RenderContext] Fetched {personas?.Count ?? 0} personas for user {userId}");
             }
 
             // Statistics commented out until JourneyStatistics type is defined

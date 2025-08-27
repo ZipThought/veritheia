@@ -164,6 +164,16 @@
 
         // Load data from context
         availablePersonas = context?.Personas ?? new List<Persona>();
+        
+        // Log for debugging
+        Console.WriteLine($"[CreateJourney] User: {currentUser?.Id}, Personas loaded: {availablePersonas.Count}");
+        if (availablePersonas.Any())
+        {
+            foreach (var persona in availablePersonas)
+            {
+                Console.WriteLine($"[CreateJourney] Persona: {persona.Id} - {persona.Domain}");
+            }
+        }
 
         // Load available processes from configuration (not from database)
         availableProcesses = ProcessConfig.GetAvailableProcesses();
